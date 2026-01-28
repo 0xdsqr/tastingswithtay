@@ -11,20 +11,39 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Moth" },
+      { title: "Tastings with Tay | Recipes, Life & Good Food" },
+      {
+        name: "description",
+        content:
+          "Join Tay on a culinary journey through delicious recipes, lifestyle tips, and curated kitchen essentials.",
+      },
     ],
-    links: [{ rel: "stylesheet", href: appCss }],
+    links: [
+      { rel: "stylesheet", href: appCss },
+      {
+        rel: "icon",
+        href: "/icon-light-32x32.png",
+        media: "(prefers-color-scheme: light)",
+      },
+      {
+        rel: "icon",
+        href: "/icon-dark-32x32.png",
+        media: "(prefers-color-scheme: dark)",
+      },
+      { rel: "icon", href: "/icon.svg", type: "image/svg+xml" },
+      { rel: "apple-touch-icon", href: "/apple-icon.png" },
+    ],
   }),
   component: RootComponent,
 })
 
-function RootComponent() {
+function RootComponent(): React.ReactElement {
   return (
     <html lang="en">
       <head>
         <HeadContent />
       </head>
-      <body className="bg-background text-foreground antialiased">
+      <body className="min-h-screen bg-background font-sans text-foreground antialiased">
         <Outlet />
         <Scripts />
       </body>
