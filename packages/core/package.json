@@ -1,0 +1,44 @@
+{
+  "name": "@twt/core",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "auth:generate": "bunx @better-auth/cli generate --config scripts/auth-cli.ts --output ../db/src/auth-schema.ts",
+    "build": "bun run scripts/build.ts",
+    "clean": "git clean -xdf dist node_modules"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/esm/index.js",
+      "types": "./dist/types/index.d.ts"
+    },
+    "./auth": {
+      "import": "./dist/esm/auth/index.js",
+      "types": "./dist/types/auth/index.d.ts"
+    },
+    "./api": {
+      "import": "./dist/esm/api/index.js",
+      "types": "./dist/types/api/index.d.ts"
+    },
+    "./*": {
+      "import": "./dist/esm/*.js",
+      "types": "./dist/types/*.d.ts"
+    }
+  },
+  "devDependencies": {
+    "@better-auth/cli": "^1.4.10",
+    "@twt/tsconfig": "workspace:*",
+    "@types/pg": "^8.15.6",
+    "bun-types": "latest"
+  },
+  "dependencies": {
+    "@twt/db": "workspace:*",
+    "@trpc/server": "^11.1.0",
+    "better-auth": "^1.4.10",
+    "drizzle-orm": "^0.45.1",
+    "pg": "^8.16.3",
+    "superjson": "^2.2.5",
+    "zod": "^3.24.0"
+  }
+}
