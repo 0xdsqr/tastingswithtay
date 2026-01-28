@@ -1,4 +1,4 @@
-import { cn } from "@moth/ui/lib/utils"
+import { cn } from "@twt/ui/lib/utils"
 import * as AvatarPrimitive from "@radix-ui/react-avatar"
 import type * as React from "react"
 

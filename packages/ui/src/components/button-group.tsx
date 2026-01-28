@@ -1,5 +1,5 @@
-import { Separator } from "@moth/ui/components/separator"
-import { cn } from "@moth/ui/lib/utils"
+import { Separator } from "@twt/ui/components/separator"
+import { cn } from "@twt/ui/lib/utils"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
 

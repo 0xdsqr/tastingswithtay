@@ -1,5 +1,5 @@
 {
-  description = "moth";
+  description = "tastingswithtay";
 
   nixConfig = {
     extra-experimental-features = "nix-command flakes";

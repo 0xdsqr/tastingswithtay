@@ -4,8 +4,8 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@moth/ui/components/dialog"
-import { cn } from "@moth/ui/lib/utils"
+} from "@twt/ui/components/dialog"
+import { cn } from "@twt/ui/lib/utils"
 import { Command as CommandPrimitive } from "cmdk"
 import { SearchIcon } from "lucide-react"
 import type * as React from "react"

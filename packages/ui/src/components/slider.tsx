@@ -1,6 +1,6 @@
 "use client"
 
-import { cn } from "@moth/ui/lib/utils"
+import { cn } from "@twt/ui/lib/utils"
 import * as SliderPrimitive from "@radix-ui/react-slider"
 import * as React from "react"
 

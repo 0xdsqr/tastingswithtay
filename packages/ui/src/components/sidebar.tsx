@@ -1,24 +1,24 @@
 "use client"
 
-import { Button } from "@moth/ui/components/button"
-import { Input } from "@moth/ui/components/input"
-import { Separator } from "@moth/ui/components/separator"
+import { Button } from "@twt/ui/components/button"
+import { Input } from "@twt/ui/components/input"
+import { Separator } from "@twt/ui/components/separator"
 import {
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
-} from "@moth/ui/components/sheet"
-import { Skeleton } from "@moth/ui/components/skeleton"
+} from "@twt/ui/components/sheet"
+import { Skeleton } from "@twt/ui/components/skeleton"
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@moth/ui/components/tooltip"
-import { useIsMobile } from "@moth/ui/hooks/use-mobile"
-import { cn } from "@moth/ui/lib/utils"
+} from "@twt/ui/components/tooltip"
+import { useIsMobile } from "@twt/ui/hooks/use-mobile"
+import { cn } from "@twt/ui/lib/utils"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
 import { PanelLeftIcon } from "lucide-react"

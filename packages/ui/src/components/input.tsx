@@ -1,4 +1,4 @@
-import { cn } from "@moth/ui/lib/utils"
+import { cn } from "@twt/ui/lib/utils"
 import type * as React from "react"
 
 function Input({ className, type, ...props }: React.ComponentProps<"input">) {

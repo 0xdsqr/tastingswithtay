@@ -1,7 +1,7 @@
 "use client"
 
-import { Label } from "@moth/ui/components/label"
-import { cn } from "@moth/ui/lib/utils"
+import { Label } from "@twt/ui/components/label"
+import { cn } from "@twt/ui/lib/utils"
 import type * as LabelPrimitive from "@radix-ui/react-label"
 import { Slot } from "@radix-ui/react-slot"
 import * as React from "react"

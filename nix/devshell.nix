@@ -23,7 +23,7 @@ in
       ];
 
       shellHook = ''
-        echo "🪶 moth dev shell"
+        echo "🍷 tastingswithtay dev shell"
         echo "  bun:      $(bun --version)"
         echo "  node:     $(node --version)"
         echo "  nil:      $(nil --version 2>&1 | cut -d' ' -f2)"
