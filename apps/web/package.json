@@ -7,7 +7,8 @@
     "clean": "git clean -xdf dist node_modules .vinxi .output",
     "dev": "vite dev",
     "build": "vite build",
-    "generate": "tsr generate"
+    "generate": "tsr generate",
+    "db:seed": "bun run src/lib/db/seed.ts"
   },
   "dependencies": {
     "@twt/ui": "workspace:*",
@@ -20,6 +21,7 @@
     "@twt/tsconfig": "workspace:*",
     "@tailwindcss/vite": "^4.1.7",
     "@tanstack/router-plugin": "^1.120.3",
+    "@types/bun": "^1.2.14",
     "@types/react": "^19.1.5",
     "@types/react-dom": "^19.1.5",
     "@vitejs/plugin-react": "^4.5.2",
