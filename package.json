@@ -1,0 +1,20 @@
+{
+  "name": "tastingswithtay",
+  "type": "module",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "tooling/typescript"
+  ],
+  "scripts": {
+    "build": "bun run --filter web build",
+    "clean": "git clean -xdf node_modules dist .wrangler .turbo bun.lock"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}

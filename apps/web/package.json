@@ -1,0 +1,30 @@
+{
+  "name": "web",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "clean": "git clean -xdf dist node_modules .vinxi .output",
+    "dev": "vite dev",
+    "build": "vite build",
+    "generate": "tsr generate"
+  },
+  "dependencies": {
+    "@twt/ui": "workspace:*",
+    "@tanstack/react-router": "^1.120.3",
+    "@tanstack/react-start": "^1.120.3",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@twt/tsconfig": "workspace:*",
+    "@tailwindcss/vite": "^4.1.7",
+    "@tanstack/router-plugin": "^1.120.3",
+    "@types/react": "^19.1.5",
+    "@types/react-dom": "^19.1.5",
+    "@vitejs/plugin-react": "^4.5.2",
+    "tailwindcss": "^4.1.7",
+    "vite": "^6.3.5",
+    "vite-tsconfig-paths": "^5.1.4"
+  }
+}

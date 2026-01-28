@@ -1,0 +1,10 @@
+{
+  "extends": "@twt/tsconfig/tanstack-start.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "~/*": ["./src/*"]
+    }
+  },
+  "include": ["src/**/*", "*.config.ts"]
+}
