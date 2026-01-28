@@ -1,7 +1,7 @@
 "use client"
 
-import { Button, buttonVariants } from "@moth/ui/components/button"
-import { cn } from "@moth/ui/lib/utils"
+import { Button, buttonVariants } from "@twt/ui/components/button"
+import { cn } from "@twt/ui/lib/utils"
 import {
   ChevronDownIcon,
   ChevronLeftIcon,

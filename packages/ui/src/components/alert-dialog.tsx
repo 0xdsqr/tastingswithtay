@@ -1,6 +1,6 @@
-import { buttonVariants } from "@moth/ui/components/button"
-import { cn } from "@moth/ui/lib/utils"
 import * as AlertDialogPrimitive from "@radix-ui/react-alert-dialog"
+import { buttonVariants } from "@twt/ui/components/button"
+import { cn } from "@twt/ui/lib/utils"
 import type * as React from "react"
 
 function AlertDialog({

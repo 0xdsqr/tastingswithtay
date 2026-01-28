@@ -1,4 +1,4 @@
-import { cn } from "@moth/ui/lib/utils"
+import { cn } from "@twt/ui/lib/utils"
 import { GripVerticalIcon } from "lucide-react"
 import type * as React from "react"
 import * as ResizablePrimitive from "react-resizable-panels"

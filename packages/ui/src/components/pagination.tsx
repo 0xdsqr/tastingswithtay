@@ -1,5 +1,5 @@
-import { type Button, buttonVariants } from "@moth/ui/components/button"
-import { cn } from "@moth/ui/lib/utils"
+import { type Button, buttonVariants } from "@twt/ui/components/button"
+import { cn } from "@twt/ui/lib/utils"
 import {
   ChevronLeftIcon,
   ChevronRightIcon,

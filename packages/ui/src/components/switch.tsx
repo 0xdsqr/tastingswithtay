@@ -1,7 +1,7 @@
 "use client"
 
-import { cn } from "@moth/ui/lib/utils"
 import * as SwitchPrimitive from "@radix-ui/react-switch"
+import { cn } from "@twt/ui/lib/utils"
 import type * as React from "react"
 
 function Switch({

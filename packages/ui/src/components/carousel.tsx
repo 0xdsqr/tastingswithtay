@@ -1,5 +1,5 @@
-import { Button } from "@moth/ui/components/button"
-import { cn } from "@moth/ui/lib/utils"
+import { Button } from "@twt/ui/components/button"
+import { cn } from "@twt/ui/lib/utils"
 import useEmblaCarousel, {
   type UseEmblaCarouselType,
 } from "embla-carousel-react"

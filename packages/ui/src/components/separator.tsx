@@ -1,7 +1,7 @@
 "use client"
 
-import { cn } from "@moth/ui/lib/utils"
 import * as SeparatorPrimitive from "@radix-ui/react-separator"
+import { cn } from "@twt/ui/lib/utils"
 import type * as React from "react"
 
 function Separator({
