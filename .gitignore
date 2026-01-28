@@ -50,3 +50,12 @@ result-*
 
 # TanStack
 .tanstack
+
+# Temp/Reference files
+.temp
+
+# Database (root level only)
+/data/
+
+# Brand assets (under review)
+.github/assets/
