@@ -22,7 +22,7 @@ export const Route = createFileRoute("/wine/")({
   loader: async ({ context, deps }) => {
     const wines = await context.queryClient.fetchQuery(
       context.trpc.wines.list.queryOptions({ type: deps.type }),
-    )
+    ) as Wine[]
     return { wines, activeType: deps.type ?? "All" }
   },
   component: WineCellarPage,
