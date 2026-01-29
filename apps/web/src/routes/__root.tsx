@@ -7,6 +7,7 @@ import {
 } from "@tanstack/react-router"
 import type { TRPCOptionsProxy } from "@trpc/tanstack-react-query"
 import type { AppRouter } from "@twt/core/api"
+import { ErrorBoundary } from "@twt/ui/components/error-boundary"
 import appCss from "../styles.css?url"
 
 export const Route = createRootRouteWithContext<{
@@ -50,7 +51,9 @@ function RootComponent(): React.ReactElement {
         <HeadContent />
       </head>
       <body className="min-h-screen bg-background font-sans text-foreground antialiased">
-        <Outlet />
+        <ErrorBoundary>
+          <Outlet />
+        </ErrorBoundary>
         <Scripts />
       </body>
     </html>
