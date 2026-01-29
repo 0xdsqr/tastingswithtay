@@ -1,5 +1,6 @@
 import type { Recipe } from "@twt/db/schema"
 import { Clock, Users } from "lucide-react"
+import { OptimizedImage } from "./optimized-image"
 
 interface RecipeCardProps {
   recipe: Recipe
@@ -21,7 +22,7 @@ export function RecipeCard({ recipe }: RecipeCardProps): React.ReactElement {
       <article className="flex h-full flex-col">
         <div className="relative mb-4 aspect-[4/3] overflow-hidden rounded-xl bg-muted">
           {recipe.image && (
-            <img
+            <OptimizedImage
               src={recipe.image}
               alt={recipe.title}
               className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"

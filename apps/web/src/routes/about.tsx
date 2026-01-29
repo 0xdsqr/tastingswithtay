@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router"
 import { Button } from "@twt/ui/components/button"
 import { Instagram, Mail } from "lucide-react"
 import { NewsletterSection } from "../components/newsletter-section"
+import { OptimizedImage } from "../components/optimized-image"
 import { SiteFooter } from "../components/site-footer"
 import { SiteHeader } from "../components/site-header"
 
@@ -21,7 +22,7 @@ function AboutPage(): React.ReactElement {
               {/* Image */}
               <div className="relative">
                 <div className="aspect-[4/5] overflow-hidden rounded-lg bg-muted">
-                  <img
+                  <OptimizedImage
                     src="/warm-portrait-of-woman-cooking-in-bright-kitchen-n.jpg"
                     alt="Tay in her kitchen"
                     className="h-full w-full object-cover"
@@ -155,7 +156,7 @@ function AboutPage(): React.ReactElement {
 
         {/* Image Break */}
         <section className="relative h-[50vh] lg:h-[60vh]">
-          <img
+          <OptimizedImage
             src="/beautiful-kitchen-scene-with-ingredients-and-cooki.jpg"
             alt="Cooking process in the kitchen"
             className="h-full w-full object-cover"
@@ -218,7 +219,7 @@ function AboutPage(): React.ReactElement {
 
               <div className="relative">
                 <div className="aspect-square overflow-hidden rounded-lg bg-muted">
-                  <img
+                  <OptimizedImage
                     src="/overhead-shot-of-colorful-ingredients-on-cutting-.jpg"
                     alt="Fresh ingredients on a cutting board"
                     className="h-full w-full object-cover"

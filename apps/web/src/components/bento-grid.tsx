@@ -4,6 +4,7 @@ import { Button } from "@twt/ui/components/button"
 import { ArrowRight, Clock, ShoppingBag, Users, Wine } from "lucide-react"
 import type React from "react"
 import { useEffect, useRef, useState } from "react"
+import { OptimizedImage } from "./optimized-image"
 
 function formatTime(minutes: number | null): string {
   if (!minutes) return ""
@@ -90,7 +91,7 @@ export function BentoGrid({
               >
                 <div className="relative h-full overflow-hidden rounded-2xl bg-card">
                   {featuredRecipe.image && (
-                    <img
+                    <OptimizedImage
                       src={featuredRecipe.image}
                       alt={featuredRecipe.title}
                       className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
@@ -140,7 +141,7 @@ export function BentoGrid({
               >
                 <div className="relative h-full overflow-hidden rounded-2xl bg-card">
                   {secondRecipe.image && (
-                    <img
+                    <OptimizedImage
                       src={secondRecipe.image}
                       alt={secondRecipe.title}
                       className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
@@ -173,7 +174,7 @@ export function BentoGrid({
               >
                 <div className="relative h-full overflow-hidden rounded-2xl bg-card">
                   {thirdRecipe.image && (
-                    <img
+                    <OptimizedImage
                       src={thirdRecipe.image}
                       alt={thirdRecipe.title}
                       className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
