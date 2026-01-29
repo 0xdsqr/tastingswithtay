@@ -1,5 +1,3 @@
-"use client"
-
 import { Button } from "@twt/ui/components/button"
 import { Input } from "@twt/ui/components/input"
 import type React from "react"

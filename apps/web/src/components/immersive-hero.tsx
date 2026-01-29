@@ -1,50 +1,58 @@
-"use client"
-
+import { Link } from "@tanstack/react-router"
+import type { Recipe } from "@twt/db/schema"
 import { Button } from "@twt/ui/components/button"
 import { ArrowDown, Clock, Users } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 
-const heroRecipes = [
-  {
-    title: "Honey Glazed Salmon",
-    subtitle: "with Roasted Vegetables",
-    image: "/honey-glazed-salmon-with-colorful-roasted-vegetabl.jpg",
-    time: "35 min",
-    servings: 4,
-    slug: "honey-glazed-salmon",
-  },
-  {
-    title: "Rustic Sourdough",
-    subtitle: "Perfect Crust Every Time",
-    image: "/artisan-sourdough-bread-loaf-with-crispy-golden-cr.jpg",
-    time: "24 hrs",
-    servings: 8,
-    slug: "rustic-sourdough-bread",
-  },
-  {
-    title: "Spring Garden Pasta",
-    subtitle: "Fresh & Vibrant",
-    image: "/fresh-spring-pasta-with-green-vegetables-herbs-and.jpg",
-    time: "25 min",
-    servings: 4,
-    slug: "spring-garden-pasta",
-  },
-] as const
+function formatTime(minutes: number | null): string {
+  if (!minutes) return ""
+  if (minutes < 60) return `${minutes} min`
+  const hours = Math.floor(minutes / 60)
+  const mins = minutes % 60
+  return mins > 0 ? `${hours} hr ${mins} min` : `${hours} hr`
+}
 
-export function ImmersiveHero(): React.ReactElement {
+interface ImmersiveHeroProps {
+  recipes: Recipe[]
+}
+
+export function ImmersiveHero({
+  recipes,
+}: ImmersiveHeroProps): React.ReactElement {
   const [activeIndex, setActiveIndex] = useState(0)
   const [isVisible, setIsVisible] = useState(false)
   const heroRef = useRef<HTMLDivElement>(null)
 
+  // Use first 3 recipes for hero carousel
+  const heroRecipes = recipes.slice(0, 3)
+
   useEffect(() => {
     setIsVisible(true)
+    if (heroRecipes.length === 0) return
     const interval = setInterval(() => {
       setActiveIndex((prev) => (prev + 1) % heroRecipes.length)
     }, 5000)
     return () => clearInterval(interval)
-  }, [])
+  }, [heroRecipes.length])
 
   const activeRecipe = heroRecipes[activeIndex] ?? heroRecipes[0]
+  const totalTime = activeRecipe
+    ? (activeRecipe.prepTime ?? 0) + (activeRecipe.cookTime ?? 0)
+    : 0
+
+  // Fallback if no recipes
+  if (!activeRecipe) {
+    return (
+      <section className="relative flex min-h-[100svh] items-center justify-center">
+        <div className="text-center">
+          <h1 className="font-serif text-5xl text-foreground">
+            Tastings with Tay
+          </h1>
+          <p className="mt-4 text-muted-foreground">Recipes coming soon...</p>
+        </div>
+      </section>
+    )
+  }
 
   return (
     <section
@@ -59,11 +67,13 @@ export function ImmersiveHero(): React.ReactElement {
             index === activeIndex ? "opacity-100" : "opacity-0"
           }`}
         >
-          <img
-            src={recipe.image}
-            alt={recipe.title}
-            className="h-full w-full object-cover"
-          />
+          {recipe.image && (
+            <img
+              src={recipe.image}
+              alt={recipe.title}
+              className="h-full w-full object-cover"
+            />
+          )}
           <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/70 to-background/30" />
         </div>
       ))}
@@ -90,7 +100,7 @@ export function ImmersiveHero(): React.ReactElement {
           >
             <span className="block">{activeRecipe.title}</span>
             <span className="mt-2 block font-serif text-3xl italic text-muted-foreground sm:text-4xl lg:text-5xl">
-              {activeRecipe.subtitle}
+              {activeRecipe.category}
             </span>
           </h1>
 
@@ -101,14 +111,18 @@ export function ImmersiveHero(): React.ReactElement {
                 : "translate-y-4 opacity-0"
             }`}
           >
-            <span className="flex items-center gap-2">
-              <Clock className="h-4 w-4" />
-              {activeRecipe.time}
-            </span>
-            <span className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              {activeRecipe.servings} servings
-            </span>
+            {totalTime > 0 && (
+              <span className="flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                {formatTime(totalTime)}
+              </span>
+            )}
+            {activeRecipe.servings && (
+              <span className="flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                {activeRecipe.servings} servings
+              </span>
+            )}
           </div>
 
           <div
@@ -119,7 +133,9 @@ export function ImmersiveHero(): React.ReactElement {
             }`}
           >
             <Button size="lg" asChild>
-              <a href={`/recipes/${activeRecipe.slug}`}>View Recipe</a>
+              <Link to="/recipes/$slug" params={{ slug: activeRecipe.slug }}>
+                View Recipe
+              </Link>
             </Button>
             <Button
               variant="outline"
@@ -127,7 +143,9 @@ export function ImmersiveHero(): React.ReactElement {
               className="bg-background/50 backdrop-blur-sm"
               asChild
             >
-              <a href="/recipes">Browse All Recipes</a>
+              <Link to="/recipes" search={{ category: undefined }}>
+                Browse All Recipes
+              </Link>
             </Button>
           </div>
 

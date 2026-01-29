@@ -1,4 +1,4 @@
-import { createFileRoute, notFound } from "@tanstack/react-router"
+import { createFileRoute, Link, notFound } from "@tanstack/react-router"
 import { Button } from "@twt/ui/components/button"
 import {
   ArrowLeft,
@@ -11,11 +11,30 @@ import {
 } from "lucide-react"
 import { SiteFooter } from "../../components/site-footer"
 import { SiteHeader } from "../../components/site-header"
-import { getRecipeBySlug } from "../../lib/data/recipes"
+
+interface IngredientGroup {
+  group?: string
+  items: string[]
+}
+
+interface Instruction {
+  step: number
+  text: string
+}
+
+function formatTime(minutes: number | null): string {
+  if (!minutes) return ""
+  if (minutes < 60) return `${minutes} min`
+  const hours = Math.floor(minutes / 60)
+  const mins = minutes % 60
+  return mins > 0 ? `${hours} hr ${mins} min` : `${hours} hr`
+}
 
 export const Route = createFileRoute("/recipes/$slug")({
-  loader: async ({ params }) => {
-    const recipe = getRecipeBySlug(params.slug)
+  loader: async ({ context, params }) => {
+    const recipe = await context.queryClient.fetchQuery(
+      context.trpc.recipes.bySlug.queryOptions({ slug: params.slug }),
+    )
     if (!recipe) {
       throw notFound()
     }
@@ -55,7 +74,7 @@ function RecipeDetailPage(): React.ReactElement {
           {/* Hero Image */}
           <div className="relative h-[50vh] lg:h-[60vh]">
             <img
-              src={recipe.image}
+              src={recipe.image ?? undefined}
               alt={recipe.title}
               className="h-full w-full object-cover"
             />
@@ -96,7 +115,11 @@ function RecipeDetailPage(): React.ReactElement {
                 <span className="flex items-center gap-2">
                   <Clock className="h-4 w-4" />
                   <span>
-                    <strong className="text-foreground">{recipe.time}</strong>{" "}
+                    <strong className="text-foreground">
+                      {formatTime(
+                        (recipe.prepTime ?? 0) + (recipe.cookTime ?? 0),
+                      )}
+                    </strong>{" "}
                     total
                   </span>
                 </span>
@@ -114,7 +137,7 @@ function RecipeDetailPage(): React.ReactElement {
                   <span>
                     Prep:{" "}
                     <strong className="text-foreground">
-                      {recipe.prepTime}
+                      {formatTime(recipe.prepTime)}
                     </strong>
                   </span>
                 </span>
@@ -214,20 +237,6 @@ function RecipeDetailPage(): React.ReactElement {
                     </ul>
                   </div>
                 )}
-
-                {/* Tags */}
-                <div className="mt-8 border-t border-border pt-8">
-                  <div className="flex flex-wrap gap-2">
-                    {recipe.tags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground"
-                      >
-                        #{tag}
-                      </span>
-                    ))}
-                  </div>
-                </div>
               </div>
             </div>
           </div>

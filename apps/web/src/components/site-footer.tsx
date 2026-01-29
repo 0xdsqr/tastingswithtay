@@ -2,11 +2,10 @@ import { Link } from "@tanstack/react-router"
 import { Facebook, Instagram, Mail, Youtube } from "lucide-react"
 
 const mainNavigation = [
-  { name: "Recipes", href: "/recipes" },
-  { name: "Wine Cellar", href: "/wine" },
-  { name: "About", href: "/about" },
-  { name: "Shop", href: "/shop" },
-  { name: "Contact", href: "/contact" },
+  { name: "Recipes", to: "/recipes" },
+  { name: "Wine Cellar", to: "/wine" },
+  { name: "About", to: "/about" },
+  { name: "Shop", to: "/shop" },
 ] as const
 
 const socialLinks = [
@@ -31,13 +30,13 @@ export function SiteFooter(): React.ReactElement {
           {/* Navigation */}
           <nav className="mb-8 flex flex-wrap justify-center gap-x-8 gap-y-2">
             {mainNavigation.map((item) => (
-              <a
+              <Link
                 key={item.name}
-                href={item.href}
+                to={item.to}
                 className="text-sm text-muted-foreground transition-colors hover:text-foreground"
               >
                 {item.name}
-              </a>
+              </Link>
             ))}
           </nav>
 

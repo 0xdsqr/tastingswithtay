@@ -34,6 +34,7 @@ const t = initTRPC.context<typeof createTRPCContext>().create({
 })
 
 export const createTRPCRouter = t.router
+export const createCallerFactory = t.createCallerFactory
 
 const timingMiddleware = t.middleware(async ({ next, path, ctx }) => {
   const start = Date.now()
@@ -74,20 +75,24 @@ export const protectedProcedure = t.procedure
     })
   })
 
+// TODO: Move admin emails to database or better-auth roles
+const ADMIN_EMAILS = ["tay@tastingswithtay.com"]
+
 export const adminProcedure = t.procedure
   .use(timingMiddleware)
   .use(({ ctx, next }) => {
     if (!ctx.session?.user) {
       throw new TRPCError({ code: "UNAUTHORIZED" })
     }
-    // Add admin check when we have roles
-    // const user = ctx.session.user as typeof ctx.session.user & { role?: string }
-    // if (user.role !== "admin") {
-    //   throw new TRPCError({
-    //     code: "FORBIDDEN",
-    //     message: "Admin access required",
-    //   })
-    // }
+
+    const userEmail = ctx.session.user.email?.toLowerCase()
+    if (!userEmail || !ADMIN_EMAILS.includes(userEmail)) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Admin access required",
+      })
+    }
+
     return next({
       ctx: {
         session: { ...ctx.session, user: ctx.session.user },

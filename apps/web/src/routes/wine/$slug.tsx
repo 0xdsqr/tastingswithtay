@@ -3,13 +3,16 @@ import { Button } from "@twt/ui/components/button"
 import { ArrowLeft, Calendar, Grape, MapPin, Star, Tag } from "lucide-react"
 import { SiteFooter } from "../../components/site-footer"
 import { SiteHeader } from "../../components/site-header"
-import { trpc } from "../../lib/trpc"
 
 export const Route = createFileRoute("/wine/$slug")({
-  loader: async ({ params }) => {
+  loader: async ({ context, params }) => {
     const [wine, relatedWines] = await Promise.all([
-      trpc.wines.bySlug.query({ slug: params.slug }),
-      trpc.wines.list.query({ limit: 3 }),
+      context.queryClient.fetchQuery(
+        context.trpc.wines.bySlug.queryOptions({ slug: params.slug }),
+      ),
+      context.queryClient.fetchQuery(
+        context.trpc.wines.list.queryOptions({ limit: 3 }),
+      ),
     ])
     if (!wine) {
       throw notFound()

@@ -3,7 +3,7 @@ import { createTRPCContext } from "@trpc/tanstack-react-query"
 import type { AppRouter } from "@twt/core/api"
 import superjson from "superjson"
 
-function getBaseUrl() {
+function getBaseUrl(): string {
   if (typeof window !== "undefined") {
     // Browser should use relative path
     return ""
@@ -12,7 +12,7 @@ function getBaseUrl() {
   return process.env.BASE_URL ?? "http://localhost:3000"
 }
 
-// Vanilla client for server-side usage
+// Vanilla client for server-side usage (in loaders)
 export const trpc = createTRPCClient<AppRouter>({
   links: [
     httpBatchLink({
@@ -22,7 +22,7 @@ export const trpc = createTRPCClient<AppRouter>({
   ],
 })
 
-// React Query integration
+// React Query integration for client-side mutations/queries
 export const { TRPCProvider, useTRPC, useTRPCClient } =
   createTRPCContext<AppRouter>()
 

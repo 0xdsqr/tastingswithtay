@@ -8,7 +8,8 @@
     "tooling/typescript"
   ],
   "scripts": {
-    "build": "bun run --filter web build",
+    "build": "bun run --filter './apps/*' build",
+    "typecheck": "bun run --filter './apps/*' --filter './packages/*' typecheck",
     "clean": "git clean -xdf node_modules dist .wrangler .turbo bun.lock"
   },
   "devDependencies": {

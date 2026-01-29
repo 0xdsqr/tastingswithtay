@@ -1,9 +1,17 @@
-"use client"
-
+import { Link } from "@tanstack/react-router"
+import type { Recipe } from "@twt/db/schema"
 import { Button } from "@twt/ui/components/button"
 import { ArrowRight, Clock, ShoppingBag, Users, Wine } from "lucide-react"
 import type React from "react"
 import { useEffect, useRef, useState } from "react"
+
+function formatTime(minutes: number | null): string {
+  if (!minutes) return ""
+  if (minutes < 60) return `${minutes} min`
+  const hours = Math.floor(minutes / 60)
+  const mins = minutes % 60
+  return mins > 0 ? `${hours} hr ${mins} min` : `${hours} hr`
+}
 
 interface BentoItemProps {
   children: React.ReactNode
@@ -44,7 +52,19 @@ function BentoItem({
   )
 }
 
-export function BentoGrid(): React.ReactElement {
+interface BentoGridProps {
+  recipes: Recipe[]
+  categories: string[]
+}
+
+export function BentoGrid({
+  recipes,
+  categories,
+}: BentoGridProps): React.ReactElement {
+  // Get first 3 featured recipes for display
+  const featuredRecipe = recipes[0]
+  const secondRecipe = recipes[1]
+  const thirdRecipe = recipes[2]
   return (
     <section className="bg-muted/30 py-16 lg:py-24">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
@@ -61,91 +81,128 @@ export function BentoGrid(): React.ReactElement {
         {/* Bento Grid */}
         <div className="grid auto-rows-[200px] grid-cols-2 gap-4 lg:auto-rows-[240px] lg:grid-cols-4 lg:gap-6">
           {/* Large Featured Recipe */}
-          <BentoItem className="col-span-2 row-span-2" delay={100}>
-            <a
-              href="/recipes/honey-glazed-salmon"
-              className="group block h-full"
-            >
-              <div className="relative h-full overflow-hidden rounded-2xl bg-card">
-                <img
-                  src="/honey-glazed-salmon-with-colorful-roasted-vegetabl.jpg"
-                  alt="Honey Glazed Salmon"
-                  className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-6 lg:p-8">
-                  <span className="mb-3 inline-block rounded-full bg-primary px-3 py-1 text-xs font-medium tracking-wide text-primary-foreground">
-                    Featured
-                  </span>
-                  <h3 className="mb-2 font-serif text-2xl text-foreground transition-colors group-hover:text-primary lg:text-3xl">
-                    Honey Glazed Salmon
-                  </h3>
-                  <p className="mb-3 line-clamp-2 text-sm text-muted-foreground">
-                    A perfectly balanced weeknight dinner that feels special.
-                  </p>
-                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1">
-                      <Clock className="h-3.5 w-3.5" />
-                      35 min
+          {featuredRecipe && (
+            <BentoItem className="col-span-2 row-span-2" delay={100}>
+              <Link
+                to="/recipes/$slug"
+                params={{ slug: featuredRecipe.slug }}
+                className="group block h-full"
+              >
+                <div className="relative h-full overflow-hidden rounded-2xl bg-card">
+                  {featuredRecipe.image && (
+                    <img
+                      src={featuredRecipe.image}
+                      alt={featuredRecipe.title}
+                      className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    />
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 p-6 lg:p-8">
+                    <span className="mb-3 inline-block rounded-full bg-primary px-3 py-1 text-xs font-medium tracking-wide text-primary-foreground">
+                      Featured
                     </span>
-                    <span className="flex items-center gap-1">
-                      <Users className="h-3.5 w-3.5" />4 servings
-                    </span>
+                    <h3 className="mb-2 font-serif text-2xl text-foreground transition-colors group-hover:text-primary lg:text-3xl">
+                      {featuredRecipe.title}
+                    </h3>
+                    <p className="mb-3 line-clamp-2 text-sm text-muted-foreground">
+                      {featuredRecipe.description}
+                    </p>
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                      {(featuredRecipe.prepTime || featuredRecipe.cookTime) && (
+                        <span className="flex items-center gap-1">
+                          <Clock className="h-3.5 w-3.5" />
+                          {formatTime(
+                            (featuredRecipe.prepTime ?? 0) +
+                              (featuredRecipe.cookTime ?? 0),
+                          )}
+                        </span>
+                      )}
+                      {featuredRecipe.servings && (
+                        <span className="flex items-center gap-1">
+                          <Users className="h-3.5 w-3.5" />
+                          {featuredRecipe.servings} servings
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            </a>
-          </BentoItem>
-
-          {/* Quick Recipe 1 */}
-          <BentoItem delay={200}>
-            <a
-              href="/recipes/rustic-sourdough-bread"
-              className="group block h-full"
-            >
-              <div className="relative h-full overflow-hidden rounded-2xl bg-card">
-                <img
-                  src="/artisan-sourdough-bread-loaf-with-crispy-golden-cr.jpg"
-                  alt="Rustic Sourdough"
-                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-4">
-                  <h3 className="line-clamp-1 font-serif text-lg text-foreground transition-colors group-hover:text-primary">
-                    Rustic Sourdough
-                  </h3>
-                  <p className="text-xs text-muted-foreground">24 hrs</p>
-                </div>
-              </div>
-            </a>
-          </BentoItem>
+              </Link>
+            </BentoItem>
+          )}
 
           {/* Quick Recipe 2 */}
-          <BentoItem delay={250}>
-            <a
-              href="/recipes/spring-garden-pasta"
-              className="group block h-full"
-            >
-              <div className="relative h-full overflow-hidden rounded-2xl bg-card">
-                <img
-                  src="/fresh-spring-pasta-with-green-vegetables-herbs-and.jpg"
-                  alt="Spring Garden Pasta"
-                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-4">
-                  <h3 className="line-clamp-1 font-serif text-lg text-foreground transition-colors group-hover:text-primary">
-                    Spring Garden Pasta
-                  </h3>
-                  <p className="text-xs text-muted-foreground">25 min</p>
+          {secondRecipe && (
+            <BentoItem delay={200}>
+              <Link
+                to="/recipes/$slug"
+                params={{ slug: secondRecipe.slug }}
+                className="group block h-full"
+              >
+                <div className="relative h-full overflow-hidden rounded-2xl bg-card">
+                  {secondRecipe.image && (
+                    <img
+                      src={secondRecipe.image}
+                      alt={secondRecipe.title}
+                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 p-4">
+                    <h3 className="line-clamp-1 font-serif text-lg text-foreground transition-colors group-hover:text-primary">
+                      {secondRecipe.title}
+                    </h3>
+                    <p className="text-xs text-muted-foreground">
+                      {formatTime(
+                        (secondRecipe.prepTime ?? 0) +
+                          (secondRecipe.cookTime ?? 0),
+                      )}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </a>
-          </BentoItem>
+              </Link>
+            </BentoItem>
+          )}
+
+          {/* Quick Recipe 3 */}
+          {thirdRecipe && (
+            <BentoItem delay={250}>
+              <Link
+                to="/recipes/$slug"
+                params={{ slug: thirdRecipe.slug }}
+                className="group block h-full"
+              >
+                <div className="relative h-full overflow-hidden rounded-2xl bg-card">
+                  {thirdRecipe.image && (
+                    <img
+                      src={thirdRecipe.image}
+                      alt={thirdRecipe.title}
+                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 p-4">
+                    <h3 className="line-clamp-1 font-serif text-lg text-foreground transition-colors group-hover:text-primary">
+                      {thirdRecipe.title}
+                    </h3>
+                    <p className="text-xs text-muted-foreground">
+                      {formatTime(
+                        (thirdRecipe.prepTime ?? 0) +
+                          (thirdRecipe.cookTime ?? 0),
+                      )}
+                    </p>
+                  </div>
+                </div>
+              </Link>
+            </BentoItem>
+          )}
 
           {/* Wine Cellar Card */}
           <BentoItem className="row-span-2" delay={300}>
-            <a href="/wine" className="group block h-full">
+            <Link
+              to="/wine"
+              search={{ type: undefined }}
+              className="group block h-full"
+            >
               <div className="relative flex h-full flex-col justify-between overflow-hidden rounded-2xl bg-gradient-to-br from-[#2D1B2E] to-[#1A1014] p-6">
                 <div>
                   <Wine className="mb-3 h-8 w-8 text-[#C4A77D]" />
@@ -165,12 +222,12 @@ export function BentoGrid(): React.ReactElement {
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </div>
               </div>
-            </a>
+            </Link>
           </BentoItem>
 
           {/* Meet Tay Card */}
           <BentoItem delay={350}>
-            <a href="/about" className="group block h-full">
+            <Link to="/about" className="group block h-full">
               <div className="relative flex h-full flex-col justify-between overflow-hidden rounded-2xl bg-primary/10 p-6">
                 <div>
                   <p className="mb-2 text-xs font-medium uppercase tracking-widest text-primary">
@@ -185,12 +242,12 @@ export function BentoGrid(): React.ReactElement {
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </div>
               </div>
-            </a>
+            </Link>
           </BentoItem>
 
           {/* Shop Preview */}
           <BentoItem delay={400}>
-            <a href="/shop" className="group block h-full">
+            <Link to="/shop" className="group block h-full">
               <div className="relative flex h-full flex-col justify-between overflow-hidden rounded-2xl border border-border bg-card p-6">
                 <div>
                   <ShoppingBag className="mb-3 h-8 w-8 text-primary" />
@@ -206,7 +263,7 @@ export function BentoGrid(): React.ReactElement {
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </div>
               </div>
-            </a>
+            </Link>
           </BentoItem>
 
           {/* Categories Row */}
@@ -216,29 +273,25 @@ export function BentoGrid(): React.ReactElement {
                 <h3 className="font-serif text-xl text-foreground">
                   Browse Categories
                 </h3>
-                <a
-                  href="/recipes"
+                <Link
+                  to="/recipes"
+                  search={{ category: undefined }}
                   className="flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-primary"
                 >
                   View all
                   <ArrowRight className="h-3.5 w-3.5" />
-                </a>
+                </Link>
               </div>
               <div className="-mx-1 flex gap-3 overflow-x-auto px-1 pb-2">
-                {[
-                  "Breakfast",
-                  "Dinner",
-                  "Baking",
-                  "Seasonal",
-                  "Quick Meals",
-                ].map((cat) => (
-                  <a
+                {categories.map((cat) => (
+                  <Link
                     key={cat}
-                    href={`/recipes?category=${cat.toLowerCase()}`}
+                    to="/recipes"
+                    search={{ category: cat }}
                     className="flex-shrink-0 rounded-full bg-muted px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-primary hover:text-primary-foreground"
                   >
                     {cat}
-                  </a>
+                  </Link>
                 ))}
               </div>
             </div>

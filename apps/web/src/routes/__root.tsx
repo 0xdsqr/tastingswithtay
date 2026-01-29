@@ -1,12 +1,18 @@
+import type { QueryClient } from "@tanstack/react-query"
 import {
-  createRootRoute,
+  createRootRouteWithContext,
   HeadContent,
   Outlet,
   Scripts,
 } from "@tanstack/react-router"
+import type { TRPCOptionsProxy } from "@trpc/tanstack-react-query"
+import type { AppRouter } from "@twt/core/api"
 import appCss from "../styles.css?url"
 
-export const Route = createRootRoute({
+export const Route = createRootRouteWithContext<{
+  queryClient: QueryClient
+  trpc: TRPCOptionsProxy<AppRouter>
+}>()({
   head: () => ({
     meta: [
       { charSet: "utf-8" },

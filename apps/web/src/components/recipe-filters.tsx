@@ -1,4 +1,4 @@
-"use client"
+import { Link } from "@tanstack/react-router"
 
 interface RecipeFiltersProps {
   categories: string[]
@@ -11,8 +11,9 @@ export function RecipeFilters({
 }: RecipeFiltersProps): React.ReactElement {
   return (
     <div className="flex flex-wrap gap-2">
-      <a
-        href="/recipes"
+      <Link
+        to="/recipes"
+        search={{ category: undefined }}
         className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
           !activeCategory
             ? "bg-primary text-primary-foreground"
@@ -20,19 +21,20 @@ export function RecipeFilters({
         }`}
       >
         All
-      </a>
+      </Link>
       {categories.map((category) => (
-        <a
+        <Link
           key={category}
-          href={`/recipes?category=${category.toLowerCase()}`}
+          to="/recipes"
+          search={{ category }}
           className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
-            activeCategory?.toLowerCase() === category.toLowerCase()
+            activeCategory === category
               ? "bg-primary text-primary-foreground"
               : "bg-muted text-muted-foreground hover:bg-muted/80"
           }`}
         >
           {category}
-        </a>
+        </Link>
       ))}
     </div>
   )

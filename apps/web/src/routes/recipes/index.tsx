@@ -1,26 +1,28 @@
 import { createFileRoute } from "@tanstack/react-router"
+import { z } from "zod"
 import { RecipeCard } from "../../components/recipe-card"
 import { RecipeFilters } from "../../components/recipe-filters"
 import { SiteFooter } from "../../components/site-footer"
 import { SiteHeader } from "../../components/site-header"
-import {
-  getAllCategories,
-  getRecipesByCategory,
-  recipes,
-} from "../../lib/data/recipes"
+
+const searchSchema = z.object({
+  category: z.string().optional(),
+})
 
 export const Route = createFileRoute("/recipes/")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    category: (search.category as string) || undefined,
-  }),
+  validateSearch: searchSchema,
   loaderDeps: ({ search }) => ({ category: search.category }),
-  loader: ({ deps }) => {
-    const categories = getAllCategories()
-    const filteredRecipes = deps.category
-      ? getRecipesByCategory(deps.category)
-      : recipes
+  loader: async ({ context, deps }) => {
+    const [recipes, categories] = await Promise.all([
+      context.queryClient.fetchQuery(
+        context.trpc.recipes.list.queryOptions({ category: deps.category }),
+      ),
+      context.queryClient.fetchQuery(
+        context.trpc.recipes.categories.queryOptions(),
+      ),
+    ])
     return {
-      recipes: filteredRecipes,
+      recipes,
       categories,
       activeCategory: deps.category,
     }

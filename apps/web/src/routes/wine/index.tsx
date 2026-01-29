@@ -4,7 +4,6 @@ import { Button } from "@twt/ui/components/button"
 import { ChevronRight, Star, Wine as WineIcon } from "lucide-react"
 import { SiteFooter } from "../../components/site-footer"
 import { SiteHeader } from "../../components/site-header"
-import { trpc } from "../../lib/trpc"
 
 const wineTypes = [
   "All",
@@ -20,8 +19,10 @@ export const Route = createFileRoute("/wine/")({
     type: (search.type as string) || undefined,
   }),
   loaderDeps: ({ search }) => ({ type: search.type }),
-  loader: async ({ deps }) => {
-    const wines = await trpc.wines.list.query({ type: deps.type })
+  loader: async ({ context, deps }) => {
+    const wines = await context.queryClient.fetchQuery(
+      context.trpc.wines.list.queryOptions({ type: deps.type }),
+    )
     return { wines, activeType: deps.type ?? "All" }
   },
   component: WineCellarPage,
