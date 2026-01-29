@@ -1,5 +1,6 @@
 import { ArrowRight, Heart, MessageCircle } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
+import { OptimizedImage } from "./optimized-image"
 
 const posts = [
   {
@@ -92,7 +93,7 @@ export function LatestPosts(): React.ReactElement {
             >
               <article className="flex h-full flex-col">
                 <div className="relative mb-4 aspect-[4/3] overflow-hidden rounded-xl bg-muted">
-                  <img
+                  <OptimizedImage
                     src={post.image}
                     alt={post.title}
                     className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"

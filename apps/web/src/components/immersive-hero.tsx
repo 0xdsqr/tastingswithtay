@@ -3,6 +3,7 @@ import type { Recipe } from "@twt/db/schema"
 import { Button } from "@twt/ui/components/button"
 import { ArrowDown, Clock, Users } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
+import { OptimizedImage } from "./optimized-image"
 
 function formatTime(minutes: number | null): string {
   if (!minutes) return ""
@@ -68,9 +69,10 @@ export function ImmersiveHero({
           }`}
         >
           {recipe.image && (
-            <img
+            <OptimizedImage
               src={recipe.image}
               alt={recipe.title}
+              priority={index === 0}
               className="h-full w-full object-cover"
             />
           )}

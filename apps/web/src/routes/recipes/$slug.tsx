@@ -9,6 +9,7 @@ import {
   Share2,
   Users,
 } from "lucide-react"
+import { OptimizedImage } from "../../components/optimized-image"
 import { SiteFooter } from "../../components/site-footer"
 import { SiteHeader } from "../../components/site-header"
 
@@ -73,7 +74,7 @@ function RecipeDetailPage(): React.ReactElement {
 
           {/* Hero Image */}
           <div className="relative h-[50vh] lg:h-[60vh]">
-            <img
+            <OptimizedImage
               src={recipe.image ?? undefined}
               alt={recipe.title}
               className="h-full w-full object-cover"

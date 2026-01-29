@@ -27,6 +27,13 @@ A recipe/lifestyle website for Tay featuring recipes, wine tasting notes, and a 
 - Feature-specific components in `apps/web/src/components/`
 - Keep components small and focused
 - Use composition over prop drilling
+- Use `<OptimizedImage>` for all content images (not login/signup decorative)
+
+### Performance Patterns
+- First visible image (LCP): `<OptimizedImage priority />`
+- Below-fold images: `<OptimizedImage />` (lazy by default)
+- CSS animations: use `will-change` sparingly on animated elements
+- Avoid `useEffect` for data fetching — use TanStack loaders
 
 ### Database Patterns
 - Use Bun's native SQLite (`bun:sqlite`)
@@ -50,6 +57,12 @@ tooling/
 ```
 
 ## Learnings
+
+### 2026-01-29
+- **Images**: Always use `<OptimizedImage>` (`components/optimized-image.tsx`) instead of raw `<img>`. It applies `loading="lazy"`, `decoding="async"` by default. Use `priority` prop for above-fold / LCP images (e.g., first hero slide).
+- **Error handling**: Global `<ErrorBoundary>` wraps the root `<Outlet>` in `__root.tsx`. For granular error handling, wrap individual sections.
+- **CI**: Runs on all branches (push/PR/dispatch), not just master. Always ensure `nix fmt .` passes locally before pushing.
+- **PR workflow**: Fork-based (mimizuku-the-owl → 0xdsqr). Rebase on upstream/master before opening PRs. Dave triggers CI and reviews.
 
 ### 2026-01-28
 - Biome CSS parser doesn't support Tailwind directives - exclude `.css` files

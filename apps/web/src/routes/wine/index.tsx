@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router"
 import type { Wine } from "@twt/db/schema"
 import { Button } from "@twt/ui/components/button"
 import { ChevronRight, Star, Wine as WineIcon } from "lucide-react"
+import { OptimizedImage } from "../../components/optimized-image"
 import { SiteFooter } from "../../components/site-footer"
 import { SiteHeader } from "../../components/site-header"
 
@@ -42,7 +43,7 @@ function WineCard({ wine }: { wine: Wine }): React.ReactElement {
       <article className="overflow-hidden rounded-2xl border border-border bg-card transition-all duration-300 hover:border-primary/30 hover:shadow-lg">
         <div className="relative aspect-[4/3] overflow-hidden">
           {wine.image && (
-            <img
+            <OptimizedImage
               src={wine.image}
               alt={wine.name}
               className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"

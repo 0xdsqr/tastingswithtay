@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { Button } from "@twt/ui/components/button"
 import { ArrowRight, Minus, Plus, ShoppingBag, X } from "lucide-react"
+import { OptimizedImage } from "../components/optimized-image"
 import { SiteFooter } from "../components/site-footer"
 import { SiteHeader } from "../components/site-header"
 
@@ -51,7 +52,7 @@ function CartPage(): React.ReactElement {
                   {cartItems.map((item) => (
                     <div key={item.id} className="flex gap-4 py-6">
                       <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-lg bg-muted">
-                        <img
+                        <OptimizedImage
                           src={item.image}
                           alt={item.name}
                           className="h-full w-full object-cover"

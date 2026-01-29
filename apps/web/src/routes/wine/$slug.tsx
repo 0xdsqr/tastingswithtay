@@ -1,6 +1,7 @@
 import { createFileRoute, notFound } from "@tanstack/react-router"
 import { Button } from "@twt/ui/components/button"
 import { ArrowLeft, Calendar, Grape, MapPin, Star, Tag } from "lucide-react"
+import { OptimizedImage } from "../../components/optimized-image"
 import { SiteFooter } from "../../components/site-footer"
 import { SiteHeader } from "../../components/site-header"
 
@@ -67,7 +68,7 @@ function WineDetailPage(): React.ReactElement {
               {/* Image */}
               <div className="relative aspect-[4/3] overflow-hidden rounded-3xl bg-muted lg:aspect-square">
                 {wine.image && (
-                  <img
+                  <OptimizedImage
                     src={wine.image}
                     alt={wine.name}
                     className="h-full w-full object-cover"
@@ -237,7 +238,7 @@ function WineDetailPage(): React.ReactElement {
                   <a key={w.id} href={`/wine/${w.slug}`} className="group">
                     <div className="relative mb-4 aspect-[4/3] overflow-hidden rounded-2xl bg-muted">
                       {w.image && (
-                        <img
+                        <OptimizedImage
                           src={w.image}
                           alt={w.name}
                           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
