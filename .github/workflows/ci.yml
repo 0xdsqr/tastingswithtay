@@ -59,6 +59,9 @@ jobs:
       - name: install dependencies
         run: nix develop --command bun install
 
+      - name: build packages
+        run: nix develop --command bun run --filter './packages/*' build
+
       - name: typecheck
         run: nix develop --command bun run typecheck
 
