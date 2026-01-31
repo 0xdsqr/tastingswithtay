@@ -23,15 +23,6 @@
 }
 
 @font-face {
-  font-family: "Dancing Script";
-  font-style: normal;
-  font-weight: 500 600;
-  font-display: swap;
-  src: url("https://fonts.gstatic.com/s/dancingscript/v29/If2cXTr6YS-zF4S-kcSWSVi_sxjsohD9F50Ruu7B7y0HTQ.ttf")
-    format("truetype");
-}
-
-@font-face {
   font-family: "Inter";
   font-style: normal;
   font-weight: 100 900;
@@ -47,7 +38,6 @@
     "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
   --font-serif: "Playfair Display", ui-serif, Georgia, Cambria, "Times New Roman",
     Times, serif;
-  --font-script: "Dancing Script", cursive;
   --font-display: "Cormorant Garamond", Garamond, Georgia, serif;
 
   /* Brand palette — "Texas Sunset Wine Country" */
@@ -56,8 +46,7 @@
   --color-brand-cream: #FAF5EF;
   --color-brand-charcoal: #2C2C2C;
 
-  /* Accent colors */
-  --color-brand-sage: #A8B5A0;
+  /* Accent colors — use sparingly */
   --color-brand-rose: #C9929B;
   --color-brand-terracotta: #C4704B;
 
