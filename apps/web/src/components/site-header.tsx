@@ -78,7 +78,7 @@ export function SiteHeader(): React.ReactElement {
         {/* Logo - center */}
         <div className="flex flex-1 justify-center lg:flex-none">
           <Link to="/" className="flex items-center">
-            <BrandLogo className="h-10 w-auto lg:h-12" />
+            <BrandLogo className="h-12 w-auto lg:h-14" />
           </Link>
         </div>
 

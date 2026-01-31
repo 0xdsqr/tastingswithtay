@@ -24,7 +24,7 @@ export function SiteFooter(): React.ReactElement {
         <div className="flex flex-col items-center">
           {/* Logo */}
           <Link to="/" className="mb-8">
-            <BrandLogo className="h-10 w-auto" />
+            <BrandLogo className="h-14 w-auto" />
           </Link>
 
           {/* Navigation */}

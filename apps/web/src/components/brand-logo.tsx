@@ -1,19 +1,35 @@
 interface BrandLogoProps {
   className?: string
+  variant?: "logo" | "avatar"
 }
 
 /**
- * Simple brand text — "tastingswithtay"
+ * Brand logo — illustrated watercolor wordmark.
  *
- * Clean, centered, uses the display serif font.
- * The illustrated logo mark is a separate asset (used elsewhere).
+ * - "logo" (default): horizontal wordmark with illustrations for header/footer
+ * - "avatar": circular watercolor portrait for profile/social
+ *
+ * Automatically switches between light/dark variants based on color scheme.
  */
-export function BrandLogo({ className = "" }: BrandLogoProps): React.ReactElement {
+export function BrandLogo({
+  className = "",
+  variant = "logo",
+}: BrandLogoProps): React.ReactElement {
+  const lightSrc = variant === "avatar" ? "/avatar-light.png" : "/logo-light.png"
+  const darkSrc = variant === "avatar" ? "/avatar-dark.png" : "/logo-dark.png"
+
   return (
-    <span
-      className={`font-display text-2xl tracking-wide text-foreground lg:text-3xl ${className}`}
-    >
-      tastingswithtay
-    </span>
+    <>
+      <img
+        src={lightSrc}
+        alt="Tastings with Tay"
+        className={`dark:hidden ${className}`}
+      />
+      <img
+        src={darkSrc}
+        alt="Tastings with Tay"
+        className={`hidden dark:block ${className}`}
+      />
+    </>
   )
 }
