@@ -31,6 +31,7 @@ import {
   ExternalLink,
   GlassWater,
   Home,
+  Image as ImageIcon,
   LayoutDashboard,
   Library,
   LogOut,
@@ -69,6 +70,11 @@ const contentItems = [
     title: "Experiments",
     href: "/studio/experiments",
     icon: Beaker,
+  },
+  {
+    title: "Gallery",
+    href: "/studio/gallery",
+    icon: ImageIcon,
   },
   {
     title: "Collections",

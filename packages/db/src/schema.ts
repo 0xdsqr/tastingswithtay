@@ -43,6 +43,7 @@ export const experimentEntryTypeEnum = [
   "result",
   "iteration",
 ] as const
+export const galleryCategoryEnum = ["garden", "flock"] as const
 
 // ============================================
 // TAGS (shared across recipes & wines)
@@ -595,8 +596,46 @@ export const experimentTags = pgTable(
 )
 
 // ============================================
+// GALLERY (Garden & Flock)
+// ============================================
+
+export const galleryImages = pgTable(
+  "gallery_images",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    title: varchar("title", { length: 256 }),
+    caption: text("caption"),
+    image: varchar("image", { length: 512 }).notNull(),
+    category: varchar("category", { length: 50 }).notNull(), // garden, flock
+    sortOrder: integer("sort_order").default(0).notNull(),
+    published: boolean("published").default(false).notNull(),
+    featured: boolean("featured").default(false).notNull(),
+    takenAt: timestamp("taken_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("gallery_images_category_idx").on(table.category),
+    index("gallery_images_published_idx").on(table.published),
+    index("gallery_images_sort_idx").on(table.category, table.sortOrder),
+    index("gallery_images_published_category_idx").on(
+      table.published,
+      table.category,
+      sql`${table.sortOrder} ASC`,
+    ),
+  ],
+)
+
+// ============================================
 // RELATIONS
 // ============================================
+
+export const galleryImagesRelations = relations(galleryImages, () => ({}))
 
 export const tagsRelations = relations(tags, ({ many }) => ({
   recipeTags: many(recipeTags),
@@ -1006,9 +1045,29 @@ export const updateExperimentEntrySchema = createExperimentEntrySchema
   .partial()
   .omit({ experimentId: true })
 
+export const createGalleryImageSchema = createInsertSchema(galleryImages, {
+  title: z.string().max(256).optional(),
+  caption: z.string().max(2000).optional(),
+  image: z.string().min(1).max(512),
+  category: z.enum(galleryCategoryEnum),
+  sortOrder: z.number().int().min(0).optional(),
+  published: z.boolean().optional(),
+  featured: z.boolean().optional(),
+  takenAt: z.coerce.date().optional().nullable(),
+}).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+})
+
+export const updateGalleryImageSchema = createGalleryImageSchema.partial()
+
 // ============================================
 // TYPES
 // ============================================
+
+export type GalleryImage = typeof galleryImages.$inferSelect
+export type NewGalleryImage = typeof galleryImages.$inferInsert
 
 export type Tag = typeof tags.$inferSelect
 export type NewTag = typeof tags.$inferInsert

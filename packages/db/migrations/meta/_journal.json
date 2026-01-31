@@ -15,6 +15,13 @@
       "when": 1769885823620,
       "tag": "0001_overjoyed_typhoid_mary",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1769889271663,
+      "tag": "0002_nappy_purple_man",
+      "breakpoints": true
     }
   ]
 }

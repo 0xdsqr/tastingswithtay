@@ -7,6 +7,7 @@ const mainNavigation = [
   { name: "Wine Cellar", to: "/wine" },
   { name: "Test Kitchen", to: "/test-kitchen" },
   { name: "About", to: "/about" },
+  { name: "Garden & Flock", to: "/garden-and-flock" },
   { name: "Shop", to: "/shop" },
 ] as const
 
