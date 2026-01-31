@@ -15,7 +15,8 @@ export function BrandLogo({
   className = "",
   variant = "logo",
 }: BrandLogoProps): React.ReactElement {
-  const lightSrc = variant === "avatar" ? "/avatar-light.png" : "/logo-light.png"
+  const lightSrc =
+    variant === "avatar" ? "/avatar-light.png" : "/logo-light.png"
   const darkSrc = variant === "avatar" ? "/avatar-dark.png" : "/logo-dark.png"
 
   return (
