@@ -2,7 +2,8 @@
 @source "../../../packages/ui/src";
 @import "@twt/ui/globals.css";
 
-/* Tastings with Tay custom fonts */
+/* ─── Brand Fonts ─────────────────────────────────────── */
+
 @font-face {
   font-family: "Playfair Display";
   font-style: normal;
@@ -10,6 +11,24 @@
   font-display: swap;
   src: url("https://fonts.gstatic.com/s/playfairdisplay/v37/nuFiD-vYSZviVYUb_rj3ij__anPXDTzYgEM86xQ.woff2")
     format("woff2");
+}
+
+@font-face {
+  font-family: "Cormorant Garamond";
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url("https://fonts.gstatic.com/s/cormorantgaramond/v16/co3YmX5slCNuHLi8bLeY9MK7whWMhyjYqEtF.ttf")
+    format("truetype");
+}
+
+@font-face {
+  font-family: "Dancing Script";
+  font-style: normal;
+  font-weight: 500 600;
+  font-display: swap;
+  src: url("https://fonts.gstatic.com/s/dancingscript/v29/If2cXTr6YS-zF4S-kcSWSVi_sxjsohD9F50Ruu7B7y0HTQ.ttf")
+    format("truetype");
 }
 
 @font-face {
@@ -21,9 +40,38 @@
     format("woff2");
 }
 
+/* ─── Tailwind Theme ──────────────────────────────────── */
+
 @theme inline {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
     "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
   --font-serif: "Playfair Display", ui-serif, Georgia, Cambria, "Times New Roman",
     Times, serif;
+  --font-script: "Dancing Script", cursive;
+  --font-display: "Cormorant Garamond", Garamond, Georgia, serif;
+
+  /* Brand palette — "Texas Sunset Wine Country" */
+  --color-brand-burgundy: #722F37;
+  --color-brand-gold: #D4A76A;
+  --color-brand-cream: #FAF5EF;
+  --color-brand-charcoal: #2C2C2C;
+
+  /* Accent colors */
+  --color-brand-sage: #A8B5A0;
+  --color-brand-rose: #C9929B;
+  --color-brand-terracotta: #C4704B;
+
+  /* Dark-mode adjusted tones */
+  --color-brand-burgundy-light: #9B4A53;
+  --color-brand-gold-light: #E0BF8E;
+  --color-brand-cream-dark: #1C1917;
+}
+
+/* ─── Brand Color Integration ─────────────────────────── */
+
+:root {
+  --twt-wine-bg: #2D1B2E;
+  --twt-wine-bg-end: #1A1014;
+  --twt-wine-gold: #C4A77D;
+  --twt-wine-text: #FAF7F2;
 }
