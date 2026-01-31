@@ -13,6 +13,7 @@ import { Skeleton } from "@twt/ui/components/skeleton"
 import { LogOut, Menu, Search, ShoppingBag, X } from "lucide-react"
 import { useState } from "react"
 import { authClient } from "../auth/client"
+import { BrandLogo } from "./brand-logo"
 
 const navigation = [
   { name: "Recipes", to: "/recipes" },
@@ -76,10 +77,8 @@ export function SiteHeader(): React.ReactElement {
 
         {/* Logo - center */}
         <div className="flex flex-1 justify-center lg:flex-none">
-          <Link to="/" className="flex flex-col items-center">
-            <span className="font-serif text-2xl tracking-tight text-foreground lg:text-3xl">
-              Tastings with Tay
-            </span>
+          <Link to="/" className="flex items-center">
+            <BrandLogo className="h-12 w-auto lg:h-14" />
           </Link>
         </div>
 

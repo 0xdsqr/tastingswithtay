@@ -57,8 +57,8 @@ result-*
 # Database (root level only)
 /data/
 
-# Brand assets (under review)
-.github/assets/
+# Brand assets — now tracked
+# .github/assets/
 
 # Large files
 *.iso

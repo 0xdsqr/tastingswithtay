@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router"
 import { Facebook, Instagram, Mail, Youtube } from "lucide-react"
+import { BrandLogo } from "./brand-logo"
 
 const mainNavigation = [
   { name: "Recipes", to: "/recipes" },
@@ -23,9 +24,7 @@ export function SiteFooter(): React.ReactElement {
         <div className="flex flex-col items-center">
           {/* Logo */}
           <Link to="/" className="mb-8">
-            <span className="font-serif text-2xl tracking-tight text-foreground">
-              Tastings with Tay
-            </span>
+            <BrandLogo className="h-14 w-auto" />
           </Link>
 
           {/* Navigation */}

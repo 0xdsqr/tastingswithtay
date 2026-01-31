@@ -253,21 +253,21 @@ export function BentoGrid({
               search={{ type: undefined }}
               className="group block h-full"
             >
-              <div className="relative flex h-full flex-col justify-between overflow-hidden rounded-2xl bg-gradient-to-br from-[#2D1B2E] to-[#1A1014] p-6">
+              <div className="relative flex h-full flex-col justify-between overflow-hidden rounded-2xl bg-gradient-to-br from-brand-burgundy to-brand-burgundy/80 p-6">
                 <div>
-                  <Wine className="mb-3 h-8 w-8 text-[#C4A77D]" />
-                  <p className="mb-2 text-xs font-medium uppercase tracking-widest text-[#C4A77D]/80">
+                  <Wine className="mb-3 h-8 w-8 text-brand-gold" />
+                  <p className="mb-2 text-xs font-medium uppercase tracking-widest text-brand-gold/80">
                     Tastings
                   </p>
-                  <h3 className="font-serif text-2xl text-[#FAF7F2] transition-colors group-hover:text-[#C4A77D]">
+                  <h3 className="font-serif text-2xl text-brand-cream transition-colors group-hover:text-brand-gold">
                     Wine Cellar
                   </h3>
-                  <p className="mt-2 text-sm leading-relaxed text-[#FAF7F2]/70">
+                  <p className="mt-2 text-sm leading-relaxed text-brand-cream/70">
                     Tasting notes, pairings, and my favorite discoveries from
                     vineyards near and far.
                   </p>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-[#C4A77D] transition-colors group-hover:text-[#FAF7F2]">
+                <div className="flex items-center gap-2 text-sm text-brand-gold transition-colors group-hover:text-brand-cream">
                   <span>Explore wines</span>
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </div>
@@ -362,13 +362,13 @@ export function BentoGrid({
 
           {/* Newsletter Card */}
           <BentoItem className="col-span-2" delay={500}>
-            <div className="flex h-full flex-col justify-center overflow-hidden rounded-2xl bg-primary p-6 text-primary-foreground">
+            <div className="flex h-full flex-col justify-center overflow-hidden rounded-2xl bg-brand-burgundy p-6 text-brand-cream">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div>
                   <h3 className="mb-1 font-serif text-2xl">
                     Get Tay&apos;s Top 10 Recipes
                   </h3>
-                  <p className="text-sm text-primary-foreground/80">
+                  <p className="text-sm text-brand-cream/80">
                     Join the community and receive a free recipe eBook.
                   </p>
                 </div>
@@ -376,12 +376,12 @@ export function BentoGrid({
                   <input
                     type="email"
                     placeholder="Enter your email"
-                    className="w-full rounded-lg border border-primary-foreground/20 bg-primary-foreground/10 px-4 py-2 text-sm text-primary-foreground placeholder:text-primary-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary-foreground/30 lg:w-auto"
+                    className="w-full rounded-lg border border-brand-cream/20 bg-brand-cream/10 px-4 py-2 text-sm text-brand-cream placeholder:text-brand-cream/50 focus:outline-none focus:ring-2 focus:ring-brand-gold/40 lg:w-auto"
                   />
                   <Button
                     variant="secondary"
                     size="sm"
-                    className="flex-shrink-0"
+                    className="flex-shrink-0 bg-brand-gold text-brand-charcoal hover:bg-brand-gold/90"
                   >
                     Subscribe
                   </Button>
