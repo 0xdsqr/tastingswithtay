@@ -6,13 +6,7 @@ import {
   DialogDescription,
   DialogTitle,
 } from "@twt/ui/components/dialog"
-import {
-  ChevronLeft,
-  ChevronRight,
-  Flower2,
-  Egg,
-  X,
-} from "lucide-react"
+import { ChevronLeft, ChevronRight, Egg, Flower2, X } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
 import { EmptyState } from "../../components/empty-state"
 import { OptimizedImage } from "../../components/optimized-image"
@@ -261,9 +255,7 @@ function GardenAndFlockPage(): React.ReactElement {
                                 : "bg-amber-500/80 text-white"
                             }`}
                           >
-                            {image.category === "garden"
-                              ? "Garden"
-                              : "Flock"}
+                            {image.category === "garden" ? "Garden" : "Flock"}
                           </span>
                         </div>
                       </div>

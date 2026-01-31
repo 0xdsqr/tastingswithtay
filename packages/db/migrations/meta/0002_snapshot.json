@@ -86,12 +86,8 @@
           "name": "collection_recipes_collection_id_collections_id_fk",
           "tableFrom": "collection_recipes",
           "tableTo": "collections",
-          "columnsFrom": [
-            "collection_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["collection_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -99,12 +95,8 @@
           "name": "collection_recipes_recipe_id_recipes_id_fk",
           "tableFrom": "collection_recipes",
           "tableTo": "recipes",
-          "columnsFrom": [
-            "recipe_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["recipe_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -112,10 +104,7 @@
       "compositePrimaryKeys": {
         "collection_recipes_collection_id_recipe_id_pk": {
           "name": "collection_recipes_collection_id_recipe_id_pk",
-          "columns": [
-            "collection_id",
-            "recipe_id"
-          ]
+          "columns": ["collection_id", "recipe_id"]
         }
       },
       "uniqueConstraints": {},
@@ -205,12 +194,8 @@
           "name": "collection_wines_collection_id_collections_id_fk",
           "tableFrom": "collection_wines",
           "tableTo": "collections",
-          "columnsFrom": [
-            "collection_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["collection_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -218,12 +203,8 @@
           "name": "collection_wines_wine_id_wines_id_fk",
           "tableFrom": "collection_wines",
           "tableTo": "wines",
-          "columnsFrom": [
-            "wine_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["wine_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -231,10 +212,7 @@
       "compositePrimaryKeys": {
         "collection_wines_collection_id_wine_id_pk": {
           "name": "collection_wines_collection_id_wine_id_pk",
-          "columns": [
-            "collection_id",
-            "wine_id"
-          ]
+          "columns": ["collection_id", "wine_id"]
         }
       },
       "uniqueConstraints": {},
@@ -359,9 +337,7 @@
         "collections_slug_unique": {
           "name": "collections_slug_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "slug"
-          ]
+          "columns": ["slug"]
         }
       },
       "policies": {},
@@ -491,12 +467,8 @@
           "name": "experiment_entries_experiment_id_experiments_id_fk",
           "tableFrom": "experiment_entries",
           "tableTo": "experiments",
-          "columnsFrom": [
-            "experiment_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["experiment_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -561,12 +533,8 @@
           "name": "experiment_tags_experiment_id_experiments_id_fk",
           "tableFrom": "experiment_tags",
           "tableTo": "experiments",
-          "columnsFrom": [
-            "experiment_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["experiment_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -574,12 +542,8 @@
           "name": "experiment_tags_tag_id_tags_id_fk",
           "tableFrom": "experiment_tags",
           "tableTo": "tags",
-          "columnsFrom": [
-            "tag_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tag_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -587,10 +551,7 @@
       "compositePrimaryKeys": {
         "experiment_tags_experiment_id_tag_id_pk": {
           "name": "experiment_tags_experiment_id_tag_id_pk",
-          "columns": [
-            "experiment_id",
-            "tag_id"
-          ]
+          "columns": ["experiment_id", "tag_id"]
         }
       },
       "uniqueConstraints": {},
@@ -790,12 +751,8 @@
           "name": "experiments_recipe_id_recipes_id_fk",
           "tableFrom": "experiments",
           "tableTo": "recipes",
-          "columnsFrom": [
-            "recipe_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["recipe_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -805,9 +762,7 @@
         "experiments_slug_unique": {
           "name": "experiments_slug_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "slug"
-          ]
+          "columns": ["slug"]
         }
       },
       "policies": {},
@@ -1108,12 +1063,8 @@
           "name": "recipe_comments_recipe_id_recipes_id_fk",
           "tableFrom": "recipe_comments",
           "tableTo": "recipes",
-          "columnsFrom": [
-            "recipe_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["recipe_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1121,12 +1072,8 @@
           "name": "recipe_comments_user_id_user_id_fk",
           "tableFrom": "recipe_comments",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1198,12 +1145,8 @@
           "name": "recipe_favorites_user_id_user_id_fk",
           "tableFrom": "recipe_favorites",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1211,12 +1154,8 @@
           "name": "recipe_favorites_recipe_id_recipes_id_fk",
           "tableFrom": "recipe_favorites",
           "tableTo": "recipes",
-          "columnsFrom": [
-            "recipe_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["recipe_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1224,10 +1163,7 @@
       "compositePrimaryKeys": {
         "recipe_favorites_user_id_recipe_id_pk": {
           "name": "recipe_favorites_user_id_recipe_id_pk",
-          "columns": [
-            "user_id",
-            "recipe_id"
-          ]
+          "columns": ["user_id", "recipe_id"]
         }
       },
       "uniqueConstraints": {},
@@ -1358,12 +1294,8 @@
           "name": "recipe_ratings_user_id_user_id_fk",
           "tableFrom": "recipe_ratings",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1371,12 +1303,8 @@
           "name": "recipe_ratings_recipe_id_recipes_id_fk",
           "tableFrom": "recipe_ratings",
           "tableTo": "recipes",
-          "columnsFrom": [
-            "recipe_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["recipe_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1441,12 +1369,8 @@
           "name": "recipe_tags_recipe_id_recipes_id_fk",
           "tableFrom": "recipe_tags",
           "tableTo": "recipes",
-          "columnsFrom": [
-            "recipe_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["recipe_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1454,12 +1378,8 @@
           "name": "recipe_tags_tag_id_tags_id_fk",
           "tableFrom": "recipe_tags",
           "tableTo": "tags",
-          "columnsFrom": [
-            "tag_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tag_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1467,10 +1387,7 @@
       "compositePrimaryKeys": {
         "recipe_tags_recipe_id_tag_id_pk": {
           "name": "recipe_tags_recipe_id_tag_id_pk",
-          "columns": [
-            "recipe_id",
-            "tag_id"
-          ]
+          "columns": ["recipe_id", "tag_id"]
         }
       },
       "uniqueConstraints": {},
@@ -1580,12 +1497,8 @@
           "name": "recipe_wine_pairings_recipe_id_recipes_id_fk",
           "tableFrom": "recipe_wine_pairings",
           "tableTo": "recipes",
-          "columnsFrom": [
-            "recipe_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["recipe_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1593,12 +1506,8 @@
           "name": "recipe_wine_pairings_wine_id_wines_id_fk",
           "tableFrom": "recipe_wine_pairings",
           "tableTo": "wines",
-          "columnsFrom": [
-            "wine_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["wine_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1848,9 +1757,7 @@
         "recipes_slug_unique": {
           "name": "recipes_slug_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "slug"
-          ]
+          "columns": ["slug"]
         }
       },
       "policies": {},
@@ -1955,16 +1862,12 @@
         "subscribers_email_unique": {
           "name": "subscribers_email_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "email"
-          ]
+          "columns": ["email"]
         },
         "subscribers_unsubscribe_token_unique": {
           "name": "subscribers_unsubscribe_token_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "unsubscribe_token"
-          ]
+          "columns": ["unsubscribe_token"]
         }
       },
       "policies": {},
@@ -2047,16 +1950,12 @@
         "tags_name_unique": {
           "name": "tags_name_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "name"
-          ]
+          "columns": ["name"]
         },
         "tags_slug_unique": {
           "name": "tags_slug_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "slug"
-          ]
+          "columns": ["slug"]
         }
       },
       "policies": {},
@@ -2193,12 +2092,8 @@
           "name": "wine_comments_wine_id_wines_id_fk",
           "tableFrom": "wine_comments",
           "tableTo": "wines",
-          "columnsFrom": [
-            "wine_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["wine_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -2206,12 +2101,8 @@
           "name": "wine_comments_user_id_user_id_fk",
           "tableFrom": "wine_comments",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -2283,12 +2174,8 @@
           "name": "wine_favorites_user_id_user_id_fk",
           "tableFrom": "wine_favorites",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -2296,12 +2183,8 @@
           "name": "wine_favorites_wine_id_wines_id_fk",
           "tableFrom": "wine_favorites",
           "tableTo": "wines",
-          "columnsFrom": [
-            "wine_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["wine_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -2309,10 +2192,7 @@
       "compositePrimaryKeys": {
         "wine_favorites_user_id_wine_id_pk": {
           "name": "wine_favorites_user_id_wine_id_pk",
-          "columns": [
-            "user_id",
-            "wine_id"
-          ]
+          "columns": ["user_id", "wine_id"]
         }
       },
       "uniqueConstraints": {},
@@ -2374,12 +2254,8 @@
           "name": "wine_tags_wine_id_wines_id_fk",
           "tableFrom": "wine_tags",
           "tableTo": "wines",
-          "columnsFrom": [
-            "wine_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["wine_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -2387,12 +2263,8 @@
           "name": "wine_tags_tag_id_tags_id_fk",
           "tableFrom": "wine_tags",
           "tableTo": "tags",
-          "columnsFrom": [
-            "tag_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tag_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -2400,10 +2272,7 @@
       "compositePrimaryKeys": {
         "wine_tags_wine_id_tag_id_pk": {
           "name": "wine_tags_wine_id_tag_id_pk",
-          "columns": [
-            "wine_id",
-            "tag_id"
-          ]
+          "columns": ["wine_id", "tag_id"]
         }
       },
       "uniqueConstraints": {},
@@ -2671,9 +2540,7 @@
         "wines_slug_unique": {
           "name": "wines_slug_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "slug"
-          ]
+          "columns": ["slug"]
         }
       },
       "policies": {},
@@ -2786,12 +2653,8 @@
           "name": "account_user_id_user_id_fk",
           "tableFrom": "account",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -2927,12 +2790,8 @@
           "name": "session_user_id_user_id_fk",
           "tableFrom": "session",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -2942,9 +2801,7 @@
         "session_token_unique": {
           "name": "session_token_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "token"
-          ]
+          "columns": ["token"]
         }
       },
       "policies": {},
@@ -3033,9 +2890,7 @@
         "user_email_unique": {
           "name": "user_email_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "email"
-          ]
+          "columns": ["email"]
         }
       },
       "policies": {},

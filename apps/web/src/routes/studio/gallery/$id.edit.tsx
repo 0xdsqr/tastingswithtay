@@ -1,4 +1,16 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@twt/ui/components/alert-dialog"
 import { Button } from "@twt/ui/components/button"
 import {
   Card,
@@ -19,21 +31,9 @@ import {
 import { Spinner } from "@twt/ui/components/spinner"
 import { Switch } from "@twt/ui/components/switch"
 import { Textarea } from "@twt/ui/components/textarea"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@twt/ui/components/alert-dialog"
 import { ArrowLeft, Trash2 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useTRPC } from "../../../lib/trpc"
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 
 export const Route = createFileRoute("/studio/gallery/$id/edit")({
   component: EditGalleryImagePage,

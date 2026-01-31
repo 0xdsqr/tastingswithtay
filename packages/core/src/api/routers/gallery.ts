@@ -93,9 +93,7 @@ export const galleryRouter = {
   delete: adminProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
-      await ctx.db
-        .delete(galleryImages)
-        .where(eq(galleryImages.id, input.id))
+      await ctx.db.delete(galleryImages).where(eq(galleryImages.id, input.id))
       return { success: true }
     }),
 } satisfies TRPCRouterRecord
