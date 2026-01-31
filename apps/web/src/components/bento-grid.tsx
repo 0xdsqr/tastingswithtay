@@ -1,9 +1,17 @@
 import { Link } from "@tanstack/react-router"
 import type { Recipe } from "@twt/db/schema"
 import { Button } from "@twt/ui/components/button"
-import { ArrowRight, Clock, ShoppingBag, Users, Wine } from "lucide-react"
+import {
+  ArrowRight,
+  Clock,
+  CookingPot,
+  ShoppingBag,
+  Users,
+  Wine,
+} from "lucide-react"
 import type React from "react"
 import { useEffect, useRef, useState } from "react"
+import { GhostCard } from "./empty-state"
 import { OptimizedImage } from "./optimized-image"
 
 function formatTime(minutes: number | null): string {
@@ -66,6 +74,7 @@ export function BentoGrid({
   const featuredRecipe = recipes[0]
   const secondRecipe = recipes[1]
   const thirdRecipe = recipes[2]
+  const hasRecipes = recipes.length > 0
   return (
     <section className="bg-muted/30 py-16 lg:py-24">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
@@ -81,120 +90,160 @@ export function BentoGrid({
 
         {/* Bento Grid */}
         <div className="grid auto-rows-[200px] grid-cols-2 gap-4 lg:auto-rows-[240px] lg:grid-cols-4 lg:gap-6">
-          {/* Large Featured Recipe */}
-          {featuredRecipe && (
-            <BentoItem className="col-span-2 row-span-2" delay={100}>
-              <Link
-                to="/recipes/$slug"
-                params={{ slug: featuredRecipe.slug }}
-                className="group block h-full"
-              >
-                <div className="relative h-full overflow-hidden rounded-2xl bg-card">
-                  {featuredRecipe.image && (
-                    <OptimizedImage
-                      src={featuredRecipe.image}
-                      alt={featuredRecipe.title}
-                      className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-                    />
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent" />
-                  <div className="absolute bottom-0 left-0 right-0 p-6 lg:p-8">
-                    <span className="mb-3 inline-block rounded-full bg-primary px-3 py-1 text-xs font-medium tracking-wide text-primary-foreground">
-                      Featured
-                    </span>
-                    <h3 className="mb-2 font-serif text-2xl text-foreground transition-colors group-hover:text-primary lg:text-3xl">
-                      {featuredRecipe.title}
-                    </h3>
-                    <p className="mb-3 line-clamp-2 text-sm text-muted-foreground">
-                      {featuredRecipe.description}
-                    </p>
-                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                      {(featuredRecipe.prepTime || featuredRecipe.cookTime) && (
-                        <span className="flex items-center gap-1">
-                          <Clock className="h-3.5 w-3.5" />
-                          {formatTime(
-                            (featuredRecipe.prepTime ?? 0) +
-                              (featuredRecipe.cookTime ?? 0),
+          {/* Recipe cells: real content or ghost placeholders */}
+          {hasRecipes ? (
+            <>
+              {/* Large Featured Recipe */}
+              {featuredRecipe && (
+                <BentoItem className="col-span-2 row-span-2" delay={100}>
+                  <Link
+                    to="/recipes/$slug"
+                    params={{ slug: featuredRecipe.slug }}
+                    className="group block h-full"
+                  >
+                    <div className="relative h-full overflow-hidden rounded-2xl bg-card">
+                      {featuredRecipe.image && (
+                        <OptimizedImage
+                          src={featuredRecipe.image}
+                          alt={featuredRecipe.title}
+                          className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                        />
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent" />
+                      <div className="absolute bottom-0 left-0 right-0 p-6 lg:p-8">
+                        <span className="mb-3 inline-block rounded-full bg-primary px-3 py-1 text-xs font-medium tracking-wide text-primary-foreground">
+                          Featured
+                        </span>
+                        <h3 className="mb-2 font-serif text-2xl text-foreground transition-colors group-hover:text-primary lg:text-3xl">
+                          {featuredRecipe.title}
+                        </h3>
+                        <p className="mb-3 line-clamp-2 text-sm text-muted-foreground">
+                          {featuredRecipe.description}
+                        </p>
+                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                          {(featuredRecipe.prepTime ||
+                            featuredRecipe.cookTime) && (
+                            <span className="flex items-center gap-1">
+                              <Clock className="h-3.5 w-3.5" />
+                              {formatTime(
+                                (featuredRecipe.prepTime ?? 0) +
+                                  (featuredRecipe.cookTime ?? 0),
+                              )}
+                            </span>
                           )}
-                        </span>
-                      )}
-                      {featuredRecipe.servings && (
-                        <span className="flex items-center gap-1">
-                          <Users className="h-3.5 w-3.5" />
-                          {featuredRecipe.servings} servings
-                        </span>
-                      )}
+                          {featuredRecipe.servings && (
+                            <span className="flex items-center gap-1">
+                              <Users className="h-3.5 w-3.5" />
+                              {featuredRecipe.servings} servings
+                            </span>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-              </Link>
-            </BentoItem>
-          )}
+                  </Link>
+                </BentoItem>
+              )}
 
-          {/* Quick Recipe 2 */}
-          {secondRecipe && (
-            <BentoItem delay={200}>
-              <Link
-                to="/recipes/$slug"
-                params={{ slug: secondRecipe.slug }}
-                className="group block h-full"
-              >
-                <div className="relative h-full overflow-hidden rounded-2xl bg-card">
-                  {secondRecipe.image && (
-                    <OptimizedImage
-                      src={secondRecipe.image}
-                      alt={secondRecipe.title}
-                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
-                  <div className="absolute bottom-0 left-0 right-0 p-4">
-                    <h3 className="line-clamp-1 font-serif text-lg text-foreground transition-colors group-hover:text-primary">
-                      {secondRecipe.title}
-                    </h3>
-                    <p className="text-xs text-muted-foreground">
-                      {formatTime(
-                        (secondRecipe.prepTime ?? 0) +
-                          (secondRecipe.cookTime ?? 0),
+              {/* Quick Recipe 2 */}
+              {secondRecipe && (
+                <BentoItem delay={200}>
+                  <Link
+                    to="/recipes/$slug"
+                    params={{ slug: secondRecipe.slug }}
+                    className="group block h-full"
+                  >
+                    <div className="relative h-full overflow-hidden rounded-2xl bg-card">
+                      {secondRecipe.image && (
+                        <OptimizedImage
+                          src={secondRecipe.image}
+                          alt={secondRecipe.title}
+                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
                       )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
+                      <div className="absolute bottom-0 left-0 right-0 p-4">
+                        <h3 className="line-clamp-1 font-serif text-lg text-foreground transition-colors group-hover:text-primary">
+                          {secondRecipe.title}
+                        </h3>
+                        <p className="text-xs text-muted-foreground">
+                          {formatTime(
+                            (secondRecipe.prepTime ?? 0) +
+                              (secondRecipe.cookTime ?? 0),
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                  </Link>
+                </BentoItem>
+              )}
+
+              {/* Quick Recipe 3 */}
+              {thirdRecipe && (
+                <BentoItem delay={250}>
+                  <Link
+                    to="/recipes/$slug"
+                    params={{ slug: thirdRecipe.slug }}
+                    className="group block h-full"
+                  >
+                    <div className="relative h-full overflow-hidden rounded-2xl bg-card">
+                      {thirdRecipe.image && (
+                        <OptimizedImage
+                          src={thirdRecipe.image}
+                          alt={thirdRecipe.title}
+                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
+                      <div className="absolute bottom-0 left-0 right-0 p-4">
+                        <h3 className="line-clamp-1 font-serif text-lg text-foreground transition-colors group-hover:text-primary">
+                          {thirdRecipe.title}
+                        </h3>
+                        <p className="text-xs text-muted-foreground">
+                          {formatTime(
+                            (thirdRecipe.prepTime ?? 0) +
+                              (thirdRecipe.cookTime ?? 0),
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                  </Link>
+                </BentoItem>
+              )}
+            </>
+          ) : (
+            <>
+              {/* Ghost placeholder for featured recipe (2x2) */}
+              <BentoItem className="col-span-2 row-span-2" delay={100}>
+                <div className="relative h-full overflow-hidden rounded-2xl border border-border bg-card">
+                  <div className="h-full w-full bg-muted opacity-40 blur-[2px]" />
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
+                    <div className="flex size-12 items-center justify-center rounded-full bg-muted">
+                      <CookingPot className="size-6 text-muted-foreground" />
+                    </div>
+                    <p className="font-serif text-xl text-foreground">
+                      Recipes coming soon
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Tay is cooking up something special
                     </p>
                   </div>
                 </div>
-              </Link>
-            </BentoItem>
-          )}
+              </BentoItem>
 
-          {/* Quick Recipe 3 */}
-          {thirdRecipe && (
-            <BentoItem delay={250}>
-              <Link
-                to="/recipes/$slug"
-                params={{ slug: thirdRecipe.slug }}
-                className="group block h-full"
-              >
-                <div className="relative h-full overflow-hidden rounded-2xl bg-card">
-                  {thirdRecipe.image && (
-                    <OptimizedImage
-                      src={thirdRecipe.image}
-                      alt={thirdRecipe.title}
-                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
-                  <div className="absolute bottom-0 left-0 right-0 p-4">
-                    <h3 className="line-clamp-1 font-serif text-lg text-foreground transition-colors group-hover:text-primary">
-                      {thirdRecipe.title}
-                    </h3>
-                    <p className="text-xs text-muted-foreground">
-                      {formatTime(
-                        (thirdRecipe.prepTime ?? 0) +
-                          (thirdRecipe.cookTime ?? 0),
-                      )}
-                    </p>
-                  </div>
-                </div>
-              </Link>
-            </BentoItem>
+              {/* Ghost placeholder small cards */}
+              <BentoItem delay={200}>
+                <GhostCard
+                  aspectRatio="aspect-auto"
+                  className="h-full opacity-40 blur-[1px]"
+                />
+              </BentoItem>
+              <BentoItem delay={250}>
+                <GhostCard
+                  aspectRatio="aspect-auto"
+                  className="h-full opacity-40 blur-[1px]"
+                />
+              </BentoItem>
+            </>
           )}
 
           {/* Wine Cellar Card */}
@@ -284,16 +333,29 @@ export function BentoGrid({
                 </Link>
               </div>
               <div className="-mx-1 flex gap-3 overflow-x-auto px-1 pb-2">
-                {categories.map((cat) => (
-                  <Link
-                    key={cat}
-                    to="/recipes"
-                    search={{ category: cat }}
-                    className="flex-shrink-0 rounded-full bg-muted px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-primary hover:text-primary-foreground"
-                  >
-                    {cat}
-                  </Link>
-                ))}
+                {categories.length > 0 ? (
+                  categories.map((cat) => (
+                    <Link
+                      key={cat}
+                      to="/recipes"
+                      search={{ category: cat }}
+                      className="flex-shrink-0 rounded-full bg-muted px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-primary hover:text-primary-foreground"
+                    >
+                      {cat}
+                    </Link>
+                  ))
+                ) : (
+                  <div className="flex gap-3 opacity-40 blur-[1px]">
+                    {["Dinner", "Dessert", "Brunch", "Salads"].map((cat) => (
+                      <span
+                        key={cat}
+                        className="flex-shrink-0 rounded-full bg-muted px-4 py-2 text-sm font-medium text-foreground"
+                      >
+                        {cat}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </BentoItem>

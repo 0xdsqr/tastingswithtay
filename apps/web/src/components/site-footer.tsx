@@ -4,6 +4,7 @@ import { Facebook, Instagram, Mail, Youtube } from "lucide-react"
 const mainNavigation = [
   { name: "Recipes", to: "/recipes" },
   { name: "Wine Cellar", to: "/wine" },
+  { name: "Test Kitchen", to: "/test-kitchen" },
   { name: "About", to: "/about" },
   { name: "Shop", to: "/shop" },
 ] as const

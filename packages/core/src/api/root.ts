@@ -1,5 +1,6 @@
 import { collectionsRouter } from "./routers/collections"
 import { commentsRouter } from "./routers/comments"
+import { experimentsRouter } from "./routers/experiments"
 import { favoritesRouter } from "./routers/favorites"
 import { ratingsRouter } from "./routers/ratings"
 import { recipesRouter } from "./routers/recipes"
@@ -11,6 +12,7 @@ import { createTRPCRouter } from "./trpc"
 export const appRouter = createTRPCRouter({
   recipes: recipesRouter,
   wines: winesRouter,
+  experiments: experimentsRouter,
   collections: collectionsRouter,
   tags: tagsRouter,
   subscribers: subscribersRouter,

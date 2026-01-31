@@ -10,7 +10,8 @@ import {
   FieldSeparator,
 } from "@twt/ui/components/field"
 import { Input } from "@twt/ui/components/input"
-import { useState } from "react"
+import { Spinner } from "@twt/ui/components/spinner"
+import { useEffect, useState } from "react"
 import { authClient } from "../auth/client"
 import { SiteFooter } from "../components/site-footer"
 import { SiteHeader } from "../components/site-header"
@@ -46,8 +47,36 @@ function SignupPage(): React.ReactElement {
   const [isLoading, setIsLoading] = useState(false)
 
   // If already logged in, redirect to home
-  if (session && !sessionPending) {
-    navigate({ to: "/" })
+  useEffect(() => {
+    if (session && !sessionPending) {
+      navigate({ to: "/" })
+    }
+  }, [session, sessionPending, navigate])
+
+  // Show nothing while checking session to avoid flash
+  if (sessionPending) {
+    return (
+      <div className="flex min-h-screen flex-col">
+        <SiteHeader />
+        <main className="flex flex-1 items-center justify-center">
+          <Spinner className="size-8" />
+        </main>
+        <SiteFooter />
+      </div>
+    )
+  }
+
+  // Already authenticated, will redirect via useEffect
+  if (session) {
+    return (
+      <div className="flex min-h-screen flex-col">
+        <SiteHeader />
+        <main className="flex flex-1 items-center justify-center">
+          <Spinner className="size-8" />
+        </main>
+        <SiteFooter />
+      </div>
+    )
   }
 
   const handleEmailSignup = async (e: React.FormEvent) => {

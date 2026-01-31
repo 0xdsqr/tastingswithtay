@@ -29,7 +29,20 @@ export const wineTypeEnum = [
   "Dessert",
 ] as const
 export const priceRangeEnum = ["$", "$$", "$$$", "$$$$", "$$$$$"] as const
-export const tagTypeEnum = ["recipe", "wine", "both"] as const
+export const tagTypeEnum = ["recipe", "wine", "experiment", "both"] as const
+export const experimentStatusEnum = [
+  "in_progress",
+  "paused",
+  "completed",
+  "graduated",
+] as const
+export const experimentEntryTypeEnum = [
+  "update",
+  "photo",
+  "note",
+  "result",
+  "iteration",
+] as const
 
 // ============================================
 // TAGS (shared across recipes & wines)
@@ -482,12 +495,113 @@ export const subscribers = pgTable(
 )
 
 // ============================================
+// EXPERIMENTS (Test Kitchen)
+// ============================================
+
+export const experiments = pgTable(
+  "experiments",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    title: varchar("title", { length: 256 }).notNull(),
+    slug: varchar("slug", { length: 256 }).notNull().unique(),
+    description: text("description").notNull(),
+    status: varchar("status", { length: 50 }).notNull().default("in_progress"), // in_progress, paused, completed, graduated
+    hypothesis: text("hypothesis"),
+    result: text("result"),
+    recipeId: uuid("recipe_id").references(() => recipes.id, {
+      onDelete: "set null",
+    }), // Set when graduated to a recipe
+    image: varchar("image", { length: 512 }),
+    published: boolean("published").default(false).notNull(),
+    featured: boolean("featured").default(false).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("experiments_slug_idx").on(table.slug),
+    index("experiments_status_idx").on(table.status),
+    index("experiments_published_idx").on(table.published),
+    index("experiments_featured_idx").on(table.featured),
+    index("experiments_created_at_idx").on(sql`${table.createdAt} DESC`),
+    index("experiments_published_created_idx").on(
+      table.published,
+      sql`${table.createdAt} DESC`,
+    ),
+  ],
+)
+
+// ============================================
+// EXPERIMENT ENTRIES (timeline updates)
+// ============================================
+
+export const experimentEntries = pgTable(
+  "experiment_entries",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    experimentId: uuid("experiment_id")
+      .notNull()
+      .references(() => experiments.id, { onDelete: "cascade" }),
+    content: text("content").notNull(),
+    entryType: varchar("entry_type", { length: 50 })
+      .notNull()
+      .default("update"), // update, photo, note, result, iteration
+    images: jsonb("images").$type<string[]>().default(sql`'[]'::jsonb`),
+    sortOrder: integer("sort_order").default(0).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("experiment_entries_experiment_id_idx").on(table.experimentId),
+    index("experiment_entries_sort_idx").on(
+      table.experimentId,
+      table.sortOrder,
+    ),
+    index("experiment_entries_created_at_idx").on(
+      table.experimentId,
+      sql`${table.createdAt} DESC`,
+    ),
+  ],
+)
+
+// ============================================
+// EXPERIMENT TAGS (junction)
+// ============================================
+
+export const experimentTags = pgTable(
+  "experiment_tags",
+  {
+    experimentId: uuid("experiment_id")
+      .notNull()
+      .references(() => experiments.id, { onDelete: "cascade" }),
+    tagId: uuid("tag_id")
+      .notNull()
+      .references(() => tags.id, { onDelete: "cascade" }),
+  },
+  (table) => [
+    primaryKey({ columns: [table.experimentId, table.tagId] }),
+    index("experiment_tags_experiment_id_idx").on(table.experimentId),
+    index("experiment_tags_tag_id_idx").on(table.tagId),
+  ],
+)
+
+// ============================================
 // RELATIONS
 // ============================================
 
 export const tagsRelations = relations(tags, ({ many }) => ({
   recipeTags: many(recipeTags),
   wineTags: many(wineTags),
+  experimentTags: many(experimentTags),
 }))
 
 export const recipesRelations = relations(recipes, ({ many }) => ({
@@ -656,6 +770,36 @@ export const wineCommentsRelations = relations(
   }),
 )
 
+export const experimentsRelations = relations(experiments, ({ one, many }) => ({
+  recipe: one(recipes, {
+    fields: [experiments.recipeId],
+    references: [recipes.id],
+  }),
+  entries: many(experimentEntries),
+  tags: many(experimentTags),
+}))
+
+export const experimentEntriesRelations = relations(
+  experimentEntries,
+  ({ one }) => ({
+    experiment: one(experiments, {
+      fields: [experimentEntries.experimentId],
+      references: [experiments.id],
+    }),
+  }),
+)
+
+export const experimentTagsRelations = relations(experimentTags, ({ one }) => ({
+  experiment: one(experiments, {
+    fields: [experimentTags.experimentId],
+    references: [experiments.id],
+  }),
+  tag: one(tags, {
+    fields: [experimentTags.tagId],
+    references: [tags.id],
+  }),
+}))
+
 export const subscribersRelations = relations(subscribers, () => ({}))
 
 // ============================================
@@ -820,6 +964,48 @@ export const createRecipeWinePairingSchema = createInsertSchema(
   createdAt: true,
 })
 
+export const createExperimentSchema = createInsertSchema(experiments, {
+  title: z.string().min(1).max(256),
+  slug: z
+    .string()
+    .min(1)
+    .max(256)
+    .regex(/^[a-z0-9-]+$/),
+  description: z.string().min(1),
+  status: z.enum(experimentStatusEnum).optional(),
+  hypothesis: z.string().optional(),
+  result: z.string().optional(),
+  recipeId: z.string().uuid().optional().nullable(),
+  image: z.string().max(512).optional(),
+  published: z.boolean().optional(),
+  featured: z.boolean().optional(),
+}).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+})
+
+export const updateExperimentSchema = createExperimentSchema.partial()
+
+export const createExperimentEntrySchema = createInsertSchema(
+  experimentEntries,
+  {
+    experimentId: z.string().uuid(),
+    content: z.string().min(1).max(5000),
+    entryType: z.enum(experimentEntryTypeEnum).optional(),
+    images: z.array(z.string().max(512)).optional(),
+    sortOrder: z.number().int().min(0).optional(),
+  },
+).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+})
+
+export const updateExperimentEntrySchema = createExperimentEntrySchema
+  .partial()
+  .omit({ experimentId: true })
+
 // ============================================
 // TYPES
 // ============================================
@@ -856,6 +1042,12 @@ export type NewWineComment = typeof wineComments.$inferInsert
 
 export type Subscriber = typeof subscribers.$inferSelect
 export type NewSubscriber = typeof subscribers.$inferInsert
+
+export type Experiment = typeof experiments.$inferSelect
+export type NewExperiment = typeof experiments.$inferInsert
+
+export type ExperimentEntry = typeof experimentEntries.$inferSelect
+export type NewExperimentEntry = typeof experimentEntries.$inferInsert
 
 // Re-export auth schema
 export * from "./auth-schema"

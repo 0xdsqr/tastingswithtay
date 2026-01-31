@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router"
 import type { Recipe } from "@twt/db/schema"
 import { Button } from "@twt/ui/components/button"
-import { ArrowDown, Clock, Users } from "lucide-react"
+import { ArrowDown, Clock, CookingPot, Users } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { OptimizedImage } from "./optimized-image"
 
@@ -44,12 +44,57 @@ export function ImmersiveHero({
   // Fallback if no recipes
   if (!activeRecipe) {
     return (
-      <section className="relative flex min-h-[100svh] items-center justify-center">
-        <div className="text-center">
-          <h1 className="font-serif text-5xl text-foreground">
-            Tastings with Tay
-          </h1>
-          <p className="mt-4 text-muted-foreground">Recipes coming soon...</p>
+      <section className="relative flex min-h-[100svh] items-center justify-center overflow-hidden">
+        {/* Soft gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-muted via-background to-muted/50" />
+        <div className="absolute inset-0 opacity-[0.03]">
+          <div className="absolute left-1/4 top-1/3 h-96 w-96 rounded-full bg-primary blur-3xl" />
+          <div className="absolute bottom-1/3 right-1/4 h-64 w-64 rounded-full bg-primary blur-3xl" />
+        </div>
+
+        {/* Ghost placeholder cards in background */}
+        <div
+          className="absolute inset-0 flex items-center justify-center gap-6 px-12 opacity-[0.06]"
+          aria-hidden="true"
+        >
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div
+              key={i}
+              className="h-72 w-64 flex-shrink-0 rounded-2xl bg-foreground blur-[2px]"
+            />
+          ))}
+        </div>
+
+        {/* Centered content */}
+        <div className="relative z-10 flex flex-col items-center gap-6 text-center">
+          <div className="flex size-20 items-center justify-center rounded-full bg-muted">
+            <CookingPot className="size-10 text-muted-foreground" />
+          </div>
+          <div>
+            <p className="mb-3 text-sm font-medium uppercase tracking-widest text-primary">
+              Welcome to
+            </p>
+            <h1 className="font-serif text-5xl tracking-tight text-foreground sm:text-6xl lg:text-7xl">
+              Tastings with Tay
+            </h1>
+          </div>
+          <p className="max-w-md text-lg text-muted-foreground">
+            Recipes, wine tastings, and kitchen stories are on their way. Stay
+            tuned!
+          </p>
+          <Button
+            variant="outline"
+            size="lg"
+            className="mt-2 bg-background/50 backdrop-blur-sm"
+            asChild
+          >
+            <Link to="/about">Learn More About Tay</Link>
+          </Button>
+        </div>
+
+        {/* Scroll Indicator */}
+        <div className="absolute bottom-8 left-1/2 z-10 -translate-x-1/2 animate-bounce">
+          <ArrowDown className="h-6 w-6 text-muted-foreground" />
         </div>
       </section>
     )

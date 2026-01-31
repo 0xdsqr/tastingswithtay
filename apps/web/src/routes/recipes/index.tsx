@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router"
+import { CookingPot } from "lucide-react"
 import { z } from "zod"
+import { EmptyState } from "../../components/empty-state"
 import { RecipeCard } from "../../components/recipe-card"
 import { RecipeFilters } from "../../components/recipe-filters"
 import { SiteFooter } from "../../components/site-footer"
@@ -76,11 +78,20 @@ function RecipesPage(): React.ReactElement {
                 ))}
               </div>
             ) : (
-              <div className="py-16 text-center">
-                <p className="text-muted-foreground">
-                  No recipes found in this category yet.
-                </p>
-              </div>
+              <EmptyState
+                icon={CookingPot}
+                heading={
+                  activeCategory
+                    ? "No recipes in this category yet"
+                    : "No recipes yet"
+                }
+                message={
+                  activeCategory
+                    ? `Check back soon for ${activeCategory.toLowerCase()} recipes.`
+                    : "Tay is cooking up something special. Check back soon!"
+                }
+                variant="recipe"
+              />
             )}
           </div>
         </section>

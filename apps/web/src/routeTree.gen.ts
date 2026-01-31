@@ -13,15 +13,34 @@ import { Route as SignupRouteImport } from './routes/signup'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as AboutRouteImport } from './routes/about'
+import { Route as StudioRouteRouteImport } from './routes/studio/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as WineIndexRouteImport } from './routes/wine/index'
+import { Route as TestKitchenIndexRouteImport } from './routes/test-kitchen/index'
+import { Route as StudioIndexRouteImport } from './routes/studio/index'
 import { Route as ShopIndexRouteImport } from './routes/shop/index'
 import { Route as RecipesIndexRouteImport } from './routes/recipes/index'
 import { Route as WineSlugRouteImport } from './routes/wine/$slug'
+import { Route as TestKitchenSlugRouteImport } from './routes/test-kitchen/$slug'
 import { Route as ShopSlugRouteImport } from './routes/shop/$slug'
 import { Route as RecipesSlugRouteImport } from './routes/recipes/$slug'
+import { Route as StudioWinesIndexRouteImport } from './routes/studio/wines/index'
+import { Route as StudioTagsIndexRouteImport } from './routes/studio/tags/index'
+import { Route as StudioSubscribersIndexRouteImport } from './routes/studio/subscribers/index'
+import { Route as StudioRecipesIndexRouteImport } from './routes/studio/recipes/index'
+import { Route as StudioExperimentsIndexRouteImport } from './routes/studio/experiments/index'
+import { Route as StudioCommentsIndexRouteImport } from './routes/studio/comments/index'
+import { Route as StudioCollectionsIndexRouteImport } from './routes/studio/collections/index'
+import { Route as StudioWinesNewRouteImport } from './routes/studio/wines/new'
+import { Route as StudioRecipesNewRouteImport } from './routes/studio/recipes/new'
+import { Route as StudioExperimentsNewRouteImport } from './routes/studio/experiments/new'
+import { Route as StudioCollectionsNewRouteImport } from './routes/studio/collections/new'
 import { Route as ApiTrpcSplatRouteImport } from './routes/api/trpc.$'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth.$'
+import { Route as StudioWinesIdEditRouteImport } from './routes/studio/wines/$id.edit'
+import { Route as StudioRecipesIdEditRouteImport } from './routes/studio/recipes/$id.edit'
+import { Route as StudioExperimentsIdEditRouteImport } from './routes/studio/experiments/$id.edit'
+import { Route as StudioCollectionsIdEditRouteImport } from './routes/studio/collections/$id.edit'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -43,6 +62,11 @@ const AboutRoute = AboutRouteImport.update({
   path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StudioRouteRoute = StudioRouteRouteImport.update({
+  id: '/studio',
+  path: '/studio',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -52,6 +76,16 @@ const WineIndexRoute = WineIndexRouteImport.update({
   id: '/wine/',
   path: '/wine/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const TestKitchenIndexRoute = TestKitchenIndexRouteImport.update({
+  id: '/test-kitchen/',
+  path: '/test-kitchen/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StudioIndexRoute = StudioIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => StudioRouteRoute,
 } as any)
 const ShopIndexRoute = ShopIndexRouteImport.update({
   id: '/shop/',
@@ -68,6 +102,11 @@ const WineSlugRoute = WineSlugRouteImport.update({
   path: '/wine/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TestKitchenSlugRoute = TestKitchenSlugRouteImport.update({
+  id: '/test-kitchen/$slug',
+  path: '/test-kitchen/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ShopSlugRoute = ShopSlugRouteImport.update({
   id: '/shop/$slug',
   path: '/shop/$slug',
@@ -77,6 +116,61 @@ const RecipesSlugRoute = RecipesSlugRouteImport.update({
   id: '/recipes/$slug',
   path: '/recipes/$slug',
   getParentRoute: () => rootRouteImport,
+} as any)
+const StudioWinesIndexRoute = StudioWinesIndexRouteImport.update({
+  id: '/wines/',
+  path: '/wines/',
+  getParentRoute: () => StudioRouteRoute,
+} as any)
+const StudioTagsIndexRoute = StudioTagsIndexRouteImport.update({
+  id: '/tags/',
+  path: '/tags/',
+  getParentRoute: () => StudioRouteRoute,
+} as any)
+const StudioSubscribersIndexRoute = StudioSubscribersIndexRouteImport.update({
+  id: '/subscribers/',
+  path: '/subscribers/',
+  getParentRoute: () => StudioRouteRoute,
+} as any)
+const StudioRecipesIndexRoute = StudioRecipesIndexRouteImport.update({
+  id: '/recipes/',
+  path: '/recipes/',
+  getParentRoute: () => StudioRouteRoute,
+} as any)
+const StudioExperimentsIndexRoute = StudioExperimentsIndexRouteImport.update({
+  id: '/experiments/',
+  path: '/experiments/',
+  getParentRoute: () => StudioRouteRoute,
+} as any)
+const StudioCommentsIndexRoute = StudioCommentsIndexRouteImport.update({
+  id: '/comments/',
+  path: '/comments/',
+  getParentRoute: () => StudioRouteRoute,
+} as any)
+const StudioCollectionsIndexRoute = StudioCollectionsIndexRouteImport.update({
+  id: '/collections/',
+  path: '/collections/',
+  getParentRoute: () => StudioRouteRoute,
+} as any)
+const StudioWinesNewRoute = StudioWinesNewRouteImport.update({
+  id: '/wines/new',
+  path: '/wines/new',
+  getParentRoute: () => StudioRouteRoute,
+} as any)
+const StudioRecipesNewRoute = StudioRecipesNewRouteImport.update({
+  id: '/recipes/new',
+  path: '/recipes/new',
+  getParentRoute: () => StudioRouteRoute,
+} as any)
+const StudioExperimentsNewRoute = StudioExperimentsNewRouteImport.update({
+  id: '/experiments/new',
+  path: '/experiments/new',
+  getParentRoute: () => StudioRouteRoute,
+} as any)
+const StudioCollectionsNewRoute = StudioCollectionsNewRouteImport.update({
+  id: '/collections/new',
+  path: '/collections/new',
+  getParentRoute: () => StudioRouteRoute,
 } as any)
 const ApiTrpcSplatRoute = ApiTrpcSplatRouteImport.update({
   id: '/api/trpc/$',
@@ -88,21 +182,60 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StudioWinesIdEditRoute = StudioWinesIdEditRouteImport.update({
+  id: '/wines/$id/edit',
+  path: '/wines/$id/edit',
+  getParentRoute: () => StudioRouteRoute,
+} as any)
+const StudioRecipesIdEditRoute = StudioRecipesIdEditRouteImport.update({
+  id: '/recipes/$id/edit',
+  path: '/recipes/$id/edit',
+  getParentRoute: () => StudioRouteRoute,
+} as any)
+const StudioExperimentsIdEditRoute = StudioExperimentsIdEditRouteImport.update({
+  id: '/experiments/$id/edit',
+  path: '/experiments/$id/edit',
+  getParentRoute: () => StudioRouteRoute,
+} as any)
+const StudioCollectionsIdEditRoute = StudioCollectionsIdEditRouteImport.update({
+  id: '/collections/$id/edit',
+  path: '/collections/$id/edit',
+  getParentRoute: () => StudioRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/studio': typeof StudioRouteRouteWithChildren
   '/about': typeof AboutRoute
   '/cart': typeof CartRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
   '/recipes/$slug': typeof RecipesSlugRoute
   '/shop/$slug': typeof ShopSlugRoute
+  '/test-kitchen/$slug': typeof TestKitchenSlugRoute
   '/wine/$slug': typeof WineSlugRoute
   '/recipes/': typeof RecipesIndexRoute
   '/shop/': typeof ShopIndexRoute
+  '/studio/': typeof StudioIndexRoute
+  '/test-kitchen/': typeof TestKitchenIndexRoute
   '/wine/': typeof WineIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
+  '/studio/collections/new': typeof StudioCollectionsNewRoute
+  '/studio/experiments/new': typeof StudioExperimentsNewRoute
+  '/studio/recipes/new': typeof StudioRecipesNewRoute
+  '/studio/wines/new': typeof StudioWinesNewRoute
+  '/studio/collections/': typeof StudioCollectionsIndexRoute
+  '/studio/comments/': typeof StudioCommentsIndexRoute
+  '/studio/experiments/': typeof StudioExperimentsIndexRoute
+  '/studio/recipes/': typeof StudioRecipesIndexRoute
+  '/studio/subscribers/': typeof StudioSubscribersIndexRoute
+  '/studio/tags/': typeof StudioTagsIndexRoute
+  '/studio/wines/': typeof StudioWinesIndexRoute
+  '/studio/collections/$id/edit': typeof StudioCollectionsIdEditRoute
+  '/studio/experiments/$id/edit': typeof StudioExperimentsIdEditRoute
+  '/studio/recipes/$id/edit': typeof StudioRecipesIdEditRoute
+  '/studio/wines/$id/edit': typeof StudioWinesIdEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -112,45 +245,101 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/recipes/$slug': typeof RecipesSlugRoute
   '/shop/$slug': typeof ShopSlugRoute
+  '/test-kitchen/$slug': typeof TestKitchenSlugRoute
   '/wine/$slug': typeof WineSlugRoute
   '/recipes': typeof RecipesIndexRoute
   '/shop': typeof ShopIndexRoute
+  '/studio': typeof StudioIndexRoute
+  '/test-kitchen': typeof TestKitchenIndexRoute
   '/wine': typeof WineIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
+  '/studio/collections/new': typeof StudioCollectionsNewRoute
+  '/studio/experiments/new': typeof StudioExperimentsNewRoute
+  '/studio/recipes/new': typeof StudioRecipesNewRoute
+  '/studio/wines/new': typeof StudioWinesNewRoute
+  '/studio/collections': typeof StudioCollectionsIndexRoute
+  '/studio/comments': typeof StudioCommentsIndexRoute
+  '/studio/experiments': typeof StudioExperimentsIndexRoute
+  '/studio/recipes': typeof StudioRecipesIndexRoute
+  '/studio/subscribers': typeof StudioSubscribersIndexRoute
+  '/studio/tags': typeof StudioTagsIndexRoute
+  '/studio/wines': typeof StudioWinesIndexRoute
+  '/studio/collections/$id/edit': typeof StudioCollectionsIdEditRoute
+  '/studio/experiments/$id/edit': typeof StudioExperimentsIdEditRoute
+  '/studio/recipes/$id/edit': typeof StudioRecipesIdEditRoute
+  '/studio/wines/$id/edit': typeof StudioWinesIdEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/studio': typeof StudioRouteRouteWithChildren
   '/about': typeof AboutRoute
   '/cart': typeof CartRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
   '/recipes/$slug': typeof RecipesSlugRoute
   '/shop/$slug': typeof ShopSlugRoute
+  '/test-kitchen/$slug': typeof TestKitchenSlugRoute
   '/wine/$slug': typeof WineSlugRoute
   '/recipes/': typeof RecipesIndexRoute
   '/shop/': typeof ShopIndexRoute
+  '/studio/': typeof StudioIndexRoute
+  '/test-kitchen/': typeof TestKitchenIndexRoute
   '/wine/': typeof WineIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
+  '/studio/collections/new': typeof StudioCollectionsNewRoute
+  '/studio/experiments/new': typeof StudioExperimentsNewRoute
+  '/studio/recipes/new': typeof StudioRecipesNewRoute
+  '/studio/wines/new': typeof StudioWinesNewRoute
+  '/studio/collections/': typeof StudioCollectionsIndexRoute
+  '/studio/comments/': typeof StudioCommentsIndexRoute
+  '/studio/experiments/': typeof StudioExperimentsIndexRoute
+  '/studio/recipes/': typeof StudioRecipesIndexRoute
+  '/studio/subscribers/': typeof StudioSubscribersIndexRoute
+  '/studio/tags/': typeof StudioTagsIndexRoute
+  '/studio/wines/': typeof StudioWinesIndexRoute
+  '/studio/collections/$id/edit': typeof StudioCollectionsIdEditRoute
+  '/studio/experiments/$id/edit': typeof StudioExperimentsIdEditRoute
+  '/studio/recipes/$id/edit': typeof StudioRecipesIdEditRoute
+  '/studio/wines/$id/edit': typeof StudioWinesIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/studio'
     | '/about'
     | '/cart'
     | '/login'
     | '/signup'
     | '/recipes/$slug'
     | '/shop/$slug'
+    | '/test-kitchen/$slug'
     | '/wine/$slug'
     | '/recipes/'
     | '/shop/'
+    | '/studio/'
+    | '/test-kitchen/'
     | '/wine/'
     | '/api/auth/$'
     | '/api/trpc/$'
+    | '/studio/collections/new'
+    | '/studio/experiments/new'
+    | '/studio/recipes/new'
+    | '/studio/wines/new'
+    | '/studio/collections/'
+    | '/studio/comments/'
+    | '/studio/experiments/'
+    | '/studio/recipes/'
+    | '/studio/subscribers/'
+    | '/studio/tags/'
+    | '/studio/wines/'
+    | '/studio/collections/$id/edit'
+    | '/studio/experiments/$id/edit'
+    | '/studio/recipes/$id/edit'
+    | '/studio/wines/$id/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -160,40 +349,80 @@ export interface FileRouteTypes {
     | '/signup'
     | '/recipes/$slug'
     | '/shop/$slug'
+    | '/test-kitchen/$slug'
     | '/wine/$slug'
     | '/recipes'
     | '/shop'
+    | '/studio'
+    | '/test-kitchen'
     | '/wine'
     | '/api/auth/$'
     | '/api/trpc/$'
+    | '/studio/collections/new'
+    | '/studio/experiments/new'
+    | '/studio/recipes/new'
+    | '/studio/wines/new'
+    | '/studio/collections'
+    | '/studio/comments'
+    | '/studio/experiments'
+    | '/studio/recipes'
+    | '/studio/subscribers'
+    | '/studio/tags'
+    | '/studio/wines'
+    | '/studio/collections/$id/edit'
+    | '/studio/experiments/$id/edit'
+    | '/studio/recipes/$id/edit'
+    | '/studio/wines/$id/edit'
   id:
     | '__root__'
     | '/'
+    | '/studio'
     | '/about'
     | '/cart'
     | '/login'
     | '/signup'
     | '/recipes/$slug'
     | '/shop/$slug'
+    | '/test-kitchen/$slug'
     | '/wine/$slug'
     | '/recipes/'
     | '/shop/'
+    | '/studio/'
+    | '/test-kitchen/'
     | '/wine/'
     | '/api/auth/$'
     | '/api/trpc/$'
+    | '/studio/collections/new'
+    | '/studio/experiments/new'
+    | '/studio/recipes/new'
+    | '/studio/wines/new'
+    | '/studio/collections/'
+    | '/studio/comments/'
+    | '/studio/experiments/'
+    | '/studio/recipes/'
+    | '/studio/subscribers/'
+    | '/studio/tags/'
+    | '/studio/wines/'
+    | '/studio/collections/$id/edit'
+    | '/studio/experiments/$id/edit'
+    | '/studio/recipes/$id/edit'
+    | '/studio/wines/$id/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  StudioRouteRoute: typeof StudioRouteRouteWithChildren
   AboutRoute: typeof AboutRoute
   CartRoute: typeof CartRoute
   LoginRoute: typeof LoginRoute
   SignupRoute: typeof SignupRoute
   RecipesSlugRoute: typeof RecipesSlugRoute
   ShopSlugRoute: typeof ShopSlugRoute
+  TestKitchenSlugRoute: typeof TestKitchenSlugRoute
   WineSlugRoute: typeof WineSlugRoute
   RecipesIndexRoute: typeof RecipesIndexRoute
   ShopIndexRoute: typeof ShopIndexRoute
+  TestKitchenIndexRoute: typeof TestKitchenIndexRoute
   WineIndexRoute: typeof WineIndexRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiTrpcSplatRoute: typeof ApiTrpcSplatRoute
@@ -229,6 +458,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/studio': {
+      id: '/studio'
+      path: '/studio'
+      fullPath: '/studio'
+      preLoaderRoute: typeof StudioRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -242,6 +478,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/wine/'
       preLoaderRoute: typeof WineIndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/test-kitchen/': {
+      id: '/test-kitchen/'
+      path: '/test-kitchen'
+      fullPath: '/test-kitchen/'
+      preLoaderRoute: typeof TestKitchenIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/studio/': {
+      id: '/studio/'
+      path: '/'
+      fullPath: '/studio/'
+      preLoaderRoute: typeof StudioIndexRouteImport
+      parentRoute: typeof StudioRouteRoute
     }
     '/shop/': {
       id: '/shop/'
@@ -264,6 +514,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WineSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/test-kitchen/$slug': {
+      id: '/test-kitchen/$slug'
+      path: '/test-kitchen/$slug'
+      fullPath: '/test-kitchen/$slug'
+      preLoaderRoute: typeof TestKitchenSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/shop/$slug': {
       id: '/shop/$slug'
       path: '/shop/$slug'
@@ -277,6 +534,83 @@ declare module '@tanstack/react-router' {
       fullPath: '/recipes/$slug'
       preLoaderRoute: typeof RecipesSlugRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/studio/wines/': {
+      id: '/studio/wines/'
+      path: '/wines'
+      fullPath: '/studio/wines/'
+      preLoaderRoute: typeof StudioWinesIndexRouteImport
+      parentRoute: typeof StudioRouteRoute
+    }
+    '/studio/tags/': {
+      id: '/studio/tags/'
+      path: '/tags'
+      fullPath: '/studio/tags/'
+      preLoaderRoute: typeof StudioTagsIndexRouteImport
+      parentRoute: typeof StudioRouteRoute
+    }
+    '/studio/subscribers/': {
+      id: '/studio/subscribers/'
+      path: '/subscribers'
+      fullPath: '/studio/subscribers/'
+      preLoaderRoute: typeof StudioSubscribersIndexRouteImport
+      parentRoute: typeof StudioRouteRoute
+    }
+    '/studio/recipes/': {
+      id: '/studio/recipes/'
+      path: '/recipes'
+      fullPath: '/studio/recipes/'
+      preLoaderRoute: typeof StudioRecipesIndexRouteImport
+      parentRoute: typeof StudioRouteRoute
+    }
+    '/studio/experiments/': {
+      id: '/studio/experiments/'
+      path: '/experiments'
+      fullPath: '/studio/experiments/'
+      preLoaderRoute: typeof StudioExperimentsIndexRouteImport
+      parentRoute: typeof StudioRouteRoute
+    }
+    '/studio/comments/': {
+      id: '/studio/comments/'
+      path: '/comments'
+      fullPath: '/studio/comments/'
+      preLoaderRoute: typeof StudioCommentsIndexRouteImport
+      parentRoute: typeof StudioRouteRoute
+    }
+    '/studio/collections/': {
+      id: '/studio/collections/'
+      path: '/collections'
+      fullPath: '/studio/collections/'
+      preLoaderRoute: typeof StudioCollectionsIndexRouteImport
+      parentRoute: typeof StudioRouteRoute
+    }
+    '/studio/wines/new': {
+      id: '/studio/wines/new'
+      path: '/wines/new'
+      fullPath: '/studio/wines/new'
+      preLoaderRoute: typeof StudioWinesNewRouteImport
+      parentRoute: typeof StudioRouteRoute
+    }
+    '/studio/recipes/new': {
+      id: '/studio/recipes/new'
+      path: '/recipes/new'
+      fullPath: '/studio/recipes/new'
+      preLoaderRoute: typeof StudioRecipesNewRouteImport
+      parentRoute: typeof StudioRouteRoute
+    }
+    '/studio/experiments/new': {
+      id: '/studio/experiments/new'
+      path: '/experiments/new'
+      fullPath: '/studio/experiments/new'
+      preLoaderRoute: typeof StudioExperimentsNewRouteImport
+      parentRoute: typeof StudioRouteRoute
+    }
+    '/studio/collections/new': {
+      id: '/studio/collections/new'
+      path: '/collections/new'
+      fullPath: '/studio/collections/new'
+      preLoaderRoute: typeof StudioCollectionsNewRouteImport
+      parentRoute: typeof StudioRouteRoute
     }
     '/api/trpc/$': {
       id: '/api/trpc/$'
@@ -292,20 +626,93 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/studio/wines/$id/edit': {
+      id: '/studio/wines/$id/edit'
+      path: '/wines/$id/edit'
+      fullPath: '/studio/wines/$id/edit'
+      preLoaderRoute: typeof StudioWinesIdEditRouteImport
+      parentRoute: typeof StudioRouteRoute
+    }
+    '/studio/recipes/$id/edit': {
+      id: '/studio/recipes/$id/edit'
+      path: '/recipes/$id/edit'
+      fullPath: '/studio/recipes/$id/edit'
+      preLoaderRoute: typeof StudioRecipesIdEditRouteImport
+      parentRoute: typeof StudioRouteRoute
+    }
+    '/studio/experiments/$id/edit': {
+      id: '/studio/experiments/$id/edit'
+      path: '/experiments/$id/edit'
+      fullPath: '/studio/experiments/$id/edit'
+      preLoaderRoute: typeof StudioExperimentsIdEditRouteImport
+      parentRoute: typeof StudioRouteRoute
+    }
+    '/studio/collections/$id/edit': {
+      id: '/studio/collections/$id/edit'
+      path: '/collections/$id/edit'
+      fullPath: '/studio/collections/$id/edit'
+      preLoaderRoute: typeof StudioCollectionsIdEditRouteImport
+      parentRoute: typeof StudioRouteRoute
+    }
   }
 }
 
+interface StudioRouteRouteChildren {
+  StudioIndexRoute: typeof StudioIndexRoute
+  StudioCollectionsNewRoute: typeof StudioCollectionsNewRoute
+  StudioExperimentsNewRoute: typeof StudioExperimentsNewRoute
+  StudioRecipesNewRoute: typeof StudioRecipesNewRoute
+  StudioWinesNewRoute: typeof StudioWinesNewRoute
+  StudioCollectionsIndexRoute: typeof StudioCollectionsIndexRoute
+  StudioCommentsIndexRoute: typeof StudioCommentsIndexRoute
+  StudioExperimentsIndexRoute: typeof StudioExperimentsIndexRoute
+  StudioRecipesIndexRoute: typeof StudioRecipesIndexRoute
+  StudioSubscribersIndexRoute: typeof StudioSubscribersIndexRoute
+  StudioTagsIndexRoute: typeof StudioTagsIndexRoute
+  StudioWinesIndexRoute: typeof StudioWinesIndexRoute
+  StudioCollectionsIdEditRoute: typeof StudioCollectionsIdEditRoute
+  StudioExperimentsIdEditRoute: typeof StudioExperimentsIdEditRoute
+  StudioRecipesIdEditRoute: typeof StudioRecipesIdEditRoute
+  StudioWinesIdEditRoute: typeof StudioWinesIdEditRoute
+}
+
+const StudioRouteRouteChildren: StudioRouteRouteChildren = {
+  StudioIndexRoute: StudioIndexRoute,
+  StudioCollectionsNewRoute: StudioCollectionsNewRoute,
+  StudioExperimentsNewRoute: StudioExperimentsNewRoute,
+  StudioRecipesNewRoute: StudioRecipesNewRoute,
+  StudioWinesNewRoute: StudioWinesNewRoute,
+  StudioCollectionsIndexRoute: StudioCollectionsIndexRoute,
+  StudioCommentsIndexRoute: StudioCommentsIndexRoute,
+  StudioExperimentsIndexRoute: StudioExperimentsIndexRoute,
+  StudioRecipesIndexRoute: StudioRecipesIndexRoute,
+  StudioSubscribersIndexRoute: StudioSubscribersIndexRoute,
+  StudioTagsIndexRoute: StudioTagsIndexRoute,
+  StudioWinesIndexRoute: StudioWinesIndexRoute,
+  StudioCollectionsIdEditRoute: StudioCollectionsIdEditRoute,
+  StudioExperimentsIdEditRoute: StudioExperimentsIdEditRoute,
+  StudioRecipesIdEditRoute: StudioRecipesIdEditRoute,
+  StudioWinesIdEditRoute: StudioWinesIdEditRoute,
+}
+
+const StudioRouteRouteWithChildren = StudioRouteRoute._addFileChildren(
+  StudioRouteRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  StudioRouteRoute: StudioRouteRouteWithChildren,
   AboutRoute: AboutRoute,
   CartRoute: CartRoute,
   LoginRoute: LoginRoute,
   SignupRoute: SignupRoute,
   RecipesSlugRoute: RecipesSlugRoute,
   ShopSlugRoute: ShopSlugRoute,
+  TestKitchenSlugRoute: TestKitchenSlugRoute,
   WineSlugRoute: WineSlugRoute,
   RecipesIndexRoute: RecipesIndexRoute,
   ShopIndexRoute: ShopIndexRoute,
+  TestKitchenIndexRoute: TestKitchenIndexRoute,
   WineIndexRoute: WineIndexRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiTrpcSplatRoute: ApiTrpcSplatRoute,

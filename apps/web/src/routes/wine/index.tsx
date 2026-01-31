@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router"
 import type { Wine } from "@twt/db/schema"
 import { Button } from "@twt/ui/components/button"
 import { ChevronRight, Star, Wine as WineIcon } from "lucide-react"
+import { EmptyState } from "../../components/empty-state"
 import { OptimizedImage } from "../../components/optimized-image"
 import { SiteFooter } from "../../components/site-footer"
 import { SiteHeader } from "../../components/site-header"
@@ -176,12 +177,20 @@ function WineCellarPage(): React.ReactElement {
 
             {/* Empty State */}
             {wines.length === 0 && (
-              <div className="py-16 text-center">
-                <WineIcon className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
-                <p className="text-muted-foreground">
-                  No wines found in this category yet.
-                </p>
-              </div>
+              <EmptyState
+                icon={WineIcon}
+                heading={
+                  activeType !== "All"
+                    ? `No ${activeType.toLowerCase()} wines yet`
+                    : "No wines yet"
+                }
+                message={
+                  activeType !== "All"
+                    ? `Check back soon for ${activeType.toLowerCase()} wine tasting notes.`
+                    : "Tay is uncorking something special. Check back soon!"
+                }
+                variant="wine"
+              />
             )}
           </div>
         </section>
