@@ -10,4 +10,7 @@ export default defineConfig({
   server: {
     port: 3002,
   },
+  ssr: {
+    external: ["pg"],
+  },
 })
