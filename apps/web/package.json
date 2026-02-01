@@ -26,7 +26,8 @@
     "lucide-react": "^0.513.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "superjson": "^2.2.5"
+    "superjson": "^2.2.5",
+    "zod": "^3.24.0"
   },
   "devDependencies": {
     "@twt/tsconfig": "workspace:*",
