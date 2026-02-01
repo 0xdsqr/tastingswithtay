@@ -14,11 +14,14 @@
   },
   "scripts": {
     "clean": "git clean -xdf node_modules",
+    "typecheck": "tsc --noEmit",
     "ui:add": "bunx shadcn@latest add",
     "ui:add:all": "bunx shadcn@latest add --all"
   },
   "devDependencies": {
-    "@twt/tsconfig": "workspace:*"
+    "@twt/tsconfig": "workspace:*",
+    "@types/react": "^19.1.5",
+    "@types/react-dom": "^19.1.5"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

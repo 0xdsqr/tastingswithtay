@@ -9,6 +9,7 @@
   ],
   "scripts": {
     "build": "bun run --filter '@twt/db' build && bun run --filter '@twt/core' build && bun run --filter './apps/*' build",
+    "dev:web": "bun run --filter '@twt/web' dev",
     "typecheck": "bun run --filter './apps/*' --filter './packages/*' typecheck",
     "clean": "git clean -xdf node_modules dist .wrangler .turbo bun.lock"
   },

@@ -8,7 +8,8 @@
     "clean": "git clean -xdf dist node_modules",
     "push": "drizzle-kit push",
     "studio": "drizzle-kit studio",
-    "generate": "drizzle-kit generate"
+    "generate": "drizzle-kit generate",
+    "typecheck": "tsc --noEmit"
   },
   "exports": {
     ".": {
