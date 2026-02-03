@@ -9,7 +9,7 @@ function getBaseUrl(): string {
     return ""
   }
   // SSR should use localhost
-  return process.env.BASE_URL ?? `http://localhost:${process.env.PORT ?? 3002}`
+  return process.env.BASE_URL ?? "http://localhost:3000"
 }
 
 // Vanilla client for server-side usage (in loaders)
