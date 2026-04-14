@@ -21,6 +21,7 @@ logs
 .env.*
 .dev.vars
 .prod.vars
+.envrc.local
 
 # private keys
 *.pem
@@ -37,16 +38,23 @@ logs
 # OS
 .DS_Store
 
-# Nix
-result
-result-*
+# Direnv
 .direnv
-
-# Wrangler / Cloudflare
-.wrangler
 
 # Turbo
 .turbo
 
 # TanStack
 .tanstack
+
+# Temp/Reference files
+.temp
+
+# Database (root level only)
+/data/
+
+# Brand assets — now tracked
+# .github/assets/
+
+# Large files
+*.iso

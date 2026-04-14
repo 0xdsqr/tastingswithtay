@@ -1,8 +1,6 @@
-import { Button } from "@moth/ui/components/button"
-import { cn } from "@moth/ui/lib/utils"
-import useEmblaCarousel, {
-  type UseEmblaCarouselType,
-} from "embla-carousel-react"
+import { Button } from "@twt/ui/components/button"
+import { cn } from "@twt/ui/lib/utils"
+import useEmblaCarousel, { type UseEmblaCarouselType } from "embla-carousel-react"
 import { ArrowLeft, ArrowRight } from "lucide-react"
 import * as React from "react"
 
@@ -107,8 +105,7 @@ function Carousel({
         carouselRef,
         api: api,
         opts,
-        orientation:
-          orientation || (opts?.axis === "y" ? "vertical" : "horizontal"),
+        orientation: orientation || (opts?.axis === "y" ? "vertical" : "horizontal"),
         scrollPrev,
         scrollNext,
         canScrollPrev,
@@ -133,17 +130,9 @@ function CarouselContent({ className, ...props }: React.ComponentProps<"div">) {
   const { carouselRef, orientation } = useCarousel()
 
   return (
-    <div
-      ref={carouselRef}
-      className="overflow-hidden"
-      data-slot="carousel-content"
-    >
+    <div ref={carouselRef} className="overflow-hidden" data-slot="carousel-content">
       <div
-        className={cn(
-          "flex",
-          orientation === "horizontal" ? "-ml-4" : "-mt-4 flex-col",
-          className,
-        )}
+        className={cn("flex", orientation === "horizontal" ? "-ml-4" : "-mt-4 flex-col", className)}
         {...props}
       />
     </div>
@@ -228,11 +217,4 @@ function CarouselNext({
   )
 }
 
-export {
-  type CarouselApi,
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselPrevious,
-  CarouselNext,
-}
+export { type CarouselApi, Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext }

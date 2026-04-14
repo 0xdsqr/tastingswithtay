@@ -1,0 +1,13 @@
+node_modules
+.direnv
+.git
+.gitignore
+.output
+dist
+Dockerfile*
+docker-compose*
+.dockerignore
+.env
+.env.*
+.envrc.local
+README.md

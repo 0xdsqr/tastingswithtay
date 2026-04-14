@@ -1,56 +1,33 @@
 {
-  description = "moth";
-
-  nixConfig = {
-    extra-experimental-features = "nix-command flakes";
-  };
+  description = "tastingswithtay";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    flake-compat.url = "github:edolstra/flake-compat";
-    flake-compat.flake = false;
-    treefmt-nix.url = "github:numtide/treefmt-nix";
-    treefmt-nix.inputs.nixpkgs.follows = "nixpkgs";
+    nixpkgs.url = "https://channels.nixos.org/nixpkgs-unstable/nixexprs.tar.xz";
+    flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs =
-    {
-      self,
-      nixpkgs,
-      treefmt-nix,
-      ...
-    }:
-    let
-      systems = [
-        "x86_64-linux"
-        "aarch64-linux"
-        "x86_64-darwin"
-        "aarch64-darwin"
-      ];
-      forEachSystem = nixpkgs.lib.genAttrs systems;
-    in
-    {
-      devShells = forEachSystem (
-        system:
-        let
-          devConfig = import ./nix/devshell.nix { inherit nixpkgs system; };
-        in
-        devConfig.devShells.${system}
-      );
+  outputs = { nixpkgs, flake-utils, ... }:
+    flake-utils.lib.eachDefaultSystem (
+      system: let
+        pkgs = nixpkgs.legacyPackages.${system};
+      in {
+        devShells.default = pkgs.mkShell {
+          packages = with pkgs; [
+            bun
+            git
+            nodejs_24
+            postgresql
+            typescript
+          ];
 
-      formatter = forEachSystem (
-        system:
-        (treefmt-nix.lib.evalModule nixpkgs.legacyPackages.${system} ./nix/treefmt.nix).config.build.wrapper
-      );
+          shellHook = ''
+            export PATH="$PWD/node_modules/.bin:$PATH"
 
-      checks = forEachSystem (
-        system:
-        let
-          pkgs = nixpkgs.legacyPackages.${system};
-        in
-        {
-          formatting = (treefmt-nix.lib.evalModule pkgs ./nix/treefmt.nix).config.build.check self;
-        }
-      );
-    };
+            echo "tastingswithtay dev shell"
+            echo "  node: $(node --version)"
+            echo "  bun:  $(bun --version)"
+          '';
+        };
+      }
+    );
 }

@@ -1,20 +1,36 @@
 {
   "name": "tastingswithtay",
-  "type": "module",
   "private": true,
   "workspaces": [
     "apps/*",
     "packages/*",
     "tooling/typescript"
   ],
+  "type": "module",
   "scripts": {
-    "build": "bun run --filter web build",
-    "clean": "git clean -xdf node_modules dist .wrangler .turbo bun.lock"
+    "build": "bun run --filter '@twt/db' build && bun run --filter '@twt/core' build && bun run --filter './apps/*' build",
+    "db:push": "bun run --filter '@twt/db' push",
+    "db:studio": "bun run --filter '@twt/db' studio",
+    "db:generate": "bun run --filter '@twt/db' generate",
+    "dev:web": "bun run --filter 'web' dev",
+    "format": "oxfmt .",
+    "format:check": "oxfmt --check .",
+    "lint": "oxlint -c .oxlintrc.jsonc . --deny-warnings",
+    "lint:fix": "oxlint -c .oxlintrc.jsonc --fix .",
+    "typecheck": "bun run --filter './apps/*' --filter './packages/*' typecheck",
+    "clean": "git clean -xdf node_modules dist .turbo bun.lock"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "oxfmt": "^0.44.0",
+    "oxlint": "^1.56.0"
   },
   "peerDependencies": {
     "typescript": "^5"
-  }
+  },
+  "engines": {
+    "bun": "1.3.x",
+    "node": "24.x"
+  },
+  "packageManager": "bun@1.3.11"
 }

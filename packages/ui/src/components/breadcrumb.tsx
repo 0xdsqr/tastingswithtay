@@ -1,5 +1,5 @@
-import { cn } from "@moth/ui/lib/utils"
 import { Slot } from "@radix-ui/react-slot"
+import { cn } from "@twt/ui/lib/utils"
 import { ChevronRight, MoreHorizontal } from "lucide-react"
 import type * as React from "react"
 
@@ -61,11 +61,7 @@ function BreadcrumbPage({ className, ...props }: React.ComponentProps<"span">) {
   )
 }
 
-function BreadcrumbSeparator({
-  children,
-  className,
-  ...props
-}: React.ComponentProps<"li">) {
+function BreadcrumbSeparator({ children, className, ...props }: React.ComponentProps<"li">) {
   return (
     <li
       data-slot="breadcrumb-separator"
@@ -79,10 +75,7 @@ function BreadcrumbSeparator({
   )
 }
 
-function BreadcrumbEllipsis({
-  className,
-  ...props
-}: React.ComponentProps<"span">) {
+function BreadcrumbEllipsis({ className, ...props }: React.ComponentProps<"span">) {
   return (
     <span
       data-slot="breadcrumb-ellipsis"

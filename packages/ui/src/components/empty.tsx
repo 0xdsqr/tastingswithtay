@@ -1,4 +1,4 @@
-import { cn } from "@moth/ui/lib/utils"
+import { cn } from "@twt/ui/lib/utils"
 import { cva, type VariantProps } from "class-variance-authority"
 
 function Empty({ className, ...props }: React.ComponentProps<"div">) {
@@ -18,10 +18,7 @@ function EmptyHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="empty-header"
-      className={cn(
-        "flex max-w-sm flex-col items-center gap-2 text-center",
-        className,
-      )}
+      className={cn("flex max-w-sm flex-col items-center gap-2 text-center", className)}
       {...props}
     />
   )
@@ -93,11 +90,4 @@ function EmptyContent({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
-export {
-  Empty,
-  EmptyHeader,
-  EmptyTitle,
-  EmptyDescription,
-  EmptyContent,
-  EmptyMedia,
-}
+export { Empty, EmptyHeader, EmptyTitle, EmptyDescription, EmptyContent, EmptyMedia }
