@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "@tanstack/react-router"
+import { getRouteApi, Link, useNavigate } from "@tanstack/react-router"
 import { Avatar, AvatarFallback, AvatarImage } from "@twt/ui/components/avatar"
 import { Button } from "@twt/ui/components/button"
 import {
@@ -24,6 +24,8 @@ const navigation = [
   { name: "Shop", to: "/shop" },
 ] as const
 
+const rootRoute = getRouteApi("__root__")
+
 function getInitials(name?: string | null, email?: string | null): string {
   if (name) {
     return name
@@ -41,8 +43,11 @@ function getInitials(name?: string | null, email?: string | null): string {
 
 export function SiteHeader(): React.ReactElement {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const { session: initialSession } = rootRoute.useLoaderData()
   const { data: session, isPending } = authClient.useSession()
   const navigate = useNavigate()
+  const resolvedSession = session ?? (isPending ? initialSession : null)
+  const showSessionSkeleton = isPending && !initialSession
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-md">
@@ -108,9 +113,9 @@ export function SiteHeader(): React.ReactElement {
             <ShoppingBag className="h-5 w-5" />
             <span className="sr-only">Cart</span>
           </Link>
-          {isPending ? (
+          {showSessionSkeleton ? (
             <Skeleton className="size-8 rounded-full" />
-          ) : session ? (
+          ) : resolvedSession ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
@@ -119,11 +124,11 @@ export function SiteHeader(): React.ReactElement {
                 >
                   <Avatar className="size-8">
                     <AvatarImage
-                      src={session.user.image ?? undefined}
-                      alt={session.user.name ?? "User avatar"}
+                      src={resolvedSession.user.image ?? undefined}
+                      alt={resolvedSession.user.name ?? "User avatar"}
                     />
                     <AvatarFallback className="text-xs">
-                      {getInitials(session.user.name, session.user.email)}
+                      {getInitials(resolvedSession.user.name, resolvedSession.user.email)}
                     </AvatarFallback>
                   </Avatar>
                 </button>
@@ -131,11 +136,11 @@ export function SiteHeader(): React.ReactElement {
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col gap-1">
-                    {session.user.name && (
-                      <p className="text-sm font-medium leading-none">{session.user.name}</p>
+                    {resolvedSession.user.name && (
+                      <p className="text-sm font-medium leading-none">{resolvedSession.user.name}</p>
                     )}
                     <p className="text-xs leading-none text-muted-foreground">
-                      {session.user.email}
+                      {resolvedSession.user.email}
                     </p>
                   </div>
                 </DropdownMenuLabel>
@@ -185,25 +190,27 @@ export function SiteHeader(): React.ReactElement {
               </Link>
             ))}
             <div className="border-t border-border pt-4">
-              {isPending ? (
+              {showSessionSkeleton ? (
                 <Skeleton className="h-10 w-full rounded-md" />
-              ) : session ? (
+              ) : resolvedSession ? (
                 <div className="flex flex-col gap-3">
                   <div className="flex items-center gap-3 px-1">
                     <Avatar className="size-8">
                       <AvatarImage
-                        src={session.user.image ?? undefined}
-                        alt={session.user.name ?? "User avatar"}
+                        src={resolvedSession.user.image ?? undefined}
+                        alt={resolvedSession.user.name ?? "User avatar"}
                       />
                       <AvatarFallback className="text-xs">
-                        {getInitials(session.user.name, session.user.email)}
+                        {getInitials(resolvedSession.user.name, resolvedSession.user.email)}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex flex-col">
-                      {session.user.name && (
-                        <span className="text-sm font-medium">{session.user.name}</span>
+                      {resolvedSession.user.name && (
+                        <span className="text-sm font-medium">{resolvedSession.user.name}</span>
                       )}
-                      <span className="text-xs text-muted-foreground">{session.user.email}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {resolvedSession.user.email}
+                      </span>
                     </div>
                   </div>
                   <Button

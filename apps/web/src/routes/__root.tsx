@@ -3,12 +3,16 @@ import { createRootRouteWithContext, HeadContent, Outlet, Scripts } from "@tanst
 import type { TRPCOptionsProxy } from "@trpc/tanstack-react-query"
 import type { AppRouter } from "@twt/core/api"
 import { ErrorBoundary } from "@twt/ui/components/error-boundary"
+import { getServerSession } from "../auth/get-session"
 import appCss from "../styles.css?url"
 
 export const Route = createRootRouteWithContext<{
   queryClient: QueryClient
   trpc: TRPCOptionsProxy<AppRouter>
 }>()({
+  loader: async () => ({
+    session: await getServerSession(),
+  }),
   head: () => ({
     meta: [
       { charSet: "utf-8" },

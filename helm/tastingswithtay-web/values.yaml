@@ -1,0 +1,71 @@
+replicaCount: 1
+
+image:
+  repository: ghcr.io/0xdsqr/tastingswithtay-web
+  tag: latest
+  pullPolicy: Always
+
+imagePullSecrets:
+  - name: ghcr-creds
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: false
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext: {}
+securityContext: {}
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: http
+  containerPort: 3010
+
+env:
+  BASE_URL: https://tastingswithtay.com
+  DISCORD_CLIENT_ID: "1465977766485688370"
+  TRUSTED_ORIGINS: https://tastingswithtay.com
+
+existingSecret: twt-secrets
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 1Gi
+  limits:
+    cpu: 500m
+    memory: 2Gi
+
+startupProbe:
+  tcpSocket:
+    port: http
+  periodSeconds: 5
+  failureThreshold: 24
+
+readinessProbe:
+  tcpSocket:
+    port: http
+  periodSeconds: 5
+  failureThreshold: 3
+
+ingress:
+  enabled: true
+  className: traefik
+  annotations: {}
+  hosts:
+    - host: tastingswithtay.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

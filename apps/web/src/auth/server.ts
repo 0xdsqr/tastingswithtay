@@ -1,9 +1,10 @@
 import { initAuth } from "@twt/core/auth"
 import { tanstackStartCookies } from "better-auth/tanstack-start"
-import { getServerBaseUrl } from "../lib/runtime-url"
+import { getPublicBaseUrl, getTrustedOrigins } from "../lib/runtime-url"
 
 export const auth = initAuth({
-  baseUrl: getServerBaseUrl(),
+  baseUrl: getPublicBaseUrl(),
   secret: process.env.AUTH_SECRET,
   extraPlugins: [tanstackStartCookies()],
+  trustedOrigins: getTrustedOrigins(),
 })
