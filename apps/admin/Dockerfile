@@ -13,6 +13,7 @@ FROM base AS deps
 WORKDIR /app
 
 COPY package.json bun.lock ./
+COPY apps/web/package.json apps/web/package.json
 COPY apps/admin/package.json apps/admin/package.json
 COPY packages/core/package.json packages/core/package.json
 COPY packages/db/package.json packages/db/package.json
