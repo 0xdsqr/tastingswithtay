@@ -13,6 +13,35 @@
         "typescript": "^5",
       },
     },
+    "apps/admin": {
+      "name": "admin",
+      "version": "0.0.0",
+      "dependencies": {
+        "@tanstack/react-query": "5.90.20",
+        "@tanstack/react-router": "1.157.18",
+        "@tanstack/react-router-ssr-query": "1.157.18",
+        "@tanstack/react-start": "1.157.18",
+        "@twt/core": "workspace:*",
+        "@twt/db": "workspace:*",
+        "@twt/ui": "workspace:*",
+        "better-auth": "1.4.18",
+        "react": "19.2.4",
+        "react-dom": "19.2.4",
+        "zod": "^4.3.5",
+      },
+      "devDependencies": {
+        "@tailwindcss/vite": "^4.1.7",
+        "@tanstack/router-plugin": "1.157.18",
+        "@twt/tsconfig": "workspace:*",
+        "@types/react": "^19.1.5",
+        "@types/react-dom": "^19.1.5",
+        "@vitejs/plugin-react": "^5.0.4",
+        "nitro": "3.0.1-alpha.2",
+        "tailwindcss": "^4.1.7",
+        "vite": "^7.1.7",
+        "vite-tsconfig-paths": "^5.1.4",
+      },
+    },
     "apps/web": {
       "name": "web",
       "version": "0.0.0",
@@ -795,6 +824,8 @@
     "@vitejs/plugin-react": ["@vitejs/plugin-react@5.1.2", "", { "dependencies": { "@babel/core": "^7.28.5", "@babel/plugin-transform-react-jsx-self": "^7.27.1", "@babel/plugin-transform-react-jsx-source": "^7.27.1", "@rolldown/pluginutils": "1.0.0-beta.53", "@types/babel__core": "^7.20.5", "react-refresh": "^0.18.0" }, "peerDependencies": { "vite": "^4.2.0 || ^5.0.0 || ^6.0.0 || ^7.0.0" } }, "sha512-EcA07pHJouywpzsoTUqNh5NwGayl2PPVEJKUSinGGSxFGYn+shYbqMGBg6FXDqgXum9Ou/ecb+411ssw8HImJQ=="],
 
     "acorn": ["acorn@8.15.0", "", { "bin": { "acorn": "bin/acorn" } }, "sha512-NZyJarBfL7nWwIq+FDL6Zp/yHEhePMNnnJ0y3qfieCrmNvYct8uvtiV41UvlSe6apAfk0fY1FbWx+NwfmpvtTg=="],
+
+    "admin": ["admin@workspace:apps/admin"],
 
     "ansis": ["ansis@4.2.0", "", {}, "sha512-HqZ5rWlFjGiV0tDm3UxxgNRqsOTniqoKZu0pIAfh7TZQMGuZK+hH0drySty0si0QXj1ieop4+SkSfPZBPPkHig=="],
 

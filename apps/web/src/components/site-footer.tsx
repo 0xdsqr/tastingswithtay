@@ -8,7 +8,6 @@ const mainNavigation = [
   { name: "Test Kitchen", to: "/test-kitchen" },
   { name: "About", to: "/about" },
   { name: "Garden & Flock", to: "/garden-and-flock" },
-  { name: "Shop", to: "/shop" },
 ] as const
 
 const socialLinks = [
@@ -57,7 +56,8 @@ export function SiteFooter(): React.ReactElement {
 
           {/* Newsletter signup hint */}
           <p className="mb-8 max-w-md text-center text-sm text-muted-foreground">
-            Subscribe to get the latest recipes, tips, and exclusive offers delivered to your inbox.
+            Subscribe to get the latest recipes, notes, and kitchen inspiration delivered to your
+            inbox.
           </p>
 
           {/* Copyright */}

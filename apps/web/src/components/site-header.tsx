@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@twt/ui/components/dropdown-menu"
 import { Skeleton } from "@twt/ui/components/skeleton"
-import { LogOut, Menu, Search, ShoppingBag, X } from "lucide-react"
+import { LogOut, Menu, Search, X } from "lucide-react"
 import { useState } from "react"
 import { authClient } from "../auth/client"
 import { BrandLogo } from "./brand-logo"
@@ -21,7 +21,6 @@ const navigation = [
   { name: "Test Kitchen", to: "/test-kitchen" },
   { name: "About", to: "/about" },
   { name: "Garden & Flock", to: "/garden-and-flock" },
-  { name: "Shop", to: "/shop" },
 ] as const
 
 const rootRoute = getRouteApi("__root__")
@@ -106,13 +105,6 @@ export function SiteHeader(): React.ReactElement {
             <Search className="h-5 w-5" />
             <span className="sr-only">Search</span>
           </button>
-          <Link
-            to="/cart"
-            className="relative p-2 text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <ShoppingBag className="h-5 w-5" />
-            <span className="sr-only">Cart</span>
-          </Link>
           {showSessionSkeleton ? (
             <Skeleton className="size-8 rounded-full" />
           ) : resolvedSession ? (
@@ -161,17 +153,6 @@ export function SiteHeader(): React.ReactElement {
               <Link to="/login">Sign In</Link>
             </Button>
           )}
-        </div>
-
-        {/* Mobile icons */}
-        <div className="flex items-center gap-2 lg:hidden">
-          <Link
-            to="/cart"
-            className="p-2 text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <ShoppingBag className="h-5 w-5" />
-            <span className="sr-only">Cart</span>
-          </Link>
         </div>
       </nav>
 

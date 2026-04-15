@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router"
 import type { Recipe } from "@twt/db/schema"
 import { Button } from "@twt/ui/components/button"
-import { ArrowRight, Clock, CookingPot, ShoppingBag, Users, Wine } from "lucide-react"
+import { ArrowRight, Clock, CookingPot, Flower2, Users, Wine } from "lucide-react"
 import type React from "react"
 import { useEffect, useRef, useState } from "react"
 import { GhostCard } from "./empty-state"
@@ -261,19 +261,21 @@ export function BentoGrid({ recipes, categories }: BentoGridProps): React.ReactE
             </Link>
           </BentoItem>
 
-          {/* Shop Preview */}
+          {/* Garden & Flock Preview */}
           <BentoItem delay={400}>
-            <Link to="/shop" className="group block h-full">
+            <Link to="/garden-and-flock" search={{ category: undefined }} className="group block h-full">
               <div className="relative flex h-full flex-col justify-between overflow-hidden rounded-2xl border border-border bg-card p-6">
                 <div>
-                  <ShoppingBag className="mb-3 h-8 w-8 text-primary" />
+                  <Flower2 className="mb-3 h-8 w-8 text-primary" />
                   <h3 className="font-serif text-xl text-foreground transition-colors group-hover:text-primary">
-                    Shop
+                    Garden &amp; Flock
                   </h3>
-                  <p className="mt-1 text-xs text-muted-foreground">Curated kitchen essentials</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Seasonal life outside the kitchen
+                  </p>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground transition-colors group-hover:text-primary">
-                  <span>Browse</span>
+                  <span>Explore</span>
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </div>
               </div>

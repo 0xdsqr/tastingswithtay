@@ -11,17 +11,14 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as CartRouteImport } from './routes/cart'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as WineIndexRouteImport } from './routes/wine/index'
 import { Route as TestKitchenIndexRouteImport } from './routes/test-kitchen/index'
-import { Route as ShopIndexRouteImport } from './routes/shop/index'
 import { Route as RecipesIndexRouteImport } from './routes/recipes/index'
 import { Route as GardenAndFlockIndexRouteImport } from './routes/garden-and-flock/index'
 import { Route as WineSlugRouteImport } from './routes/wine/$slug'
 import { Route as TestKitchenSlugRouteImport } from './routes/test-kitchen/$slug'
-import { Route as ShopSlugRouteImport } from './routes/shop/$slug'
 import { Route as RecipesSlugRouteImport } from './routes/recipes/$slug'
 import { Route as ApiTrpcSplatRouteImport } from './routes/api/trpc.$'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth.$'
@@ -34,11 +31,6 @@ const SignupRoute = SignupRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CartRoute = CartRouteImport.update({
-  id: '/cart',
-  path: '/cart',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AboutRoute = AboutRouteImport.update({
@@ -61,11 +53,6 @@ const TestKitchenIndexRoute = TestKitchenIndexRouteImport.update({
   path: '/test-kitchen/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ShopIndexRoute = ShopIndexRouteImport.update({
-  id: '/shop/',
-  path: '/shop/',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const RecipesIndexRoute = RecipesIndexRouteImport.update({
   id: '/recipes/',
   path: '/recipes/',
@@ -84,11 +71,6 @@ const WineSlugRoute = WineSlugRouteImport.update({
 const TestKitchenSlugRoute = TestKitchenSlugRouteImport.update({
   id: '/test-kitchen/$slug',
   path: '/test-kitchen/$slug',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ShopSlugRoute = ShopSlugRouteImport.update({
-  id: '/shop/$slug',
-  path: '/shop/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RecipesSlugRoute = RecipesSlugRouteImport.update({
@@ -110,16 +92,13 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/cart': typeof CartRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
   '/recipes/$slug': typeof RecipesSlugRoute
-  '/shop/$slug': typeof ShopSlugRoute
   '/test-kitchen/$slug': typeof TestKitchenSlugRoute
   '/wine/$slug': typeof WineSlugRoute
   '/garden-and-flock/': typeof GardenAndFlockIndexRoute
   '/recipes/': typeof RecipesIndexRoute
-  '/shop/': typeof ShopIndexRoute
   '/test-kitchen/': typeof TestKitchenIndexRoute
   '/wine/': typeof WineIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -128,16 +107,13 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/cart': typeof CartRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
   '/recipes/$slug': typeof RecipesSlugRoute
-  '/shop/$slug': typeof ShopSlugRoute
   '/test-kitchen/$slug': typeof TestKitchenSlugRoute
   '/wine/$slug': typeof WineSlugRoute
   '/garden-and-flock': typeof GardenAndFlockIndexRoute
   '/recipes': typeof RecipesIndexRoute
-  '/shop': typeof ShopIndexRoute
   '/test-kitchen': typeof TestKitchenIndexRoute
   '/wine': typeof WineIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -147,16 +123,13 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/cart': typeof CartRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
   '/recipes/$slug': typeof RecipesSlugRoute
-  '/shop/$slug': typeof ShopSlugRoute
   '/test-kitchen/$slug': typeof TestKitchenSlugRoute
   '/wine/$slug': typeof WineSlugRoute
   '/garden-and-flock/': typeof GardenAndFlockIndexRoute
   '/recipes/': typeof RecipesIndexRoute
-  '/shop/': typeof ShopIndexRoute
   '/test-kitchen/': typeof TestKitchenIndexRoute
   '/wine/': typeof WineIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -167,16 +140,13 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
-    | '/cart'
     | '/login'
     | '/signup'
     | '/recipes/$slug'
-    | '/shop/$slug'
     | '/test-kitchen/$slug'
     | '/wine/$slug'
     | '/garden-and-flock/'
     | '/recipes/'
-    | '/shop/'
     | '/test-kitchen/'
     | '/wine/'
     | '/api/auth/$'
@@ -185,16 +155,13 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
-    | '/cart'
     | '/login'
     | '/signup'
     | '/recipes/$slug'
-    | '/shop/$slug'
     | '/test-kitchen/$slug'
     | '/wine/$slug'
     | '/garden-and-flock'
     | '/recipes'
-    | '/shop'
     | '/test-kitchen'
     | '/wine'
     | '/api/auth/$'
@@ -203,16 +170,13 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/about'
-    | '/cart'
     | '/login'
     | '/signup'
     | '/recipes/$slug'
-    | '/shop/$slug'
     | '/test-kitchen/$slug'
     | '/wine/$slug'
     | '/garden-and-flock/'
     | '/recipes/'
-    | '/shop/'
     | '/test-kitchen/'
     | '/wine/'
     | '/api/auth/$'
@@ -222,16 +186,13 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
-  CartRoute: typeof CartRoute
   LoginRoute: typeof LoginRoute
   SignupRoute: typeof SignupRoute
   RecipesSlugRoute: typeof RecipesSlugRoute
-  ShopSlugRoute: typeof ShopSlugRoute
   TestKitchenSlugRoute: typeof TestKitchenSlugRoute
   WineSlugRoute: typeof WineSlugRoute
   GardenAndFlockIndexRoute: typeof GardenAndFlockIndexRoute
   RecipesIndexRoute: typeof RecipesIndexRoute
-  ShopIndexRoute: typeof ShopIndexRoute
   TestKitchenIndexRoute: typeof TestKitchenIndexRoute
   WineIndexRoute: typeof WineIndexRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
@@ -252,13 +213,6 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/cart': {
-      id: '/cart'
-      path: '/cart'
-      fullPath: '/cart'
-      preLoaderRoute: typeof CartRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/about': {
@@ -289,13 +243,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TestKitchenIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/shop/': {
-      id: '/shop/'
-      path: '/shop'
-      fullPath: '/shop/'
-      preLoaderRoute: typeof ShopIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/recipes/': {
       id: '/recipes/'
       path: '/recipes'
@@ -322,13 +269,6 @@ declare module '@tanstack/react-router' {
       path: '/test-kitchen/$slug'
       fullPath: '/test-kitchen/$slug'
       preLoaderRoute: typeof TestKitchenSlugRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/shop/$slug': {
-      id: '/shop/$slug'
-      path: '/shop/$slug'
-      fullPath: '/shop/$slug'
-      preLoaderRoute: typeof ShopSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/recipes/$slug': {
@@ -358,16 +298,13 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
-  CartRoute: CartRoute,
   LoginRoute: LoginRoute,
   SignupRoute: SignupRoute,
   RecipesSlugRoute: RecipesSlugRoute,
-  ShopSlugRoute: ShopSlugRoute,
   TestKitchenSlugRoute: TestKitchenSlugRoute,
   WineSlugRoute: WineSlugRoute,
   GardenAndFlockIndexRoute: GardenAndFlockIndexRoute,
   RecipesIndexRoute: RecipesIndexRoute,
-  ShopIndexRoute: ShopIndexRoute,
   TestKitchenIndexRoute: TestKitchenIndexRoute,
   WineIndexRoute: WineIndexRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,

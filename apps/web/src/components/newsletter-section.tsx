@@ -22,8 +22,8 @@ export function NewsletterSection(): React.ReactElement {
           </p>
           <h2 className="mb-4 font-serif text-3xl tracking-tight sm:text-4xl">Join the Table</h2>
           <p className="mb-8 text-lg opacity-80">
-            Get weekly recipes, cooking tips, and first access to new products delivered straight to
-            your inbox.
+            Get weekly recipes, cooking tips, and new notes from Tay delivered straight to your
+            inbox.
           </p>
 
           <form

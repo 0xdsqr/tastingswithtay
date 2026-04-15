@@ -2,10 +2,10 @@ import { db } from "@twt/db/client"
 import type { BetterAuthOptions, BetterAuthPlugin } from "better-auth"
 import { betterAuth } from "better-auth"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
-import { jwt } from "better-auth/plugins"
+import { admin, jwt } from "better-auth/plugins"
 
 export function initAuth(options: {
-  baseUrl: string
+  baseUrl: BetterAuthOptions["baseURL"]
   secret: string | undefined
   extraPlugins?: BetterAuthPlugin[]
   trustedOrigins?: string[]
@@ -17,7 +17,7 @@ export function initAuth(options: {
 
     trustedOrigins: options.trustedOrigins ?? [],
 
-    plugins: [jwt(), ...(options.extraPlugins ?? [])],
+    plugins: [jwt(), admin({ defaultRole: "user", adminRoles: ["admin"] }), ...(options.extraPlugins ?? [])],
 
     socialProviders: {
       discord: {
