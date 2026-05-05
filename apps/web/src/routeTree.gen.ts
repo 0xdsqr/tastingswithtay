@@ -22,6 +22,7 @@ import { Route as TestKitchenSlugRouteImport } from './routes/test-kitchen/$slug
 import { Route as RecipesSlugRouteImport } from './routes/recipes/$slug'
 import { Route as ApiTrpcSplatRouteImport } from './routes/api/trpc.$'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth.$'
+import { Route as ApiImagesFolderFileNameRouteImport } from './routes/api/images.$folder.$fileName'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -88,6 +89,11 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiImagesFolderFileNameRoute = ApiImagesFolderFileNameRouteImport.update({
+  id: '/api/images/$folder/$fileName',
+  path: '/api/images/$folder/$fileName',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -103,6 +109,7 @@ export interface FileRoutesByFullPath {
   '/wine/': typeof WineIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
+  '/api/images/$folder/$fileName': typeof ApiImagesFolderFileNameRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -118,6 +125,7 @@ export interface FileRoutesByTo {
   '/wine': typeof WineIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
+  '/api/images/$folder/$fileName': typeof ApiImagesFolderFileNameRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -134,6 +142,7 @@ export interface FileRoutesById {
   '/wine/': typeof WineIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
+  '/api/images/$folder/$fileName': typeof ApiImagesFolderFileNameRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -151,6 +160,7 @@ export interface FileRouteTypes {
     | '/wine/'
     | '/api/auth/$'
     | '/api/trpc/$'
+    | '/api/images/$folder/$fileName'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -166,6 +176,7 @@ export interface FileRouteTypes {
     | '/wine'
     | '/api/auth/$'
     | '/api/trpc/$'
+    | '/api/images/$folder/$fileName'
   id:
     | '__root__'
     | '/'
@@ -181,6 +192,7 @@ export interface FileRouteTypes {
     | '/wine/'
     | '/api/auth/$'
     | '/api/trpc/$'
+    | '/api/images/$folder/$fileName'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -197,6 +209,7 @@ export interface RootRouteChildren {
   WineIndexRoute: typeof WineIndexRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiTrpcSplatRoute: typeof ApiTrpcSplatRoute
+  ApiImagesFolderFileNameRoute: typeof ApiImagesFolderFileNameRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -292,6 +305,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/images/$folder/$fileName': {
+      id: '/api/images/$folder/$fileName'
+      path: '/api/images/$folder/$fileName'
+      fullPath: '/api/images/$folder/$fileName'
+      preLoaderRoute: typeof ApiImagesFolderFileNameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -309,6 +329,7 @@ const rootRouteChildren: RootRouteChildren = {
   WineIndexRoute: WineIndexRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiTrpcSplatRoute: ApiTrpcSplatRoute,
+  ApiImagesFolderFileNameRoute: ApiImagesFolderFileNameRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

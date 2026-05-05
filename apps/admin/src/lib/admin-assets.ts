@@ -1,5 +1,6 @@
 import {
   DeleteObjectCommand,
+  GetObjectCommand,
   HeadBucketCommand,
   ListObjectsV2Command,
   PutObjectCommand,
@@ -33,6 +34,8 @@ const allowedImageTypes = new Set([
 
 const maxUploadBytes = 10 * 1024 * 1024
 
+const managedAssetFolders = new Set<string>(managedAssetFolderEnum)
+
 const uploadAssetSchema = z.object({
   folder: z.enum(managedAssetFolderEnum),
   fileName: z.string().min(1).max(240),
@@ -60,6 +63,10 @@ export type ManagedImageAsset = {
   size: number
   lastModified: string | null
 }
+
+export type UploadManagedAssetResult =
+  | { ok: true; asset: ManagedImageAsset }
+  | { ok: false; error: string }
 
 async function requireAdminUser(): Promise<void> {
   const user = await getAdminSessionUser()
@@ -99,6 +106,10 @@ function getS3Client(): S3Client {
       secretAccessKey,
     },
     forcePathStyle: process.env.S3_FORCE_PATH_STYLE !== "false",
+    requestHandler: {
+      requestTimeout: 10_000,
+      connectionTimeout: 3_000,
+    },
   })
 }
 
@@ -110,17 +121,7 @@ function encodeKeyPath(key: string): string {
   return key.split("/").map(encodeURIComponent).join("/")
 }
 
-function publicUrlForKey(key: string, bucket: string): string {
-  const cdnBase = process.env.CDN_BASE?.trim().replace(/\/+$/, "")
-  if (cdnBase) {
-    return `${cdnBase}/${encodeKeyPath(key)}`
-  }
-
-  const endpoint = getS3Endpoint()?.replace(/\/+$/, "")
-  if (endpoint) {
-    return `${endpoint}/${encodeURIComponent(bucket)}/${encodeKeyPath(key)}`
-  }
-
+function publicUrlForKey(key: string): string {
   return `/${encodeKeyPath(key)}`
 }
 
@@ -150,6 +151,16 @@ function assertSafeKey(key: string): void {
   }
 }
 
+function keyForManagedImage(
+  folder: string | undefined,
+  fileName: string | undefined,
+): string | null {
+  if (!folder || !fileName || !managedAssetFolders.has(folder)) return null
+  if (fileName.includes("/") || fileName.includes("\\") || fileName.includes("..")) return null
+
+  return `${folder}/${fileName}`
+}
+
 function mapObjectToAsset(
   object: { Key?: string; Size?: number; LastModified?: Date },
   bucket: string,
@@ -158,49 +169,128 @@ function mapObjectToAsset(
 
   return {
     key: object.Key,
-    url: publicUrlForKey(object.Key, bucket),
+    url: publicUrlForKey(object.Key),
     bucket,
     size: object.Size ?? 0,
     lastModified: object.LastModified?.toISOString() ?? null,
   }
 }
 
+function errorCodeFor(error: unknown): string {
+  if (error instanceof Error) return error.name
+  if (typeof error === "object" && error && "name" in error && typeof error.name === "string") {
+    return error.name
+  }
+
+  return "UnknownError"
+}
+
+function errorMessageFor(error: unknown): string {
+  if (error instanceof Error && error.message) return error.message
+  if (
+    typeof error === "object" &&
+    error &&
+    "message" in error &&
+    typeof error.message === "string"
+  ) {
+    return error.message
+  }
+
+  return "Unknown storage error"
+}
+
+function statusCodeFor(error: unknown): number | undefined {
+  if (
+    typeof error === "object" &&
+    error &&
+    "$metadata" in error &&
+    typeof error.$metadata === "object" &&
+    error.$metadata &&
+    "httpStatusCode" in error.$metadata &&
+    typeof error.$metadata.httpStatusCode === "number"
+  ) {
+    return error.$metadata.httpStatusCode
+  }
+
+  return undefined
+}
+
+function uploadFailure(error: unknown, context: Record<string, unknown>): UploadManagedAssetResult {
+  const code = errorCodeFor(error)
+  const message = errorMessageFor(error)
+  const statusCode = statusCodeFor(error)
+  const endpoint = getS3Endpoint() ?? "default AWS endpoint"
+  const bucket = getBucketName()
+
+  console.error("[admin-assets] RustFS upload failed", {
+    bucket,
+    endpoint,
+    errorCode: code,
+    statusCode,
+    error: message,
+    ...context,
+    hasAccessKey: Boolean(process.env.S3_ACCESS_KEY?.trim()),
+    hasSecretKey: Boolean(process.env.S3_SECRET_KEY?.trim()),
+  })
+
+  return {
+    ok: false,
+    error: `RustFS upload failed for bucket "${bucket}" at "${endpoint}": ${code}${statusCode ? ` ${statusCode}` : ""} - ${message}`,
+  }
+}
+
 export const uploadManagedAsset = createServerFn({ method: "POST" })
   .inputValidator(uploadAssetSchema)
   .handler(async ({ data }) => {
-    await requireAdminUser()
+    try {
+      await requireAdminUser()
 
-    if (!allowedImageTypes.has(data.contentType)) {
-      throw new Error("Upload an image file: JPG, PNG, WebP, AVIF, GIF, HEIC, or HEIF.")
+      if (!allowedImageTypes.has(data.contentType)) {
+        return {
+          ok: false,
+          error: "Upload an image file: JPG, PNG, WebP, AVIF, GIF, HEIC, or HEIF.",
+        } satisfies UploadManagedAssetResult
+      }
+
+      const body = Buffer.from(data.bytesBase64, "base64")
+      if (body.byteLength > maxUploadBytes) {
+        return {
+          ok: false,
+          error: "Image uploads must be 10 MB or smaller.",
+        } satisfies UploadManagedAssetResult
+      }
+
+      const bucket = getBucketName()
+      const client = getS3Client()
+      const key = keyForUpload(data.folder, data.fileName)
+
+      await ensureBucketAccessible(client, bucket)
+      await client.send(
+        new PutObjectCommand({
+          Bucket: bucket,
+          Key: key,
+          Body: body,
+          ContentType: data.contentType,
+          CacheControl: "public, max-age=31536000, immutable",
+        }),
+      )
+
+      const asset = {
+        key,
+        url: publicUrlForKey(key),
+        bucket,
+        size: body.byteLength,
+        lastModified: new Date().toISOString(),
+      } satisfies ManagedImageAsset
+
+      return { ok: true, asset } satisfies UploadManagedAssetResult
+    } catch (error) {
+      return uploadFailure(error, {
+        folder: data.folder,
+        fileName: data.fileName,
+        contentType: data.contentType,
+      })
     }
-
-    const body = Buffer.from(data.bytesBase64, "base64")
-    if (body.byteLength > maxUploadBytes) {
-      throw new Error("Image uploads must be 10 MB or smaller.")
-    }
-
-    const bucket = getBucketName()
-    const client = getS3Client()
-    const key = keyForUpload(data.folder, data.fileName)
-
-    await ensureBucketAccessible(client, bucket)
-    await client.send(
-      new PutObjectCommand({
-        Bucket: bucket,
-        Key: key,
-        Body: body,
-        ContentType: data.contentType,
-        CacheControl: "public, max-age=31536000, immutable",
-      }),
-    )
-
-    return {
-      key,
-      url: publicUrlForKey(key, bucket),
-      bucket,
-      size: body.byteLength,
-      lastModified: new Date().toISOString(),
-    } satisfies ManagedImageAsset
   })
 
 export const listManagedAssets = createServerFn({ method: "GET" })
@@ -247,3 +337,34 @@ export const deleteManagedAsset = createServerFn({ method: "POST" })
 
     return { success: true, key: data.key }
   })
+
+export async function getManagedImage(
+  folder: string | undefined,
+  fileName: string | undefined,
+): Promise<{ body: ReadableStream; contentType: string } | null> {
+  const key = keyForManagedImage(folder, fileName)
+  if (!key) return null
+
+  try {
+    const bucket = getBucketName()
+    const client = getS3Client()
+
+    await ensureBucketAccessible(client, bucket)
+    const response = await client.send(new GetObjectCommand({ Bucket: bucket, Key: key }))
+
+    if (!response.Body) return null
+
+    return {
+      body: response.Body.transformToWebStream(),
+      contentType: response.ContentType || "image/jpeg",
+    }
+  } catch (error) {
+    console.error("[admin-assets] RustFS image fetch failed", {
+      bucket: getBucketName(),
+      key,
+      errorCode: error instanceof Error ? error.name : "UnknownError",
+      error: error instanceof Error ? error.message : "Unknown storage error",
+    })
+    return null
+  }
+}

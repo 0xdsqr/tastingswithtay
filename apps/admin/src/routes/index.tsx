@@ -116,6 +116,17 @@ const managedAssetFolderOptions = [
 ] as const satisfies readonly ManagedAssetFolder[]
 
 const managedImagePrefixes = managedAssetFolderOptions.map((folder) => `/${folder}/`)
+const maxImageUploadBytes = 10 * 1024 * 1024
+const maxImageUploadEdge = 2400
+const compressedImageQuality = 0.88
+const managedImageProxyPrefix = "/api/images/"
+const managedImageHosts = new Set([
+  "admin.tastingswithtay.com",
+  "cdn.dsqr.dev",
+  "s3.dsqr.dev",
+  "tastingswithtay.com",
+])
+const defaultAboutHeroImageUrl = "/about/taylor_and_dave_about.jpg"
 
 type SiteDraft = {
   home: {
@@ -204,7 +215,7 @@ const defaultSiteDraft: SiteDraft = {
   about: {
     heroEyebrow: "The Story Behind the Recipes",
     heroTitle: "Hi, I'm Tay",
-    heroImage: "",
+    heroImage: defaultAboutHeroImageUrl,
     introBody:
       "Welcome to my corner of the internet where flour dust is a fashion statement and taste-testing is considered cardio. I'm so glad you're here.\n\nMy love affair with food started in my grandmother's kitchen, where Sunday dinners were sacred and recipes were passed down through generations.\n\nTastings with Tay is my love letter to home cooking — real food, made with intention, meant to be savored and shared.",
     philosophyEyebrow: "My Philosophy",
@@ -2352,7 +2363,12 @@ function ImageManager(): React.ReactElement {
         {assets.map((asset) => (
           <Card key={asset.key} className="overflow-hidden">
             <div className="aspect-[4/3] bg-muted">
-              <img src={asset.url} alt="" className="h-full w-full object-cover" loading="lazy" />
+              <img
+                src={imagePreviewSrcFor(asset.url) ?? asset.url}
+                alt=""
+                className="h-full w-full object-cover"
+                loading="lazy"
+              />
             </div>
             <CardContent className="space-y-3 p-4">
               <div>
@@ -2368,7 +2384,7 @@ function ImageManager(): React.ReactElement {
                   size="sm"
                   onClick={() => {
                     void navigator.clipboard?.writeText(asset.url)
-                    setMessage("Image URL copied.")
+                    setMessage("Image path copied.")
                   }}
                 >
                   Copy URL
@@ -3213,7 +3229,7 @@ function ImageUploadField({
   const [message, setMessage] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const imageHealth = imageHealthFor(value)
-  const previewSrc = imageHealth.status === "ready" ? value.trim() : ""
+  const previewSrc = imageHealth.status === "ready" ? imagePreviewSrcFor(value) : ""
 
   return (
     <Field label={label} description={description}>
@@ -3240,7 +3256,7 @@ function ImageUploadField({
           <Input
             value={value}
             onChange={(event) => onChange(event.target.value)}
-            placeholder="Upload to fill this with a RustFS/CDN URL"
+            placeholder="Upload to fill this with a RustFS image path"
             aria-invalid={imageHealth.status !== "ready"}
           />
           <Input
@@ -3478,7 +3494,7 @@ function PreviewSurface({
   children: React.ReactNode
 }): React.ReactElement {
   const imageHealth = imageHealthFor(image)
-  const previewSrc = imageHealth.status === "ready" ? image.trim() : ""
+  const previewSrc = imageHealth.status === "ready" ? imagePreviewSrcFor(image) : ""
 
   return (
     <div className="space-y-5">
@@ -3671,14 +3687,45 @@ type ImageHealth = {
 }
 
 function isManagedImageValue(value: string | null | undefined): boolean {
+  return Boolean(managedImagePathFor(value))
+}
+
+function managedImagePathFor(value: string | null | undefined): string | null {
   const trimmed = value?.trim()
-  if (!trimmed) return false
+  if (!trimmed) return null
 
   if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
-    return true
+    let url: URL
+    try {
+      url = new URL(trimmed)
+    } catch {
+      return null
+    }
+
+    if (!managedImageHosts.has(url.hostname)) return null
+    return managedImagePathFor(url.pathname)
   }
 
-  return managedImagePrefixes.some((prefix) => trimmed.startsWith(prefix))
+  let pathname = trimmed
+  if (pathname.startsWith(managedImageProxyPrefix)) {
+    pathname = `/${pathname.slice(managedImageProxyPrefix.length)}`
+  }
+
+  if (pathname.startsWith("/tastingswithtay/")) {
+    pathname = pathname.slice("/tastingswithtay".length)
+  }
+
+  if (!managedImagePrefixes.some((prefix) => pathname.startsWith(prefix))) return null
+  if (pathname.includes("..") || pathname.includes("//")) return null
+
+  return pathname
+}
+
+function imagePreviewSrcFor(value: string | null | undefined): string | null {
+  const managedPath = managedImagePathFor(value)
+  if (!managedPath) return null
+
+  return `${managedImageProxyPrefix}${managedPath.slice(1)}`
 }
 
 function isLegacyPublicImageValue(value: string | null | undefined): boolean {
@@ -3720,6 +3767,8 @@ function imageHealthClassName(status: ImageHealth["status"]): string {
 
 function mergeSiteDraft(value: Partial<SiteDraft> | null | undefined): SiteDraft {
   const about = (value?.about ?? {}) as Partial<SiteDraft["about"]>
+  const managedImageValue = (imageValue: string | undefined, defaultValue: string): string =>
+    imageValue?.trim() || defaultValue
 
   return {
     home: {
@@ -3729,9 +3778,12 @@ function mergeSiteDraft(value: Partial<SiteDraft> | null | undefined): SiteDraft
     about: {
       ...defaultSiteDraft.about,
       ...about,
-      heroImage: about.heroImage ?? defaultSiteDraft.about.heroImage,
-      quoteImage: about.quoteImage ?? defaultSiteDraft.about.quoteImage,
-      whatsIncludedImage: about.whatsIncludedImage ?? defaultSiteDraft.about.whatsIncludedImage,
+      heroImage: managedImageValue(about.heroImage, defaultSiteDraft.about.heroImage),
+      quoteImage: managedImageValue(about.quoteImage, defaultSiteDraft.about.quoteImage),
+      whatsIncludedImage: managedImageValue(
+        about.whatsIncludedImage,
+        defaultSiteDraft.about.whatsIncludedImage,
+      ),
       values:
         value?.about?.values && value.about.values.length > 0
           ? value.about.values
@@ -3765,8 +3817,84 @@ function contentTypeForFile(file: File): string {
   return "application/octet-stream"
 }
 
-async function fileToBase64(file: File): Promise<string> {
-  const bytes = new Uint8Array(await file.arrayBuffer())
+type PreparedImageUpload = {
+  blob: Blob
+  contentType: string
+  fileName: string
+}
+
+function isCompressibleImage(file: File): boolean {
+  return ["image/avif", "image/jpeg", "image/png", "image/webp"].includes(contentTypeForFile(file))
+}
+
+function compressedFileName(fileName: string): string {
+  if (/\.[^.]+$/.test(fileName)) return fileName.replace(/\.[^.]+$/, ".jpg")
+  return `${fileName}.jpg`
+}
+
+async function blobFromCanvas(canvas: HTMLCanvasElement): Promise<Blob | null> {
+  return new Promise((resolve) => {
+    canvas.toBlob(resolve, "image/jpeg", compressedImageQuality)
+  })
+}
+
+async function compressImageFile(file: File): Promise<PreparedImageUpload | null> {
+  if (!isCompressibleImage(file) || typeof createImageBitmap === "undefined") return null
+
+  const bitmap = await createImageBitmap(file)
+  try {
+    const scale = Math.min(1, maxImageUploadEdge / Math.max(bitmap.width, bitmap.height))
+    const width = Math.max(1, Math.round(bitmap.width * scale))
+    const height = Math.max(1, Math.round(bitmap.height * scale))
+    const canvas = document.createElement("canvas")
+    const context = canvas.getContext("2d")
+
+    if (!context) return null
+
+    canvas.width = width
+    canvas.height = height
+    context.drawImage(bitmap, 0, 0, width, height)
+
+    const blob = await blobFromCanvas(canvas)
+    if (!blob || (blob.size >= file.size && file.size <= maxImageUploadBytes)) return null
+
+    return {
+      blob,
+      contentType: "image/jpeg",
+      fileName: compressedFileName(file.name),
+    }
+  } finally {
+    bitmap.close()
+  }
+}
+
+async function prepareImageUpload(file: File): Promise<PreparedImageUpload> {
+  let compressed: PreparedImageUpload | null = null
+
+  try {
+    compressed = await compressImageFile(file)
+  } catch {
+    compressed = null
+  }
+
+  if (compressed && compressed.blob.size <= maxImageUploadBytes) return compressed
+
+  if (file.size <= maxImageUploadBytes) {
+    return {
+      blob: file,
+      contentType: contentTypeForFile(file),
+      fileName: file.name,
+    }
+  }
+
+  const sizeLabel = compressed ? formatBytes(compressed.blob.size) : formatBytes(file.size)
+  throw new Error(
+    `Image is ${sizeLabel}${compressed ? " after compression" : ""}. Please upload an image 10 MB or smaller.`,
+  )
+}
+
+async function fileToBase64(blob: Blob): Promise<string> {
+  const bytes = new Uint8Array(await blob.arrayBuffer())
   const chunkSize = 0x8000
   let binary = ""
 
@@ -3778,14 +3906,19 @@ async function fileToBase64(file: File): Promise<string> {
 }
 
 async function uploadImageFile(file: File, folder: ManagedAssetFolder): Promise<ManagedImageAsset> {
-  return uploadManagedAsset({
+  const prepared = await prepareImageUpload(file)
+  const result = await uploadManagedAsset({
     data: {
       folder,
-      fileName: file.name,
-      contentType: contentTypeForFile(file),
-      bytesBase64: await fileToBase64(file),
+      fileName: prepared.fileName,
+      contentType: prepared.contentType,
+      bytesBase64: await fileToBase64(prepared.blob),
     },
   })
+
+  if (!result.ok) throw new Error(result.error)
+
+  return result.asset
 }
 
 function upsertByUpdatedAt<T extends { id: string; updatedAt?: Date | string }>(

@@ -39,10 +39,12 @@ type SiteDraftValue = {
   about?: Partial<AboutContent>
 }
 
+const defaultAboutHeroImageUrl = "/about/taylor_and_dave_about.jpg"
+
 const defaultAboutContent: AboutContent = {
   heroEyebrow: "The Story Behind the Recipes",
   heroTitle: "Hi, I'm Tay",
-  heroImage: "",
+  heroImage: defaultAboutHeroImageUrl,
   introBody:
     "Welcome to my corner of the internet where flour dust is a fashion statement and taste-testing is considered cardio. I'm so glad you're here.\n\nMy love affair with food started in my grandmother's kitchen, where Sunday dinners were sacred and recipes were passed down through generations—never written, always remembered. Those memories of wooden spoons, simmering pots, and the way good food brings people together shaped who I am today.\n\nAfter years of collecting recipes, experimenting in my own kitchen, and sharing meals with the people I love, I finally decided to share this passion with the world. Tastings with Tay is my love letter to home cooking—real food, made with intention, meant to be savored and shared.",
   philosophyEyebrow: "My Philosophy",
@@ -269,10 +271,18 @@ function AboutPage(): React.ReactElement {
 function getAboutContent(rawDraft: unknown): AboutContent {
   const draft = rawDraft as SiteDraftValue | null
   const about = draft?.about ?? {}
+  const managedImageValue = (imageValue: string | undefined, defaultValue: string): string =>
+    imageValue?.trim() || defaultValue
 
   return {
     ...defaultAboutContent,
     ...about,
+    heroImage: managedImageValue(about.heroImage, defaultAboutContent.heroImage),
+    quoteImage: managedImageValue(about.quoteImage, defaultAboutContent.quoteImage),
+    whatsIncludedImage: managedImageValue(
+      about.whatsIncludedImage,
+      defaultAboutContent.whatsIncludedImage,
+    ),
     values: about.values && about.values.length > 0 ? about.values : defaultAboutContent.values,
   }
 }

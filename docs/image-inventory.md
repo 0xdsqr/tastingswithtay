@@ -12,22 +12,26 @@ bucket named `tastingswithtay`.
 - Suggested folders: `about/`, `recipes/`, `wines/`, `experiments/`, `gallery/`, `brand/`,
   `system/`, and `uploads/`
 
+RustFS objects are read by the app servers with the S3 client, then rendered through
+`/api/images/<folder>/<file>`. Admin fields store friendly RustFS paths such as
+`/about/taylor_and_dave_about.jpg`.
+
 Secrets stay in local/deployment env only. Do not commit `S3_ACCESS_KEY`, `S3_SECRET_KEY`,
 `DATABASE_URL`, or `AUTH_SECRET`.
 
 ## Managed Image Fields
 
-| Admin area     | Field                  | Suggested RustFS folder | Notes                                                 |
-| -------------- | ---------------------- | ----------------------- | ----------------------------------------------------- |
-| Site > About   | About hero image       | `about/`                | Tay's main portrait; upload directly from this field. |
-| Site > About   | Quote image            | `about/`                | Wide kitchen/process image behind the quote section.  |
-| Site > About   | What you'll find image | `about/`                | Square supporting About page image.                   |
-| Recipes        | Hero image             | `recipes/`              | Required before publishing through admin.             |
-| Wines          | Image                  | `wines/`                | Required before publishing through admin.             |
-| Test Kitchen   | Hero image             | `experiments/`          | Required before publishing through admin.             |
-| Test Kitchen   | Entry images           | `experiments/`          | One managed image URL per line.                       |
-| Garden & Flock | Image                  | `gallery/`              | Required before publishing through admin.             |
-| Images tab     | General uploads        | Any managed folder      | Upload, preview, copy URL, or delete from RustFS.     |
+| Admin area     | Field                  | Suggested RustFS folder | Notes                                                |
+| -------------- | ---------------------- | ----------------------- | ---------------------------------------------------- |
+| Site > About   | About hero image       | `about/`                | Default: `/about/taylor_and_dave_about.jpg`.         |
+| Site > About   | Quote image            | `about/`                | Wide kitchen/process image behind the quote section. |
+| Site > About   | What you'll find image | `about/`                | Square supporting About page image.                  |
+| Recipes        | Hero image             | `recipes/`              | Required before publishing through admin.            |
+| Wines          | Image                  | `wines/`                | Required before publishing through admin.            |
+| Test Kitchen   | Hero image             | `experiments/`          | Required before publishing through admin.            |
+| Test Kitchen   | Entry images           | `experiments/`          | One managed image URL per line.                      |
+| Garden & Flock | Image                  | `gallery/`              | Required before publishing through admin.            |
+| Images tab     | General uploads        | Any managed folder      | Upload, preview, copy URL, or delete from RustFS.    |
 
 ## Admin Status
 

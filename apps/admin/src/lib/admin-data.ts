@@ -157,12 +157,44 @@ const managedImagePrefixes = [
   "/uploads/",
 ] as const
 
+const managedImageProxyPrefix = "/api/images/"
+const managedImageHosts = new Set([
+  "admin.tastingswithtay.com",
+  "cdn.dsqr.dev",
+  "s3.dsqr.dev",
+  "tastingswithtay.com",
+])
+
 function isManagedImageValue(value: string): boolean {
-  return (
-    value.startsWith("http://") ||
-    value.startsWith("https://") ||
-    managedImagePrefixes.some((prefix) => value.startsWith(prefix))
-  )
+  return Boolean(managedImagePathFor(value))
+}
+
+function managedImagePathFor(value: string): string | null {
+  if (value.startsWith("http://") || value.startsWith("https://")) {
+    let url: URL
+    try {
+      url = new URL(value)
+    } catch {
+      return null
+    }
+
+    if (!managedImageHosts.has(url.hostname)) return null
+    return managedImagePathFor(url.pathname)
+  }
+
+  let pathname = value
+  if (pathname.startsWith(managedImageProxyPrefix)) {
+    pathname = `/${pathname.slice(managedImageProxyPrefix.length)}`
+  }
+
+  if (pathname.startsWith("/tastingswithtay/")) {
+    pathname = pathname.slice("/tastingswithtay".length)
+  }
+
+  if (!managedImagePrefixes.some((prefix) => pathname.startsWith(prefix))) return null
+  if (pathname.includes("..") || pathname.includes("//")) return null
+
+  return pathname
 }
 
 function normalizeManagedImage(
@@ -176,7 +208,7 @@ function normalizeManagedImage(
     throw new Error(`${label} must be uploaded through the image field before saving.`)
   }
 
-  return trimmed
+  return managedImagePathFor(trimmed) ?? undefined
 }
 
 function requireManagedImage(value: string | null | undefined, label: string): string {
