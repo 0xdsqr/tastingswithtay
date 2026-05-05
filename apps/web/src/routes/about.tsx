@@ -42,7 +42,7 @@ type SiteDraftValue = {
 const defaultAboutContent: AboutContent = {
   heroEyebrow: "The Story Behind the Recipes",
   heroTitle: "Hi, I'm Tay",
-  heroImage: "/warm-portrait-of-woman-cooking-in-bright-kitchen-n.jpg",
+  heroImage: "",
   introBody:
     "Welcome to my corner of the internet where flour dust is a fashion statement and taste-testing is considered cardio. I'm so glad you're here.\n\nMy love affair with food started in my grandmother's kitchen, where Sunday dinners were sacred and recipes were passed down through generations—never written, always remembered. Those memories of wooden spoons, simmering pots, and the way good food brings people together shaped who I am today.\n\nAfter years of collecting recipes, experimenting in my own kitchen, and sharing meals with the people I love, I finally decided to share this passion with the world. Tastings with Tay is my love letter to home cooking—real food, made with intention, meant to be savored and shared.",
   philosophyEyebrow: "My Philosophy",
@@ -70,12 +70,12 @@ const defaultAboutContent: AboutContent = {
   ],
   quoteText: '"Cooking is like love. It should be entered into with abandon or not at all."',
   quoteAuthor: "Harriet Van Horne",
-  quoteImage: "/elegant-kitchen-scene-with-fresh-ingredients-and-s.jpg",
+  quoteImage: "",
   whatsIncludedEyebrow: "What You'll Find Here",
   whatsIncludedTitle: "More Than Just Recipes",
   whatsIncludedBody:
     "Recipes: From quick weeknight dinners to weekend baking projects, each recipe is thoroughly tested and written with detailed instructions so you can recreate them with confidence.\nKitchen Tips: Little tricks and techniques I've learned along the way that make cooking easier and more enjoyable.\nLife & Stories: Because food is about more than just eating—it's about the stories we tell, the traditions we keep, and the moments we share.\nThe Shop: A curated collection of kitchen essentials I genuinely love and use in my own kitchen every day.",
-  whatsIncludedImage: "/colorful-fresh-ingredients-arranged-beautifully-on.jpg",
+  whatsIncludedImage: "",
   connectEyebrow: "Let's Connect",
   connectTitle: "I'd Love to Hear From You",
   connectBody:

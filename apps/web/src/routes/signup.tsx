@@ -13,6 +13,7 @@ import { Input } from "@twt/ui/components/input"
 import { Spinner } from "@twt/ui/components/spinner"
 import { useEffect, useState } from "react"
 import { authClient } from "../auth/client"
+import { OptimizedImage } from "../components/optimized-image"
 import { SiteFooter } from "../components/site-footer"
 import { SiteHeader } from "../components/site-header"
 
@@ -208,8 +209,7 @@ function SignupPage(): React.ReactElement {
 
               {/* Image Side */}
               <div className="bg-muted relative hidden md:block">
-                <img
-                  src="/elegant-red-wine-glass-with-bordeaux-on-white-linen.jpg"
+                <OptimizedImage
                   alt="Wine glass"
                   className="absolute inset-0 h-full w-full object-cover"
                 />

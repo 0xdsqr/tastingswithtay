@@ -115,6 +115,8 @@ const managedAssetFolderOptions = [
   "uploads",
 ] as const satisfies readonly ManagedAssetFolder[]
 
+const managedImagePrefixes = managedAssetFolderOptions.map((folder) => `/${folder}/`)
+
 type SiteDraft = {
   home: {
     heroFallbackEyebrow: string
@@ -148,6 +150,7 @@ type SiteDraft = {
     whatsIncludedEyebrow: string
     whatsIncludedTitle: string
     whatsIncludedBody: string
+    whatsIncludedImage: string
     connectEyebrow: string
     connectTitle: string
     connectBody: string
@@ -201,7 +204,7 @@ const defaultSiteDraft: SiteDraft = {
   about: {
     heroEyebrow: "The Story Behind the Recipes",
     heroTitle: "Hi, I'm Tay",
-    heroImage: "/warm-portrait-of-woman-cooking-in-bright-kitchen-n.jpg",
+    heroImage: "",
     introBody:
       "Welcome to my corner of the internet where flour dust is a fashion statement and taste-testing is considered cardio. I'm so glad you're here.\n\nMy love affair with food started in my grandmother's kitchen, where Sunday dinners were sacred and recipes were passed down through generations.\n\nTastings with Tay is my love letter to home cooking — real food, made with intention, meant to be savored and shared.",
     philosophyEyebrow: "My Philosophy",
@@ -229,11 +232,12 @@ const defaultSiteDraft: SiteDraft = {
     ],
     quoteText: '"Cooking is like love. It should be entered into with abandon or not at all."',
     quoteAuthor: "Harriet Van Horne",
-    quoteImage: "/elegant-kitchen-scene-with-fresh-ingredients-and-s.jpg",
+    quoteImage: "",
     whatsIncludedEyebrow: "What You'll Find Here",
     whatsIncludedTitle: "More Than Just Recipes",
     whatsIncludedBody:
       "Recipes: from quick weeknight dinners to weekend baking projects.\nKitchen Tips: little tricks and techniques that make cooking easier.\nLife & Stories: the traditions, moments, and rituals around the table.",
+    whatsIncludedImage: "",
     connectEyebrow: "Let's Connect",
     connectTitle: "I'd Love to Hear From You",
     connectBody:
@@ -1063,6 +1067,18 @@ function SiteContentManager({
                 }
               />
             </Field>
+            <ImageUploadField
+              label="What you'll find image"
+              value={draft.about.whatsIncludedImage}
+              folder="about"
+              description="Use a square supporting photo for the second About image slot."
+              onChange={(value) =>
+                setDraft((current) => ({
+                  ...current,
+                  about: { ...current.about, whatsIncludedImage: value },
+                }))
+              }
+            />
             <Field label="Connect section body">
               <Textarea
                 rows={4}
@@ -1166,6 +1182,7 @@ function RecipeManager({
               title={item.title}
               subtitle={`${item.category} • ${item.published ? "Published" : "Draft"}`}
               meta={formatAdminDate(item.updatedAt)}
+              imageValue={item.image}
               onClick={() => setSelectedId(item.id)}
             />
           ))}
@@ -1419,6 +1436,7 @@ function WineManager({
               title={item.name}
               subtitle={`${item.winery} • ${item.published ? "Published" : "Draft"}`}
               meta={formatAdminDate(item.updatedAt)}
+              imageValue={item.image}
               onClick={() => setSelectedId(item.id)}
             />
           ))}
@@ -1706,6 +1724,7 @@ function ExperimentManager({
               title={item.title}
               subtitle={`${humanizeExperimentStatus(item.status)} • ${item.published ? "Published" : "Draft"}`}
               meta={formatAdminDate(item.updatedAt)}
+              imageValue={item.image}
               onClick={() => setSelectedId(item.id)}
             />
           ))}
@@ -2058,6 +2077,7 @@ function GalleryManager({
               title={item.title || "Untitled image"}
               subtitle={`${capitalize(item.category)} • ${item.published ? "Published" : "Draft"}`}
               meta={formatAdminDate(item.updatedAt)}
+              imageValue={item.image}
               onClick={() => setSelectedId(item.id)}
             />
           ))}
@@ -3192,21 +3212,37 @@ function ImageUploadField({
 }): React.ReactElement {
   const [message, setMessage] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
+  const imageHealth = imageHealthFor(value)
+  const previewSrc = imageHealth.status === "ready" ? value.trim() : ""
 
   return (
     <Field label={label} description={description}>
       <div className="grid gap-3 md:grid-cols-[180px_minmax(0,1fr)]">
-        <div className="aspect-[4/3] overflow-hidden rounded-md border bg-muted">
-          {value ? (
-            <img src={value} alt="" className="h-full w-full object-cover" />
+        <div
+          className={`aspect-[4/3] overflow-hidden rounded-md border ${imageHealthClassName(imageHealth.status)}`}
+        >
+          {previewSrc ? (
+            <img src={previewSrc} alt="" className="h-full w-full object-cover" />
           ) : (
-            <div className="flex h-full items-center justify-center px-4 text-center text-xs text-muted-foreground">
-              No image selected
+            <div className="flex h-full flex-col items-center justify-center gap-2 px-4 text-center text-xs">
+              <span className="font-semibold">{imageHealth.label}</span>
+              <span>{imageHealth.description}</span>
             </div>
           )}
         </div>
         <div className="space-y-3">
-          <Input value={value} onChange={(event) => onChange(event.target.value)} />
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant={imageHealth.status === "ready" ? "secondary" : "destructive"}>
+              {imageHealth.label}
+            </Badge>
+            <span className="text-xs text-muted-foreground">{imageHealth.description}</span>
+          </div>
+          <Input
+            value={value}
+            onChange={(event) => onChange(event.target.value)}
+            placeholder="Upload to fill this with a RustFS/CDN URL"
+            aria-invalid={imageHealth.status !== "ready"}
+          />
           <Input
             type="file"
             accept="image/avif,image/gif,image/heic,image/heif,image/jpeg,image/png,image/webp"
@@ -3228,6 +3264,11 @@ function ImageUploadField({
               })
             }}
           />
+          {value ? (
+            <Button type="button" variant="outline" size="sm" onClick={() => onChange("")}>
+              Clear image
+            </Button>
+          ) : null}
           {message ? <p className="text-xs text-muted-foreground">{message}</p> : null}
         </div>
       </div>
@@ -3264,14 +3305,18 @@ function RecordButton({
   title,
   subtitle,
   meta,
+  imageValue,
   onClick,
 }: {
   active: boolean
   title: string
   subtitle: string
   meta: string
+  imageValue?: string | null
   onClick: () => void
 }): React.ReactElement {
+  const imageHealth = imageValue === undefined ? null : imageHealthFor(imageValue)
+
   return (
     <button
       type="button"
@@ -3280,7 +3325,17 @@ function RecordButton({
         active ? "border-primary bg-primary/5" : "hover:bg-muted/50"
       }`}
     >
-      <div className="font-medium">{title}</div>
+      <div className="flex items-start justify-between gap-2">
+        <div className="font-medium">{title}</div>
+        {imageHealth ? (
+          <Badge
+            variant={imageHealth.status === "ready" ? "secondary" : "destructive"}
+            className="shrink-0"
+          >
+            {imageHealth.status === "ready" ? "Image ok" : "Needs image"}
+          </Badge>
+        ) : null}
+      </div>
       <div className="mt-1 text-sm text-muted-foreground">{subtitle}</div>
       <div className="mt-2 text-xs text-muted-foreground">{meta}</div>
     </button>
@@ -3422,15 +3477,19 @@ function PreviewSurface({
   title: string
   children: React.ReactNode
 }): React.ReactElement {
+  const imageHealth = imageHealthFor(image)
+  const previewSrc = imageHealth.status === "ready" ? image.trim() : ""
+
   return (
     <div className="space-y-5">
       <div className="overflow-hidden rounded-md border bg-background">
-        <div className="aspect-[16/9] bg-muted">
-          {image ? (
-            <img src={image} alt="" className="h-full w-full object-cover" />
+        <div className={`aspect-[16/9] ${imageHealthClassName(imageHealth.status)}`}>
+          {previewSrc ? (
+            <img src={previewSrc} alt="" className="h-full w-full object-cover" />
           ) : (
-            <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-              No image selected
+            <div className="flex h-full flex-col items-center justify-center gap-2 px-4 text-center text-sm">
+              <span className="font-semibold">{imageHealth.label}</span>
+              <span>{imageHealth.description}</span>
             </div>
           )}
         </div>
@@ -3605,7 +3664,63 @@ function splitPreviewLines(value: string | null | undefined): string[] {
     .filter(Boolean)
 }
 
+type ImageHealth = {
+  status: "ready" | "missing" | "legacy"
+  label: string
+  description: string
+}
+
+function isManagedImageValue(value: string | null | undefined): boolean {
+  const trimmed = value?.trim()
+  if (!trimmed) return false
+
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+    return true
+  }
+
+  return managedImagePrefixes.some((prefix) => trimmed.startsWith(prefix))
+}
+
+function isLegacyPublicImageValue(value: string | null | undefined): boolean {
+  const trimmed = value?.trim()
+  if (!trimmed || !trimmed.startsWith("/")) return false
+  if (isManagedImageValue(trimmed)) return false
+
+  return /\.(avif|gif|heic|heif|jpe?g|png|svg|webp)([#?].*)?$/i.test(trimmed)
+}
+
+function imageHealthFor(value: string | null | undefined): ImageHealth {
+  if (isManagedImageValue(value)) {
+    return {
+      status: "ready",
+      label: "Image uploaded",
+      description: "This points at RustFS/CDN content.",
+    }
+  }
+
+  if (isLegacyPublicImageValue(value)) {
+    return {
+      status: "legacy",
+      label: "Replace image",
+      description: "This is an old bundled public image path. Upload a real photo.",
+    }
+  }
+
+  return {
+    status: "missing",
+    label: "Upload image",
+    description: "No managed image is attached yet.",
+  }
+}
+
+function imageHealthClassName(status: ImageHealth["status"]): string {
+  if (status === "ready") return "border-emerald-300 bg-emerald-50 text-emerald-800"
+  return "border-destructive/40 bg-destructive/10 text-destructive"
+}
+
 function mergeSiteDraft(value: Partial<SiteDraft> | null | undefined): SiteDraft {
+  const about = (value?.about ?? {}) as Partial<SiteDraft["about"]>
+
   return {
     home: {
       ...defaultSiteDraft.home,
@@ -3613,7 +3728,10 @@ function mergeSiteDraft(value: Partial<SiteDraft> | null | undefined): SiteDraft
     },
     about: {
       ...defaultSiteDraft.about,
-      ...(value?.about ?? {}),
+      ...about,
+      heroImage: about.heroImage ?? defaultSiteDraft.about.heroImage,
+      quoteImage: about.quoteImage ?? defaultSiteDraft.about.quoteImage,
+      whatsIncludedImage: about.whatsIncludedImage ?? defaultSiteDraft.about.whatsIncludedImage,
       values:
         value?.about?.values && value.about.values.length > 0
           ? value.about.values

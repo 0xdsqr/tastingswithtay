@@ -99,11 +99,11 @@ function Lightbox({
         )}
 
         {/* Image */}
-        <div className="flex items-center justify-center p-4">
-          <img
+        <div className="flex min-h-[50vh] items-center justify-center p-4">
+          <OptimizedImage
             src={image.image}
             alt={image.title ?? "Gallery photo"}
-            className="max-h-[75vh] w-auto rounded-lg object-contain"
+            className="max-h-[75vh] min-h-[320px] w-full rounded-lg object-contain"
           />
         </div>
 

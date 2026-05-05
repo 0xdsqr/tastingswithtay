@@ -146,6 +146,52 @@ function toNullableString(value: string | null | undefined): string | null {
   return trimmed ? trimmed : null
 }
 
+const managedImagePrefixes = [
+  "/about/",
+  "/recipes/",
+  "/wines/",
+  "/experiments/",
+  "/gallery/",
+  "/brand/",
+  "/system/",
+  "/uploads/",
+] as const
+
+function isManagedImageValue(value: string): boolean {
+  return (
+    value.startsWith("http://") ||
+    value.startsWith("https://") ||
+    managedImagePrefixes.some((prefix) => value.startsWith(prefix))
+  )
+}
+
+function normalizeManagedImage(
+  value: string | null | undefined,
+  label: string,
+): string | undefined {
+  const trimmed = value?.trim()
+  if (!trimmed) return undefined
+
+  if (!isManagedImageValue(trimmed)) {
+    throw new Error(`${label} must be uploaded through the image field before saving.`)
+  }
+
+  return trimmed
+}
+
+function requireManagedImage(value: string | null | undefined, label: string): string {
+  const image = normalizeManagedImage(value, label)
+  if (!image) {
+    throw new Error(`${label} is required before publishing.`)
+  }
+
+  return image
+}
+
+function parseManagedImageList(value: string | null | undefined, label: string): string[] {
+  return parseStringList(value ?? "").map((image) => requireManagedImage(image, label))
+}
+
 function toDateInputValue(value: string | Date | null | undefined): string {
   if (!value) return ""
   return new Date(value).toISOString().slice(0, 10)
@@ -273,6 +319,30 @@ const siteDraftInputSchema = z.object({
 
 const siteDraftSettingKey = "site-draft"
 
+function asJsonObject(value: JsonValue | undefined): JsonObject {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return {}
+  }
+
+  return value
+}
+
+function validateSiteDraftImages(draft: JsonObject): void {
+  const about = asJsonObject(draft.about)
+  const imageFields = [
+    ["heroImage", "About hero image"],
+    ["quoteImage", "Quote image"],
+    ["whatsIncludedImage", "What you'll find image"],
+  ] as const
+
+  for (const [field, label] of imageFields) {
+    const value = about[field]
+    if (typeof value === "string") {
+      normalizeManagedImage(value, label)
+    }
+  }
+}
+
 async function requireAdminUser(): Promise<SessionUser> {
   const user = await getAdminSessionUser()
   if (!user) {
@@ -334,6 +404,7 @@ export const saveSiteDraft = createServerFn({ method: "POST" })
   .inputValidator(siteDraftInputSchema)
   .handler(async ({ data }) => {
     await requireAdminUser()
+    validateSiteDraftImages(data.draft)
 
     const [saved] = await db
       .insert(siteSettings)
@@ -410,7 +481,9 @@ export const saveRecipe = createServerFn({ method: "POST" })
       ingredients: parseIngredients(data.ingredientsText),
       instructions: parseInstructions(data.instructionsText),
       tips: parseStringList(data.tipsText ?? ""),
-      image: toNullableString(data.image) ?? undefined,
+      image: data.published
+        ? requireManagedImage(data.image, "Recipe hero image")
+        : normalizeManagedImage(data.image, "Recipe hero image"),
       published: data.published,
       featured: data.featured,
     }
@@ -448,7 +521,9 @@ export const saveWine = createServerFn({ method: "POST" })
       pairings: parseStringList(data.pairingsText ?? ""),
       priceRange: data.priceRange ?? null,
       occasion: toNullableString(data.occasion) ?? undefined,
-      image: toNullableString(data.image) ?? undefined,
+      image: data.published
+        ? requireManagedImage(data.image, "Wine image")
+        : normalizeManagedImage(data.image, "Wine image"),
       published: data.published,
       featured: data.featured,
     }
@@ -475,7 +550,9 @@ export const saveExperiment = createServerFn({ method: "POST" })
       hypothesis: toNullableString(data.hypothesis) ?? undefined,
       result: toNullableString(data.result) ?? undefined,
       recipeId: data.recipeId ?? null,
-      image: toNullableString(data.image) ?? undefined,
+      image: data.published
+        ? requireManagedImage(data.image, "Experiment hero image")
+        : normalizeManagedImage(data.image, "Experiment hero image"),
       published: data.published,
       featured: data.featured,
     }
@@ -502,7 +579,7 @@ export const saveExperiment = createServerFn({ method: "POST" })
             experimentId: experimentId!,
             content: entry.content.trim(),
             entryType: entry.entryType,
-            images: parseStringList(entry.imagesText ?? ""),
+            images: parseManagedImageList(entry.imagesText, "Experiment entry image"),
             sortOrder: entry.sortOrder ?? index,
           })),
         )
@@ -535,7 +612,9 @@ export const saveGalleryImage = createServerFn({ method: "POST" })
     const values = {
       title: toNullableString(data.title) ?? undefined,
       caption: toNullableString(data.caption) ?? undefined,
-      image: data.image.trim(),
+      image: data.published
+        ? requireManagedImage(data.image, "Gallery image")
+        : (normalizeManagedImage(data.image, "Gallery image") ?? ""),
       category: data.category,
       sortOrder: data.sortOrder,
       published: data.published,

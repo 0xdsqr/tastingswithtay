@@ -13,6 +13,7 @@ import { Input } from "@twt/ui/components/input"
 import { Spinner } from "@twt/ui/components/spinner"
 import { useEffect, useState } from "react"
 import { authClient } from "../auth/client"
+import { OptimizedImage } from "../components/optimized-image"
 import { SiteFooter } from "../components/site-footer"
 import { SiteHeader } from "../components/site-header"
 
@@ -198,8 +199,7 @@ function LoginPage(): React.ReactElement {
 
               {/* Image Side */}
               <div className="bg-muted relative hidden md:block">
-                <img
-                  src="/artisan-sourdough-bread-loaf-with-crispy-golden-cr.jpg"
+                <OptimizedImage
                   alt="Fresh baked bread"
                   className="absolute inset-0 h-full w-full object-cover"
                 />
