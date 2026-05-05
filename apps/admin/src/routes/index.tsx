@@ -46,18 +46,19 @@ import {
   TableHeader,
   TableRow,
 } from "@twt/ui/components/table"
-import { Tabs, TabsList, TabsTrigger } from "@twt/ui/components/tabs"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@twt/ui/components/tabs"
 import { Textarea } from "@twt/ui/components/textarea"
 import type { Experiment, ExperimentEntry, GalleryImage, Recipe, Wine } from "@twt/db/schema"
-import {
-  useDeferredValue,
-  useEffect,
-  useMemo,
-  useState,
-  useTransition,
-} from "react"
+import { useDeferredValue, useEffect, useMemo, useState, useTransition } from "react"
 import { authClient } from "../auth/client"
 import { getAdminSessionUser } from "../lib/admin-access"
+import {
+  type ManagedAssetFolder,
+  type ManagedImageAsset,
+  deleteManagedAsset,
+  listManagedAssets,
+  uploadManagedAsset,
+} from "../lib/admin-assets"
 import {
   type AdminUserRecord,
   createEmptyExperiment,
@@ -75,12 +76,20 @@ import {
   saveExperiment,
   saveGalleryImage,
   saveRecipe,
+  saveSiteDraft,
   saveWine,
   updateAdminUserRole,
 } from "../lib/admin-data"
 
 type SectionId = "dashboard" | "content" | "users"
-type ContentSectionId = "site" | "recipes" | "wines" | "experiments" | "gallery" | "taxonomy"
+type ContentSectionId =
+  | "site"
+  | "images"
+  | "recipes"
+  | "wines"
+  | "experiments"
+  | "gallery"
+  | "taxonomy"
 type ManagedRole = "admin" | "user"
 type ExperimentWithEntries = Experiment & { entries: ExperimentEntry[] }
 type RecipeForm = ReturnType<typeof createEmptyRecipe> & { id?: string }
@@ -95,6 +104,16 @@ const experimentStatusOptions = ["in_progress", "paused", "completed", "graduate
 const experimentEntryTypeOptions = ["update", "photo", "note", "result", "iteration"] as const
 const galleryCategoryOptions = ["garden", "flock"] as const
 const tagTypeOptions = ["recipe", "wine", "experiment", "both"] as const
+const managedAssetFolderOptions = [
+  "about",
+  "recipes",
+  "wines",
+  "experiments",
+  "gallery",
+  "brand",
+  "system",
+  "uploads",
+] as const satisfies readonly ManagedAssetFolder[]
 
 type SiteDraft = {
   home: {
@@ -167,8 +186,7 @@ const defaultSiteDraft: SiteDraft = {
   home: {
     heroFallbackEyebrow: "Welcome to",
     heroFallbackTitle: "Tastings with Tay",
-    heroFallbackBody:
-      "Recipes, wine tastings, and kitchen stories are on their way. Stay tuned!",
+    heroFallbackBody: "Recipes, wine tastings, and kitchen stories are on their way. Stay tuned!",
     primaryCtaLabel: "Learn More About Tay",
     primaryCtaHref: "/about",
     secondaryCtaLabel: "Browse All Recipes",
@@ -193,13 +211,25 @@ const defaultSiteDraft: SiteDraft = {
     valuesEyebrow: "What I Value",
     valuesTitle: "The Heart of This Kitchen",
     values: [
-      { id: "simplicity", title: "Simplicity", body: "The best dishes often have the fewest ingredients." },
-      { id: "seasonality", title: "Seasonality", body: "Cooking with the seasons means better flavor and a deeper connection to what we eat." },
-      { id: "connection", title: "Connection", body: "Food is meant to be shared. Every recipe here is designed to bring people together." },
+      {
+        id: "simplicity",
+        title: "Simplicity",
+        body: "The best dishes often have the fewest ingredients.",
+      },
+      {
+        id: "seasonality",
+        title: "Seasonality",
+        body: "Cooking with the seasons means better flavor and a deeper connection to what we eat.",
+      },
+      {
+        id: "connection",
+        title: "Connection",
+        body: "Food is meant to be shared. Every recipe here is designed to bring people together.",
+      },
     ],
     quoteText: '"Cooking is like love. It should be entered into with abandon or not at all."',
     quoteAuthor: "Harriet Van Horne",
-    quoteImage: "/beautiful-kitchen-scene-with-ingredients-and-cooki.jpg",
+    quoteImage: "/elegant-kitchen-scene-with-fresh-ingredients-and-s.jpg",
     whatsIncludedEyebrow: "What You'll Find Here",
     whatsIncludedTitle: "More Than Just Recipes",
     whatsIncludedBody:
@@ -259,9 +289,8 @@ function AdminPortalPage(): React.ReactElement {
     bootstrap.experiments as ExperimentWithEntries[],
   )
   const [gallery, setGallery] = useState<GalleryImage[]>(bootstrap.gallery as GalleryImage[])
-  const [siteDraft, setSiteDraft, siteDraftHydrated] = useLocalStorageDraft<SiteDraft>(
-    "twt-admin-site-draft",
-    defaultSiteDraft,
+  const [siteDraft, setSiteDraft] = useState<SiteDraft>(
+    mergeSiteDraft(bootstrap.siteDraft as Partial<SiteDraft> | null),
   )
   const [taxonomyDraft, setTaxonomyDraft, taxonomyDraftHydrated] =
     useLocalStorageDraft<TaxonomyDraft>("twt-admin-taxonomy-draft", defaultTaxonomyDraft)
@@ -324,7 +353,9 @@ function AdminPortalPage(): React.ReactElement {
         <SidebarFooter className="p-4">
           <div className="flex items-center gap-3">
             <Avatar>
-              <AvatarFallback>{initialsFor(bootstrap.user.name || bootstrap.user.email || "A")}</AvatarFallback>
+              <AvatarFallback>
+                {initialsFor(bootstrap.user.name || bootstrap.user.email || "A")}
+              </AvatarFallback>
             </Avatar>
             <div className="min-w-0 flex-1">
               <div className="truncate text-sm font-medium">
@@ -355,9 +386,9 @@ function AdminPortalPage(): React.ReactElement {
         <div className="mx-auto flex min-h-svh w-full max-w-7xl flex-col gap-6 p-4 md:p-6">
           <header className="flex flex-col gap-4 border-b pb-4">
             <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
+              <div className="flex min-w-0 items-center gap-3">
                 <SidebarTrigger className="md:hidden" />
-                <div>
+                <div className="min-w-0">
                   <Breadcrumb>
                     <BreadcrumbList>
                       <BreadcrumbItem>
@@ -375,14 +406,14 @@ function AdminPortalPage(): React.ReactElement {
                       </BreadcrumbItem>
                     </BreadcrumbList>
                   </Breadcrumb>
-                  <h1 className="mt-2 text-2xl font-semibold tracking-tight">
+                  <h1 className="mt-2 truncate text-xl font-semibold tracking-tight sm:text-2xl">
                     {activeSection === "dashboard"
                       ? "Dashboard"
                       : activeSection === "content"
                         ? "Content studio"
                         : "Users"}
                   </h1>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="max-w-3xl text-sm text-muted-foreground">
                     {activeSection === "dashboard"
                       ? "A quick read on what exists, what is live, and how the admin is organized."
                       : activeSection === "content"
@@ -436,7 +467,7 @@ function AdminPortalPage(): React.ReactElement {
               onGalleryChange={setGallery}
               siteDraft={siteDraft}
               setSiteDraft={setSiteDraft}
-              siteDraftHydrated={siteDraftHydrated}
+              siteDraftHydrated
               taxonomyDraft={taxonomyDraft}
               setTaxonomyDraft={setTaxonomyDraft}
               taxonomyDraftHydrated={taxonomyDraftHydrated}
@@ -497,7 +528,7 @@ function DashboardPanel({
           <CardContent className="space-y-4 text-sm text-muted-foreground">
             <InfoRow
               title="Site copy"
-              body="Homepage and About page storytelling live in draft forms. They are mocked locally for now so we can design the editor before wiring final storage."
+              body="Homepage and About page storytelling live in saved draft forms. The public About page reads from the saved Site tab content."
             />
             <InfoRow
               title="Structured content"
@@ -570,8 +601,9 @@ function ContentStudio({
         value={contentSection}
         onValueChange={(value) => onContentSectionChange(value as ContentSectionId)}
       >
-        <TabsList className="grid h-auto w-full grid-cols-2 gap-2 bg-transparent p-0 md:grid-cols-3 xl:grid-cols-6">
+        <TabsList className="grid h-auto w-full grid-cols-2 gap-2 bg-transparent p-0 md:grid-cols-4 xl:grid-cols-7">
           <ContentTab value="site" label="Site" draft />
+          <ContentTab value="images" label="Images" />
           <ContentTab value="recipes" label="Recipes" />
           <ContentTab value="wines" label="Wines" />
           <ContentTab value="experiments" label="Test Kitchen" />
@@ -588,6 +620,8 @@ function ContentStudio({
           recipeCount={recipes.filter((recipe) => recipe.featured).length}
         />
       ) : null}
+
+      {contentSection === "images" ? <ImageManager /> : null}
 
       {contentSection === "recipes" ? (
         <RecipeManager items={recipes} onItemsChange={onRecipesChange} />
@@ -634,6 +668,7 @@ function SiteContentManager({
   recipeCount: number
 }): React.ReactElement {
   const [message, setMessage] = useState<string | null>(null)
+  const [isPending, startTransition] = useTransition()
 
   if (!hydrated) {
     return (
@@ -647,8 +682,15 @@ function SiteContentManager({
   }
 
   const saveDraft = () => {
-    console.log("Site draft saved", draft)
-    setMessage("Site draft saved locally in this browser and logged to the console.")
+    setMessage(null)
+    startTransition(async () => {
+      try {
+        await saveSiteDraft({ data: { draft } })
+        setMessage("Site draft saved. The public About page now reads this content.")
+      } catch (error) {
+        setMessage(error instanceof Error ? error.message : "Could not save site draft.")
+      }
+    })
   }
 
   return (
@@ -657,8 +699,7 @@ function SiteContentManager({
         <CardHeader>
           <CardTitle>Site pages and storytelling</CardTitle>
           <CardDescription>
-            This area is for page copy, sections, and story-led content. It is mocked locally for
-            now so we can perfect the editor before choosing final storage.
+            This area controls page copy, section images, and story-led content for the public site.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-3">
@@ -668,11 +709,11 @@ function SiteContentManager({
           />
           <InfoRow
             title="About page"
-            body="About is mostly hardcoded today, so this editor is where we should shape the final copy model before wiring it to the live site."
+            body="The public About page reads the saved hero image, story, philosophy, values, quote, and connection copy from here."
           />
           <InfoRow
             title="Images"
-            body="For now, image fields are URL-based placeholders. Once you hand me the upload/session details, I can drop uploads into the same form flow."
+            body="Upload through the Images tab or directly from image fields. URLs are written from the tastingswithtay RustFS bucket."
           />
         </CardContent>
       </Card>
@@ -872,17 +913,18 @@ function SiteContentManager({
                 }
               />
             </Field>
-            <Field label="About hero image URL">
-              <Input
-                value={draft.about.heroImage}
-                onChange={(event) =>
-                  setDraft((current) => ({
-                    ...current,
-                    about: { ...current.about, heroImage: event.target.value },
-                  }))
-                }
-              />
-            </Field>
+            <ImageUploadField
+              label="About hero image"
+              value={draft.about.heroImage}
+              folder="about"
+              description="Use this for Tay's main portrait. Upload once, preview it here, then save the draft."
+              onChange={(value) =>
+                setDraft((current) => ({
+                  ...current,
+                  about: { ...current.about, heroImage: value },
+                }))
+              }
+            />
             <Field label="Intro story">
               <Textarea
                 rows={8}
@@ -943,7 +985,9 @@ function SiteContentManager({
                           about: {
                             ...current.about,
                             values: current.about.values.map((value) =>
-                              value.id === item.id ? { ...value, title: event.target.value } : value,
+                              value.id === item.id
+                                ? { ...value, title: event.target.value }
+                                : value,
                             ),
                           },
                         }))
@@ -995,17 +1039,18 @@ function SiteContentManager({
                 />
               </Field>
             </div>
-            <Field label="Quote image URL">
-              <Input
-                value={draft.about.quoteImage}
-                onChange={(event) =>
-                  setDraft((current) => ({
-                    ...current,
-                    about: { ...current.about, quoteImage: event.target.value },
-                  }))
-                }
-              />
-            </Field>
+            <ImageUploadField
+              label="Quote image"
+              value={draft.about.quoteImage}
+              folder="about"
+              description="A wide kitchen or ingredient image works best behind the quote section."
+              onChange={(value) =>
+                setDraft((current) => ({
+                  ...current,
+                  about: { ...current.about, quoteImage: value },
+                }))
+              }
+            />
             <Field label="What you'll find bullets">
               <Textarea
                 rows={5}
@@ -1058,7 +1103,9 @@ function SiteContentManager({
       </div>
 
       <div className="flex flex-wrap gap-3">
-        <Button onClick={saveDraft}>Save site draft</Button>
+        <Button onClick={saveDraft} disabled={isPending}>
+          {isPending ? "Saving..." : "Save site draft"}
+        </Button>
         <Button
           variant="outline"
           onClick={() => {
@@ -1106,9 +1153,9 @@ function RecipeManager({
       description="Structured recipe entries with steps, timings, hero images, and publish state."
       listHeader="Recipe library"
       listAction={
-          <Button size="sm" onClick={() => setSelectedId("new")}>
-            New recipe
-          </Button>
+        <Button size="sm" onClick={() => setSelectedId("new")}>
+          New recipe
+        </Button>
       }
       list={
         <div className="space-y-2">
@@ -1147,13 +1194,17 @@ function RecipeManager({
             <Field label="Title">
               <Input
                 value={form.title}
-                onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, title: event.target.value }))
+                }
               />
             </Field>
             <Field label="Slug">
               <Input
                 value={form.slug}
-                onChange={(event) => setForm((current) => ({ ...current, slug: event.target.value }))}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, slug: event.target.value }))
+                }
                 placeholder="Auto-generated if left blank"
               />
             </Field>
@@ -1171,7 +1222,9 @@ function RecipeManager({
             <Field label="Category">
               <Input
                 value={form.category}
-                onChange={(event) => setForm((current) => ({ ...current, category: event.target.value }))}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, category: event.target.value }))
+                }
               />
             </Field>
             <Field label="Difficulty">
@@ -1184,7 +1237,9 @@ function RecipeManager({
                   }))
                 }
               >
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   {difficultyOptions.map((option) => (
                     <SelectItem key={option} value={option}>
@@ -1199,7 +1254,10 @@ function RecipeManager({
                 type="number"
                 value={form.prepTime ?? ""}
                 onChange={(event) =>
-                  setForm((current) => ({ ...current, prepTime: toNumberOrNull(event.target.value) }))
+                  setForm((current) => ({
+                    ...current,
+                    prepTime: toNumberOrNull(event.target.value),
+                  }))
                 }
               />
             </Field>
@@ -1208,7 +1266,10 @@ function RecipeManager({
                 type="number"
                 value={form.cookTime ?? ""}
                 onChange={(event) =>
-                  setForm((current) => ({ ...current, cookTime: toNumberOrNull(event.target.value) }))
+                  setForm((current) => ({
+                    ...current,
+                    cookTime: toNumberOrNull(event.target.value),
+                  }))
                 }
               />
             </Field>
@@ -1217,20 +1278,26 @@ function RecipeManager({
                 type="number"
                 value={form.servings ?? ""}
                 onChange={(event) =>
-                  setForm((current) => ({ ...current, servings: toNumberOrNull(event.target.value) }))
+                  setForm((current) => ({
+                    ...current,
+                    servings: toNumberOrNull(event.target.value),
+                  }))
                 }
               />
             </Field>
           </div>
-          <Field label="Image URL">
-            <Input
-              value={form.image}
-              onChange={(event) => setForm((current) => ({ ...current, image: event.target.value }))}
-              placeholder="Paste a public image URL for now"
-            />
-          </Field>
+          <ImageUploadField
+            label="Hero image"
+            value={form.image}
+            folder="recipes"
+            description="Use a finished-dish photo. Uploading here writes the image to RustFS and fills the URL."
+            onChange={(value) => setForm((current) => ({ ...current, image: value }))}
+          />
           <div className="grid gap-4 lg:grid-cols-2">
-            <Field label="Ingredients">
+            <Field
+              label="Ingredients"
+              description="Put each ingredient on its own line. Group headings end with a colon, with a blank line between groups."
+            >
               <Textarea
                 rows={10}
                 value={form.ingredientsText}
@@ -1240,7 +1307,10 @@ function RecipeManager({
                 placeholder={"Main:\n2 eggs\n1 cup flour\n\nSauce:\n1 tbsp butter"}
               />
             </Field>
-            <Field label="Instructions">
+            <Field
+              label="Instructions"
+              description="Put one step on each line. Numbering is optional; the app will clean it up and renumber."
+            >
               <Textarea
                 rows={10}
                 value={form.instructionsText}
@@ -1251,11 +1321,16 @@ function RecipeManager({
               />
             </Field>
           </div>
-          <Field label="Tips">
+          <Field
+            label="Tips"
+            description="One tip per line keeps the public recipe formatting clean."
+          >
             <Textarea
               rows={4}
               value={form.tipsText}
-              onChange={(event) => setForm((current) => ({ ...current, tipsText: event.target.value }))}
+              onChange={(event) =>
+                setForm((current) => ({ ...current, tipsText: event.target.value }))
+              }
               placeholder="One tip per line"
             />
           </Field>
@@ -1290,7 +1365,9 @@ function RecipeManager({
                         setSelectedId("new")
                         setMessage("Recipe deleted.")
                       } catch (error) {
-                        setMessage(error instanceof Error ? error.message : "Could not delete recipe.")
+                        setMessage(
+                          error instanceof Error ? error.message : "Could not delete recipe.",
+                        )
                       }
                     })
                   }
@@ -1299,6 +1376,7 @@ function RecipeManager({
           />
         </form>
       }
+      preview={<RecipePreview form={form} />}
     />
   )
 }
@@ -1328,9 +1406,9 @@ function WineManager({
       description="Personal tasting entries with aromas, pairings, occasion notes, and feature state."
       listHeader="Wine cellar"
       listAction={
-          <Button size="sm" onClick={() => setSelectedId("new")}>
-            New wine
-          </Button>
+        <Button size="sm" onClick={() => setSelectedId("new")}>
+          New wine
+        </Button>
       }
       list={
         <div className="space-y-2">
@@ -1369,13 +1447,17 @@ function WineManager({
             <Field label="Name">
               <Input
                 value={form.name}
-                onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, name: event.target.value }))
+                }
               />
             </Field>
             <Field label="Slug">
               <Input
                 value={form.slug}
-                onChange={(event) => setForm((current) => ({ ...current, slug: event.target.value }))}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, slug: event.target.value }))
+                }
                 placeholder="Auto-generated if left blank"
               />
             </Field>
@@ -1384,17 +1466,24 @@ function WineManager({
             <Field label="Winery">
               <Input
                 value={form.winery}
-                onChange={(event) => setForm((current) => ({ ...current, winery: event.target.value }))}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, winery: event.target.value }))
+                }
               />
             </Field>
             <Field label="Type">
               <Select
                 value={form.type}
                 onValueChange={(value) =>
-                  setForm((current) => ({ ...current, type: value as (typeof wineTypeOptions)[number] }))
+                  setForm((current) => ({
+                    ...current,
+                    type: value as (typeof wineTypeOptions)[number],
+                  }))
                 }
               >
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   {wineTypeOptions.map((option) => (
                     <SelectItem key={option} value={option}>
@@ -1407,13 +1496,17 @@ function WineManager({
             <Field label="Region">
               <Input
                 value={form.region}
-                onChange={(event) => setForm((current) => ({ ...current, region: event.target.value }))}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, region: event.target.value }))
+                }
               />
             </Field>
             <Field label="Country">
               <Input
                 value={form.country}
-                onChange={(event) => setForm((current) => ({ ...current, country: event.target.value }))}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, country: event.target.value }))
+                }
               />
             </Field>
             <Field label="Vintage">
@@ -1421,7 +1514,10 @@ function WineManager({
                 type="number"
                 value={form.vintage ?? ""}
                 onChange={(event) =>
-                  setForm((current) => ({ ...current, vintage: toNumberOrNull(event.target.value) }))
+                  setForm((current) => ({
+                    ...current,
+                    vintage: toNumberOrNull(event.target.value),
+                  }))
                 }
               />
             </Field>
@@ -1430,7 +1526,9 @@ function WineManager({
             <Field label="Grapes">
               <Input
                 value={form.grapes}
-                onChange={(event) => setForm((current) => ({ ...current, grapes: event.target.value }))}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, grapes: event.target.value }))
+                }
               />
             </Field>
             <Field label="Rating">
@@ -1455,7 +1553,9 @@ function WineManager({
                   }))
                 }
               >
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">Not set</SelectItem>
                   {priceRangeOptions.map((option) => (
@@ -1475,21 +1575,27 @@ function WineManager({
               />
             </Field>
           </div>
-          <Field label="Image URL">
-            <Input
-              value={form.image}
-              onChange={(event) => setForm((current) => ({ ...current, image: event.target.value }))}
-            />
-          </Field>
+          <ImageUploadField
+            label="Hero image"
+            value={form.image}
+            folder="wines"
+            description="Bottle, glass, or vineyard photos work best. Uploading here stores it in RustFS."
+            onChange={(value) => setForm((current) => ({ ...current, image: value }))}
+          />
           <Field label="Notes">
             <Textarea
               rows={5}
               value={form.notes}
-              onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))}
+              onChange={(event) =>
+                setForm((current) => ({ ...current, notes: event.target.value }))
+              }
             />
           </Field>
           <div className="grid gap-4 lg:grid-cols-2">
-            <Field label="Aromas">
+            <Field
+              label="Aromas"
+              description="One aroma per line. Keep them short for the public card layout."
+            >
               <Textarea
                 rows={6}
                 value={form.aromasText}
@@ -1499,7 +1605,10 @@ function WineManager({
                 placeholder="One aroma per line"
               />
             </Field>
-            <Field label="Pairings">
+            <Field
+              label="Pairings"
+              description="One pairing per line. Use plain food names rather than long sentences."
+            >
               <Textarea
                 rows={6}
                 value={form.pairingsText}
@@ -1541,7 +1650,9 @@ function WineManager({
                         setSelectedId("new")
                         setMessage("Wine deleted.")
                       } catch (error) {
-                        setMessage(error instanceof Error ? error.message : "Could not delete wine.")
+                        setMessage(
+                          error instanceof Error ? error.message : "Could not delete wine.",
+                        )
                       }
                     })
                   }
@@ -1550,6 +1661,7 @@ function WineManager({
           />
         </form>
       }
+      preview={<WinePreview form={form} />}
     />
   )
 }
@@ -1581,9 +1693,9 @@ function ExperimentManager({
       description="Experiments have a parent entry plus a timeline of updates, notes, photos, and results."
       listHeader="Experiment log"
       listAction={
-          <Button size="sm" onClick={() => setSelectedId("new")}>
-            New experiment
-          </Button>
+        <Button size="sm" onClick={() => setSelectedId("new")}>
+          New experiment
+        </Button>
       }
       list={
         <div className="space-y-2">
@@ -1622,13 +1734,17 @@ function ExperimentManager({
             <Field label="Title">
               <Input
                 value={form.title}
-                onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, title: event.target.value }))
+                }
               />
             </Field>
             <Field label="Slug">
               <Input
                 value={form.slug}
-                onChange={(event) => setForm((current) => ({ ...current, slug: event.target.value }))}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, slug: event.target.value }))
+                }
                 placeholder="Auto-generated if left blank"
               />
             </Field>
@@ -1644,7 +1760,9 @@ function ExperimentManager({
                   }))
                 }
               >
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   {experimentStatusOptions.map((option) => (
                     <SelectItem key={option} value={option}>
@@ -1664,7 +1782,9 @@ function ExperimentManager({
                   }))
                 }
               >
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">Not linked</SelectItem>
                   {recipes.map((recipe) => (
@@ -1675,13 +1795,14 @@ function ExperimentManager({
                 </SelectContent>
               </Select>
             </Field>
-            <Field label="Image URL">
-              <Input
-                value={form.image}
-                onChange={(event) => setForm((current) => ({ ...current, image: event.target.value }))}
-              />
-            </Field>
           </div>
+          <ImageUploadField
+            label="Hero image"
+            value={form.image}
+            folder="experiments"
+            description="Use the best photo for the experiment overview. Timeline photos can go in entry image URLs."
+            onChange={(value) => setForm((current) => ({ ...current, image: value }))}
+          />
           <Field label="Description">
             <Textarea
               rows={4}
@@ -1738,10 +1859,10 @@ function ExperimentManager({
                   Add the updates, notes, photo drops, and results that tell the story.
                 </p>
               </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
                 onClick={() =>
                   setForm((current) => ({
                     ...current,
@@ -1751,9 +1872,9 @@ function ExperimentManager({
                     ],
                   }))
                 }
-                >
-                  Add entry
-                </Button>
+              >
+                Add entry
+              </Button>
             </div>
             <div className="space-y-4">
               {form.entries.map((entry, index) => (
@@ -1768,7 +1889,9 @@ function ExperimentManager({
                         onClick={() =>
                           setForm((current) => ({
                             ...current,
-                            entries: current.entries.filter((_, currentIndex) => currentIndex !== index),
+                            entries: current.entries.filter(
+                              (_, currentIndex) => currentIndex !== index,
+                            ),
                           }))
                         }
                       >
@@ -1794,7 +1917,9 @@ function ExperimentManager({
                           }))
                         }
                       >
-                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
                         <SelectContent>
                           {experimentEntryTypeOptions.map((option) => (
                             <SelectItem key={option} value={option}>
@@ -1840,7 +1965,10 @@ function ExperimentManager({
                       }
                     />
                   </Field>
-                  <Field label="Image URLs">
+                  <Field
+                    label="Image URLs"
+                    description="One image URL per line. Use the Images tab to upload several photos, then paste URLs here."
+                  >
                     <Textarea
                       rows={3}
                       value={entry.imagesText}
@@ -1887,6 +2015,7 @@ function ExperimentManager({
           />
         </form>
       }
+      preview={<ExperimentPreview form={form} />}
     />
   )
 }
@@ -1916,9 +2045,9 @@ function GalleryManager({
       description="Gallery entries for the homestead page, including captions, categories, and sort order."
       listHeader="Image library"
       listAction={
-          <Button size="sm" onClick={() => setSelectedId("new")}>
-            New image
-          </Button>
+        <Button size="sm" onClick={() => setSelectedId("new")}>
+          New image
+        </Button>
       }
       list={
         <div className="space-y-2">
@@ -1957,7 +2086,9 @@ function GalleryManager({
             <Field label="Title">
               <Input
                 value={form.title}
-                onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, title: event.target.value }))
+                }
               />
             </Field>
             <Field label="Category">
@@ -1970,7 +2101,9 @@ function GalleryManager({
                   }))
                 }
               >
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   {galleryCategoryOptions.map((option) => (
                     <SelectItem key={option} value={option}>
@@ -1985,16 +2118,19 @@ function GalleryManager({
             <Textarea
               rows={4}
               value={form.caption}
-              onChange={(event) => setForm((current) => ({ ...current, caption: event.target.value }))}
+              onChange={(event) =>
+                setForm((current) => ({ ...current, caption: event.target.value }))
+              }
             />
           </Field>
           <div className="grid gap-4 md:grid-cols-2">
-            <Field label="Image URL">
-              <Input
-                value={form.image}
-                onChange={(event) => setForm((current) => ({ ...current, image: event.target.value }))}
-              />
-            </Field>
+            <ImageUploadField
+              label="Image"
+              value={form.image}
+              folder="gallery"
+              description="Upload garden or flock images here, then publish when the caption is ready."
+              onChange={(value) => setForm((current) => ({ ...current, image: value }))}
+            />
             <Field label="Taken at">
               <Input
                 type="date"
@@ -2048,7 +2184,9 @@ function GalleryManager({
                         setSelectedId("new")
                         setMessage("Gallery image deleted.")
                       } catch (error) {
-                        setMessage(error instanceof Error ? error.message : "Could not delete image.")
+                        setMessage(
+                          error instanceof Error ? error.message : "Could not delete image.",
+                        )
                       }
                     })
                   }
@@ -2057,7 +2195,200 @@ function GalleryManager({
           />
         </form>
       }
+      preview={<GalleryPreview form={form} />}
     />
+  )
+}
+
+function ImageManager(): React.ReactElement {
+  const [folder, setFolder] = useState<"all" | ManagedAssetFolder>("all")
+  const [uploadFolder, setUploadFolder] = useState<ManagedAssetFolder>("about")
+  const [assets, setAssets] = useState<ManagedImageAsset[]>([])
+  const [message, setMessage] = useState<string | null>(null)
+  const [isPending, startTransition] = useTransition()
+
+  const refreshAssets = () => {
+    setMessage(null)
+    startTransition(async () => {
+      try {
+        const loaded = await listManagedAssets({ data: { folder, limit: 150 } })
+        setAssets(loaded)
+      } catch (error) {
+        setMessage(error instanceof Error ? error.message : "Could not load images.")
+      }
+    })
+  }
+
+  useEffect(() => {
+    setMessage(null)
+    startTransition(async () => {
+      try {
+        const loaded = await listManagedAssets({ data: { folder, limit: 150 } })
+        setAssets(loaded)
+      } catch (error) {
+        setMessage(error instanceof Error ? error.message : "Could not load images.")
+      }
+    })
+  }, [folder])
+
+  const uploadFile = (file: File) => {
+    setMessage(null)
+    startTransition(async () => {
+      try {
+        const uploaded = await uploadImageFile(file, uploadFolder)
+        setFolder(uploadFolder)
+        setAssets((current) => [uploaded, ...current.filter((asset) => asset.key !== uploaded.key)])
+        setMessage(`Uploaded ${uploaded.key}.`)
+      } catch (error) {
+        setMessage(error instanceof Error ? error.message : "Could not upload image.")
+      }
+    })
+  }
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Image manager</CardTitle>
+          <CardDescription>
+            Upload and manage the main site photos stored in the tastingswithtay RustFS bucket.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_260px]">
+          <div className="rounded-md border border-dashed p-4">
+            <div className="space-y-4">
+              <div>
+                <div className="text-sm font-medium">Upload a photo</div>
+                <p className="text-sm text-muted-foreground">
+                  Choose where the photo belongs first so the bucket stays easy to browse.
+                </p>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-[220px_minmax(0,1fr)]">
+                <Select
+                  value={uploadFolder}
+                  onValueChange={(value) => setUploadFolder(value as ManagedAssetFolder)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {managedAssetFolderOptions.map((option) => (
+                      <SelectItem key={option} value={option}>
+                        {capitalize(option)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Input
+                  type="file"
+                  accept="image/avif,image/gif,image/heic,image/heif,image/jpeg,image/png,image/webp"
+                  disabled={isPending}
+                  onChange={(event) => {
+                    const file = event.currentTarget.files?.[0]
+                    event.currentTarget.value = ""
+                    if (file) uploadFile(file)
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-md border p-4">
+            <div className="text-sm font-medium">Browse folder</div>
+            <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+              <Select
+                value={folder}
+                onValueChange={(value) => setFolder(value as "all" | ManagedAssetFolder)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All images</SelectItem>
+                  {managedAssetFolderOptions.map((option) => (
+                    <SelectItem key={option} value={option}>
+                      {capitalize(option)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button
+                type="button"
+                variant="outline"
+                className="sm:w-auto"
+                disabled={isPending}
+                onClick={refreshAssets}
+              >
+                Refresh
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <StatusBar message={message} />
+
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {assets.map((asset) => (
+          <Card key={asset.key} className="overflow-hidden">
+            <div className="aspect-[4/3] bg-muted">
+              <img src={asset.url} alt="" className="h-full w-full object-cover" loading="lazy" />
+            </div>
+            <CardContent className="space-y-3 p-4">
+              <div>
+                <div className="break-all text-sm font-medium">{asset.key}</div>
+                <div className="mt-1 text-xs text-muted-foreground">
+                  {formatBytes(asset.size)} • {formatAdminDate(asset.lastModified)}
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    void navigator.clipboard?.writeText(asset.url)
+                    setMessage("Image URL copied.")
+                  }}
+                >
+                  Copy URL
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={isPending}
+                  onClick={() => {
+                    setMessage(null)
+                    startTransition(async () => {
+                      try {
+                        await deleteManagedAsset({ data: { key: asset.key } })
+                        setAssets((current) => current.filter((item) => item.key !== asset.key))
+                        setMessage("Image deleted from RustFS.")
+                      } catch (error) {
+                        setMessage(
+                          error instanceof Error ? error.message : "Could not delete image.",
+                        )
+                      }
+                    })
+                  }}
+                >
+                  Delete
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {assets.length === 0 ? (
+        <Card>
+          <CardContent className="py-10 text-center text-sm text-muted-foreground">
+            {isPending ? "Loading images..." : "No images found in this folder yet."}
+          </CardContent>
+        </Card>
+      ) : null}
+    </div>
   )
 }
 
@@ -2157,7 +2488,9 @@ function TaxonomyManager({
                       }))
                     }
                   >
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
                     <SelectContent>
                       {tagTypeOptions.map((option) => (
                         <SelectItem key={option} value={option}>
@@ -2188,10 +2521,7 @@ function TaxonomyManager({
               onClick={() =>
                 setDraft((current) => ({
                   ...current,
-                  tags: [
-                    ...current.tags,
-                    { id: createDraftId(), name: "", type: "both" },
-                  ],
+                  tags: [...current.tags, { id: createDraftId(), name: "", type: "both" }],
                 }))
               }
             >
@@ -2203,7 +2533,9 @@ function TaxonomyManager({
         <Card>
           <CardHeader>
             <CardTitle>Collections</CardTitle>
-            <CardDescription>Curated sets of recipes or wines for future landing surfaces.</CardDescription>
+            <CardDescription>
+              Curated sets of recipes or wines for future landing surfaces.
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {draft.collections.map((collection) => (
@@ -2215,9 +2547,7 @@ function TaxonomyManager({
                       setDraft((current) => ({
                         ...current,
                         collections: current.collections.map((item) =>
-                          item.id === collection.id
-                            ? { ...item, name: event.target.value }
-                            : item,
+                          item.id === collection.id ? { ...item, name: event.target.value } : item,
                         ),
                       }))
                     }
@@ -2290,7 +2620,9 @@ function TaxonomyManager({
         <Card>
           <CardHeader>
             <CardTitle>Recipe + wine pairings</CardTitle>
-            <CardDescription>Mock the future pairing editor before we wire the junction table.</CardDescription>
+            <CardDescription>
+              Mock the future pairing editor before we wire the junction table.
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {draft.pairings.map((pairing) => (
@@ -2309,7 +2641,9 @@ function TaxonomyManager({
                       }))
                     }
                   >
-                    <SelectTrigger><SelectValue placeholder="Recipe" /></SelectTrigger>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Recipe" />
+                    </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="none">Choose recipe</SelectItem>
                       {recipes.map((recipe) => (
@@ -2332,7 +2666,9 @@ function TaxonomyManager({
                       }))
                     }
                   >
-                    <SelectTrigger><SelectValue placeholder="Wine" /></SelectTrigger>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Wine" />
+                    </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="none">Choose wine</SelectItem>
                       {wines.map((wine) => (
@@ -2535,99 +2871,205 @@ function UsersPanel({
           </div>
         ) : null}
 
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Person</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Joined</TableHead>
-              <TableHead className="text-right">Action</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredUsers.map((user) => {
-              const currentRole = toManagedRole(user.role)
-              const selectedRole = draftRoles[user.id] ?? currentRole
-              const isCurrentUser = user.id === currentUserId
-              const isSaving = pendingUserId === user.id && isPending
+        <div className="space-y-3 md:hidden">
+          {filteredUsers.map((user) => {
+            const currentRole = toManagedRole(user.role)
+            const selectedRole = draftRoles[user.id] ?? currentRole
+            const isCurrentUser = user.id === currentUserId
+            const isSaving = pendingUserId === user.id && isPending
 
-              return (
-                <TableRow key={user.id}>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <Avatar>
-                        <AvatarFallback>{initialsFor(user.name || user.email)}</AvatarFallback>
-                      </Avatar>
-                      <div className="min-w-0">
-                        <div className="truncate font-medium">{user.name || "Unnamed user"}</div>
-                        {isCurrentUser ? (
-                          <div className="text-xs text-muted-foreground">Current session</div>
-                        ) : null}
+            return (
+              <UserMobileCard
+                key={user.id}
+                user={user}
+                currentRole={currentRole}
+                selectedRole={selectedRole}
+                isCurrentUser={isCurrentUser}
+                isSaving={isSaving}
+                onRoleChange={(value) =>
+                  setDraftRoles((current) => ({
+                    ...current,
+                    [user.id]: value,
+                  }))
+                }
+                onSave={() => saveRole(user)}
+              />
+            )
+          })}
+        </div>
+
+        <div className="hidden overflow-x-auto md:block">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Person</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Role</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Joined</TableHead>
+                <TableHead className="text-right">Action</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredUsers.map((user) => {
+                const currentRole = toManagedRole(user.role)
+                const selectedRole = draftRoles[user.id] ?? currentRole
+                const isCurrentUser = user.id === currentUserId
+                const isSaving = pendingUserId === user.id && isPending
+
+                return (
+                  <TableRow key={user.id}>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <Avatar>
+                          <AvatarFallback>{initialsFor(user.name || user.email)}</AvatarFallback>
+                        </Avatar>
+                        <div className="min-w-0">
+                          <div className="truncate font-medium">{user.name || "Unnamed user"}</div>
+                          {isCurrentUser ? (
+                            <div className="text-xs text-muted-foreground">Current session</div>
+                          ) : null}
+                        </div>
                       </div>
-                    </div>
-                  </TableCell>
-                  <TableCell className="max-w-[220px] truncate">{user.email}</TableCell>
-                  <TableCell>
-                    <Select
-                      value={selectedRole}
-                      onValueChange={(value) =>
-                        setDraftRoles((current) => ({
-                          ...current,
-                          [user.id]: value as ManagedRole,
-                        }))
-                      }
-                      disabled={isCurrentUser}
-                    >
-                      <SelectTrigger className="w-[120px]">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="admin">admin</SelectItem>
-                        <SelectItem value="user">user</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-2">
-                      <Badge variant={currentRole === "admin" ? "default" : "secondary"}>
-                        {currentRole}
-                      </Badge>
-                      <Badge variant="outline">
-                        {user.emailVerified ? "verified" : "unverified"}
-                      </Badge>
-                    </div>
-                  </TableCell>
-                  <TableCell>{formatAdminDate(user.createdAt)}</TableCell>
-                  <TableCell className="text-right">
-                    {isCurrentUser ? (
-                      <span className="text-xs text-muted-foreground">You</span>
-                    ) : (
-                      <Button
-                        size="sm"
-                        variant={selectedRole === currentRole ? "outline" : "default"}
-                        disabled={isSaving || selectedRole === currentRole}
-                        onClick={() => saveRole(user)}
+                    </TableCell>
+                    <TableCell className="max-w-[220px] truncate">{user.email}</TableCell>
+                    <TableCell>
+                      <Select
+                        value={selectedRole}
+                        onValueChange={(value) =>
+                          setDraftRoles((current) => ({
+                            ...current,
+                            [user.id]: value as ManagedRole,
+                          }))
+                        }
+                        disabled={isCurrentUser}
                       >
-                        {isSaving ? (
-                          <span className="inline-flex items-center gap-2">
-                            <Spinner className="size-4" />
-                            Saving
-                          </span>
-                        ) : (
-                          "Save"
-                        )}
-                      </Button>
-                    )}
-                  </TableCell>
-                </TableRow>
-              )
-            })}
-          </TableBody>
-        </Table>
+                        <SelectTrigger className="w-[120px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="admin">admin</SelectItem>
+                          <SelectItem value="user">user</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-2">
+                        <Badge variant={currentRole === "admin" ? "default" : "secondary"}>
+                          {currentRole}
+                        </Badge>
+                        <Badge variant="outline">
+                          {user.emailVerified ? "verified" : "unverified"}
+                        </Badge>
+                      </div>
+                    </TableCell>
+                    <TableCell>{formatAdminDate(user.createdAt)}</TableCell>
+                    <TableCell className="text-right">
+                      {isCurrentUser ? (
+                        <span className="text-xs text-muted-foreground">You</span>
+                      ) : (
+                        <Button
+                          size="sm"
+                          variant={selectedRole === currentRole ? "outline" : "default"}
+                          disabled={isSaving || selectedRole === currentRole}
+                          onClick={() => saveRole(user)}
+                        >
+                          {isSaving ? (
+                            <span className="inline-flex items-center gap-2">
+                              <Spinner className="size-4" />
+                              Saving
+                            </span>
+                          ) : (
+                            "Save"
+                          )}
+                        </Button>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
+            </TableBody>
+          </Table>
+        </div>
       </CardContent>
     </Card>
+  )
+}
+
+function UserMobileCard({
+  user,
+  currentRole,
+  selectedRole,
+  isCurrentUser,
+  isSaving,
+  onRoleChange,
+  onSave,
+}: {
+  user: AdminUserRecord
+  currentRole: ManagedRole
+  selectedRole: ManagedRole
+  isCurrentUser: boolean
+  isSaving: boolean
+  onRoleChange: (value: ManagedRole) => void
+  onSave: () => void
+}): React.ReactElement {
+  return (
+    <div className="rounded-md border p-4">
+      <div className="flex min-w-0 items-start gap-3">
+        <Avatar>
+          <AvatarFallback>{initialsFor(user.name || user.email)}</AvatarFallback>
+        </Avatar>
+        <div className="min-w-0 flex-1">
+          <div className="truncate font-medium">{user.name || "Unnamed user"}</div>
+          <div className="break-all text-sm text-muted-foreground">{user.email}</div>
+          {isCurrentUser ? (
+            <div className="mt-1 text-xs text-muted-foreground">Current session</div>
+          ) : null}
+        </div>
+      </div>
+
+      <div className="mt-4 flex flex-wrap gap-2">
+        <Badge variant={currentRole === "admin" ? "default" : "secondary"}>{currentRole}</Badge>
+        <Badge variant="outline">{user.emailVerified ? "verified" : "unverified"}</Badge>
+        <Badge variant="outline">Joined {formatAdminDate(user.createdAt)}</Badge>
+      </div>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto]">
+        <Select
+          value={selectedRole}
+          onValueChange={(value) => onRoleChange(value as ManagedRole)}
+          disabled={isCurrentUser}
+        >
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="admin">admin</SelectItem>
+            <SelectItem value="user">user</SelectItem>
+          </SelectContent>
+        </Select>
+        {isCurrentUser ? (
+          <Button type="button" variant="outline" disabled>
+            You
+          </Button>
+        ) : (
+          <Button
+            type="button"
+            disabled={isSaving || selectedRole === currentRole}
+            onClick={onSave}
+          >
+            {isSaving ? (
+              <span className="inline-flex items-center gap-2">
+                <Spinner className="size-4" />
+                Saving
+              </span>
+            ) : (
+              "Save role"
+            )}
+          </Button>
+        )}
+      </div>
+    </div>
   )
 }
 
@@ -2641,9 +3083,16 @@ function ContentTab({
   draft?: boolean
 }): React.ReactElement {
   return (
-    <TabsTrigger value={value} className="w-full justify-center gap-2">
-      <span>{label}</span>
-      {draft ? <Badge variant="outline">Draft</Badge> : null}
+    <TabsTrigger
+      value={value}
+      className="min-h-10 w-full justify-center gap-1.5 px-2 text-xs sm:text-sm"
+    >
+      <span className="truncate">{label}</span>
+      {draft ? (
+        <Badge variant="outline" className="hidden sm:inline-flex">
+          Draft
+        </Badge>
+      ) : null}
     </TabsTrigger>
   )
 }
@@ -2655,6 +3104,7 @@ function EditorWorkspace({
   listAction,
   list,
   editor,
+  preview,
 }: {
   title: string
   description: string
@@ -2662,6 +3112,7 @@ function EditorWorkspace({
   listAction: React.ReactNode
   list: React.ReactNode
   editor: React.ReactNode
+  preview?: React.ReactNode
 }): React.ReactElement {
   return (
     <div className="space-y-6">
@@ -2686,7 +3137,20 @@ function EditorWorkspace({
         </Card>
 
         <Card>
-          <CardContent className="pt-6">{editor}</CardContent>
+          <CardContent className="pt-6">
+            {preview ? (
+              <Tabs defaultValue="edit" className="gap-6">
+                <TabsList className="grid w-full grid-cols-2 sm:inline-grid sm:w-auto">
+                  <TabsTrigger value="edit">Edit</TabsTrigger>
+                  <TabsTrigger value="preview">Preview</TabsTrigger>
+                </TabsList>
+                <TabsContent value="edit">{editor}</TabsContent>
+                <TabsContent value="preview">{preview}</TabsContent>
+              </Tabs>
+            ) : (
+              editor
+            )}
+          </CardContent>
         </Card>
       </div>
     </div>
@@ -2695,16 +3159,79 @@ function EditorWorkspace({
 
 function Field({
   label,
+  description,
   children,
 }: {
   label: string
+  description?: string
   children: React.ReactNode
 }): React.ReactElement {
   return (
     <div className="space-y-2">
-      <Label>{label}</Label>
+      <div className="space-y-1">
+        <Label>{label}</Label>
+        {description ? <p className="text-sm text-muted-foreground">{description}</p> : null}
+      </div>
       {children}
     </div>
+  )
+}
+
+function ImageUploadField({
+  label,
+  value,
+  folder,
+  description,
+  onChange,
+}: {
+  label: string
+  value: string
+  folder: ManagedAssetFolder
+  description?: string
+  onChange: (value: string) => void
+}): React.ReactElement {
+  const [message, setMessage] = useState<string | null>(null)
+  const [isPending, startTransition] = useTransition()
+
+  return (
+    <Field label={label} description={description}>
+      <div className="grid gap-3 md:grid-cols-[180px_minmax(0,1fr)]">
+        <div className="aspect-[4/3] overflow-hidden rounded-md border bg-muted">
+          {value ? (
+            <img src={value} alt="" className="h-full w-full object-cover" />
+          ) : (
+            <div className="flex h-full items-center justify-center px-4 text-center text-xs text-muted-foreground">
+              No image selected
+            </div>
+          )}
+        </div>
+        <div className="space-y-3">
+          <Input value={value} onChange={(event) => onChange(event.target.value)} />
+          <Input
+            type="file"
+            accept="image/avif,image/gif,image/heic,image/heif,image/jpeg,image/png,image/webp"
+            disabled={isPending}
+            onChange={(event) => {
+              const file = event.currentTarget.files?.[0]
+              event.currentTarget.value = ""
+              if (!file) return
+
+              setMessage(null)
+              startTransition(async () => {
+                try {
+                  const uploaded = await uploadImageFile(file, folder)
+                  onChange(uploaded.url)
+                  setMessage(`Uploaded ${uploaded.key}.`)
+                } catch (error) {
+                  setMessage(error instanceof Error ? error.message : "Could not upload image.")
+                }
+              })
+            }}
+          />
+          {message ? <p className="text-xs text-muted-foreground">{message}</p> : null}
+        </div>
+      </div>
+    </Field>
   )
 }
 
@@ -2783,6 +3310,181 @@ function EditorActions({
   )
 }
 
+function RecipePreview({ form }: { form: RecipeForm }): React.ReactElement {
+  const ingredients = splitPreviewLines(form.ingredientsText)
+  const instructions = splitPreviewLines(form.instructionsText).map((line) =>
+    line.replace(/^\d+[.)]\s*/, ""),
+  )
+  const tips = splitPreviewLines(form.tipsText)
+
+  return (
+    <PreviewSurface image={form.image} title={form.title || "Untitled recipe"}>
+      <p className="text-sm text-muted-foreground">{form.description || "No description yet."}</p>
+      <div className="flex flex-wrap gap-2">
+        <Badge variant="secondary">{form.category || "No category"}</Badge>
+        <Badge variant="outline">{form.difficulty}</Badge>
+        {form.prepTime ? <Badge variant="outline">{form.prepTime} min prep</Badge> : null}
+        {form.cookTime ? <Badge variant="outline">{form.cookTime} min cook</Badge> : null}
+      </div>
+      <PreviewList
+        title="Ingredients"
+        items={ingredients}
+        empty="Add ingredients to preview them."
+      />
+      <PreviewList
+        title="Instructions"
+        items={instructions}
+        ordered
+        empty="Add steps to preview them."
+      />
+      <PreviewList title="Tips" items={tips} empty="Tips are optional." />
+    </PreviewSurface>
+  )
+}
+
+function WinePreview({ form }: { form: WineForm }): React.ReactElement {
+  return (
+    <PreviewSurface image={form.image} title={form.name || "Untitled wine"}>
+      <p className="text-sm text-muted-foreground">
+        {[form.winery, form.region, form.country].filter(Boolean).join(" • ") ||
+          "Add winery and region details."}
+      </p>
+      <div className="flex flex-wrap gap-2">
+        <Badge variant="secondary">{form.type}</Badge>
+        {form.vintage ? <Badge variant="outline">{form.vintage}</Badge> : null}
+        {form.rating ? <Badge variant="outline">{form.rating}/5</Badge> : null}
+        {form.priceRange ? <Badge variant="outline">{form.priceRange}</Badge> : null}
+      </div>
+      {form.notes ? <p className="text-sm leading-relaxed">{form.notes}</p> : null}
+      <PreviewList
+        title="Aromas"
+        items={splitPreviewLines(form.aromasText)}
+        empty="Aromas are optional."
+      />
+      <PreviewList
+        title="Pairings"
+        items={splitPreviewLines(form.pairingsText)}
+        empty="Pairings are optional."
+      />
+    </PreviewSurface>
+  )
+}
+
+function ExperimentPreview({ form }: { form: ExperimentForm }): React.ReactElement {
+  return (
+    <PreviewSurface image={form.image} title={form.title || "Untitled experiment"}>
+      <p className="text-sm text-muted-foreground">{form.description || "No description yet."}</p>
+      <div className="flex flex-wrap gap-2">
+        <Badge variant="secondary">{humanizeExperimentStatus(form.status)}</Badge>
+        {form.published ? <Badge>Published</Badge> : <Badge variant="outline">Draft</Badge>}
+      </div>
+      {form.hypothesis ? <PreviewText title="Hypothesis" body={form.hypothesis} /> : null}
+      {form.result ? <PreviewText title="Result" body={form.result} /> : null}
+      <div className="space-y-3">
+        <h3 className="text-sm font-medium">Timeline</h3>
+        {form.entries.map((entry, index) => (
+          <div key={entry.id ?? index} className="rounded-md border p-3">
+            <div className="text-xs uppercase tracking-wide text-muted-foreground">
+              {humanizeExperimentStatus(entry.entryType)}
+            </div>
+            <p className="mt-2 text-sm leading-relaxed">{entry.content || "No entry text yet."}</p>
+            <PreviewList
+              title="Images"
+              items={splitPreviewLines(entry.imagesText)}
+              empty="No entry images."
+            />
+          </div>
+        ))}
+      </div>
+    </PreviewSurface>
+  )
+}
+
+function GalleryPreview({ form }: { form: GalleryForm }): React.ReactElement {
+  return (
+    <PreviewSurface image={form.image} title={form.title || "Untitled image"}>
+      <p className="text-sm text-muted-foreground">{form.caption || "No caption yet."}</p>
+      <div className="flex flex-wrap gap-2">
+        <Badge variant="secondary">{capitalize(form.category)}</Badge>
+        {form.takenAt ? <Badge variant="outline">{form.takenAt}</Badge> : null}
+        {form.published ? <Badge>Published</Badge> : <Badge variant="outline">Draft</Badge>}
+      </div>
+    </PreviewSurface>
+  )
+}
+
+function PreviewSurface({
+  image,
+  title,
+  children,
+}: {
+  image: string
+  title: string
+  children: React.ReactNode
+}): React.ReactElement {
+  return (
+    <div className="space-y-5">
+      <div className="overflow-hidden rounded-md border bg-background">
+        <div className="aspect-[16/9] bg-muted">
+          {image ? (
+            <img src={image} alt="" className="h-full w-full object-cover" />
+          ) : (
+            <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+              No image selected
+            </div>
+          )}
+        </div>
+        <div className="space-y-4 p-5">
+          <h2 className="font-serif text-2xl font-semibold">{title}</h2>
+          {children}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function PreviewText({ title, body }: { title: string; body: string }): React.ReactElement {
+  return (
+    <div className="space-y-2">
+      <h3 className="text-sm font-medium">{title}</h3>
+      <p className="text-sm leading-relaxed text-muted-foreground">{body}</p>
+    </div>
+  )
+}
+
+function PreviewList({
+  title,
+  items,
+  empty,
+  ordered = false,
+}: {
+  title: string
+  items: string[]
+  empty: string
+  ordered?: boolean
+}): React.ReactElement {
+  const ListElement = ordered ? "ol" : "ul"
+
+  return (
+    <div className="space-y-2">
+      <h3 className="text-sm font-medium">{title}</h3>
+      {items.length > 0 ? (
+        <ListElement
+          className={ordered ? "list-decimal space-y-1 pl-5" : "list-disc space-y-1 pl-5"}
+        >
+          {items.map((item, index) => (
+            <li key={`${item}-${index}`} className="text-sm text-muted-foreground">
+              {item}
+            </li>
+          ))}
+        </ListElement>
+      ) : (
+        <p className="text-sm text-muted-foreground">{empty}</p>
+      )}
+    </div>
+  )
+}
+
 function SummaryCard({
   title,
   value,
@@ -2803,13 +3505,7 @@ function SummaryCard({
   )
 }
 
-function KeyValueRow({
-  label,
-  value,
-}: {
-  label: string
-  value: string
-}): React.ReactElement {
+function KeyValueRow({ label, value }: { label: string; value: string }): React.ReactElement {
   return (
     <div className="flex items-center justify-between border-b pb-3 last:border-b-0 last:pb-0">
       <span className="text-sm text-muted-foreground">{label}</span>
@@ -2818,13 +3514,7 @@ function KeyValueRow({
   )
 }
 
-function InfoRow({
-  title,
-  body,
-}: {
-  title: string
-  body: string
-}): React.ReactElement {
+function InfoRow({ title, body }: { title: string; body: string }): React.ReactElement {
   return (
     <div className="rounded-md border p-4">
       <div className="mb-2 text-sm font-medium">{title}</div>
@@ -2906,6 +3596,78 @@ function initialsFor(value: string): string {
 
 function createDraftId(): string {
   return globalThis.crypto?.randomUUID?.() ?? `draft-${Date.now()}`
+}
+
+function splitPreviewLines(value: string | null | undefined): string[] {
+  return (value ?? "")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+}
+
+function mergeSiteDraft(value: Partial<SiteDraft> | null | undefined): SiteDraft {
+  return {
+    home: {
+      ...defaultSiteDraft.home,
+      ...(value?.home ?? {}),
+    },
+    about: {
+      ...defaultSiteDraft.about,
+      ...(value?.about ?? {}),
+      values:
+        value?.about?.values && value.about.values.length > 0
+          ? value.about.values
+          : defaultSiteDraft.about.values,
+    },
+    newsletter: {
+      ...defaultSiteDraft.newsletter,
+      ...(value?.newsletter ?? {}),
+    },
+  }
+}
+
+function formatBytes(value: number): string {
+  if (value < 1024) return `${value} B`
+  if (value < 1024 * 1024) return `${(value / 1024).toFixed(1)} KB`
+  return `${(value / (1024 * 1024)).toFixed(1)} MB`
+}
+
+function contentTypeForFile(file: File): string {
+  if (file.type) return file.type
+
+  const extension = file.name.split(".").at(-1)?.toLowerCase()
+  if (extension === "avif") return "image/avif"
+  if (extension === "gif") return "image/gif"
+  if (extension === "heic") return "image/heic"
+  if (extension === "heif") return "image/heif"
+  if (extension === "jpg" || extension === "jpeg") return "image/jpeg"
+  if (extension === "png") return "image/png"
+  if (extension === "webp") return "image/webp"
+
+  return "application/octet-stream"
+}
+
+async function fileToBase64(file: File): Promise<string> {
+  const bytes = new Uint8Array(await file.arrayBuffer())
+  const chunkSize = 0x8000
+  let binary = ""
+
+  for (let index = 0; index < bytes.length; index += chunkSize) {
+    binary += String.fromCharCode(...bytes.subarray(index, index + chunkSize))
+  }
+
+  return window.btoa(binary)
+}
+
+async function uploadImageFile(file: File, folder: ManagedAssetFolder): Promise<ManagedImageAsset> {
+  return uploadManagedAsset({
+    data: {
+      folder,
+      fileName: file.name,
+      contentType: contentTypeForFile(file),
+      bytesBase64: await fileToBase64(file),
+    },
+  })
 }
 
 function upsertByUpdatedAt<T extends { id: string; updatedAt?: Date | string }>(

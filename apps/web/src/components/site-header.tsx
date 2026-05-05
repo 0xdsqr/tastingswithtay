@@ -129,7 +129,9 @@ export function SiteHeader(): React.ReactElement {
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col gap-1">
                     {resolvedSession.user.name && (
-                      <p className="text-sm font-medium leading-none">{resolvedSession.user.name}</p>
+                      <p className="text-sm font-medium leading-none">
+                        {resolvedSession.user.name}
+                      </p>
                     )}
                     <p className="text-xs leading-none text-muted-foreground">
                       {resolvedSession.user.email}

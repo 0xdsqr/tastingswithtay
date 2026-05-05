@@ -10,21 +10,36 @@ export function initAuth(options: {
   extraPlugins?: BetterAuthPlugin[]
   trustedOrigins?: string[]
 }): ReturnType<typeof betterAuth> {
+  const secret = options.secret?.trim()
+  if (!secret) {
+    throw new Error("AUTH_SECRET must be set before starting the app.")
+  }
+
+  const discordClientId = process.env.DISCORD_CLIENT_ID?.trim()
+  const discordClientSecret = process.env.DISCORD_CLIENT_SECRET?.trim()
+
   const config: BetterAuthOptions = {
     database: drizzleAdapter(db, { provider: "pg" }),
     baseURL: options.baseUrl,
-    secret: options.secret,
+    secret,
 
     trustedOrigins: options.trustedOrigins ?? [],
 
-    plugins: [jwt(), admin({ defaultRole: "user", adminRoles: ["admin"] }), ...(options.extraPlugins ?? [])],
+    plugins: [
+      jwt(),
+      admin({ defaultRole: "user", adminRoles: ["admin"] }),
+      ...(options.extraPlugins ?? []),
+    ],
 
-    socialProviders: {
-      discord: {
-        clientId: process.env.DISCORD_CLIENT_ID as string,
-        clientSecret: process.env.DISCORD_CLIENT_SECRET as string,
-      },
-    },
+    socialProviders:
+      discordClientId && discordClientSecret
+        ? {
+            discord: {
+              clientId: discordClientId,
+              clientSecret: discordClientSecret,
+            },
+          }
+        : undefined,
     emailAndPassword: {
       enabled: true,
     },

@@ -2,15 +2,29 @@ import { Button } from "@twt/ui/components/button"
 import { Input } from "@twt/ui/components/input"
 import type React from "react"
 import { useState } from "react"
+import { useTRPCClient } from "../lib/trpc"
 
 export function NewsletterSection(): React.ReactElement {
   const [email, setEmail] = useState("")
+  const [message, setMessage] = useState<string | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const trpcClient = useTRPCClient()
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    // TODO: Implement newsletter signup
-    console.log("Newsletter signup:", email)
-    setEmail("")
+    setIsSubmitting(true)
+    setMessage(null)
+
+    void trpcClient.subscribers.subscribe
+      .mutate({ email })
+      .then((result) => {
+        setMessage(result.message)
+        setEmail("")
+      })
+      .catch((error: unknown) => {
+        setMessage(error instanceof Error ? error.message : "Could not subscribe right now.")
+      })
+      .finally(() => setIsSubmitting(false))
   }
 
   return (
@@ -38,11 +52,12 @@ export function NewsletterSection(): React.ReactElement {
               required
               className="flex-1 border-primary-foreground/20 bg-primary-foreground/10 text-primary-foreground placeholder:text-primary-foreground/60 focus-visible:ring-primary-foreground/50"
             />
-            <Button type="submit" variant="secondary" className="shrink-0">
-              Subscribe
+            <Button type="submit" variant="secondary" className="shrink-0" disabled={isSubmitting}>
+              {isSubmitting ? "Subscribing..." : "Subscribe"}
             </Button>
           </form>
 
+          {message ? <p className="mt-4 text-sm opacity-80">{message}</p> : null}
           <p className="mt-4 text-xs opacity-60">No spam, unsubscribe anytime.</p>
         </div>
       </div>

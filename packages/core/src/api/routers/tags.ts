@@ -15,25 +15,15 @@ export const tagsRouter = {
     )
     .query(async ({ ctx, input }) => {
       if (input?.type) {
-        return ctx.db
-          .select()
-          .from(tags)
-          .where(eq(tags.type, input.type))
-          .orderBy(tags.name)
+        return ctx.db.select().from(tags).where(eq(tags.type, input.type)).orderBy(tags.name)
       }
 
       return ctx.db.select().from(tags).orderBy(tags.name)
     }),
 
-  bySlug: publicProcedure
-    .input(z.object({ slug: z.string() }))
-    .query(async ({ ctx, input }) => {
-      const [tag] = await ctx.db
-        .select()
-        .from(tags)
-        .where(eq(tags.slug, input.slug))
-        .limit(1)
+  bySlug: publicProcedure.input(z.object({ slug: z.string() })).query(async ({ ctx, input }) => {
+    const [tag] = await ctx.db.select().from(tags).where(eq(tags.slug, input.slug)).limit(1)
 
-      return tag ?? null
-    }),
+    return tag ?? null
+  }),
 } satisfies TRPCRouterRecord

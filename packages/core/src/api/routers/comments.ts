@@ -6,8 +6,9 @@ import {
   user,
   wineComments,
 } from "@twt/db/schema"
-import { and, desc, eq, isNull } from "drizzle-orm"
+import { and, desc, eq, inArray, isNull } from "drizzle-orm"
 import { z } from "zod"
+import { assertRateLimit, clientRateLimitKey } from "../rate-limit"
 import { protectedProcedure, publicProcedure } from "../trpc"
 
 export const commentsRouter = {
@@ -15,7 +16,7 @@ export const commentsRouter = {
     .input(
       z.object({
         recipeId: z.string().uuid(),
-        limit: z.number().min(1).max(100).default(20),
+        limit: z.number().min(1).max(50).default(20),
         offset: z.number().min(0).default(0),
       }),
     )
@@ -60,6 +61,7 @@ export const commentsRouter = {
           and(
             eq(recipeComments.isActive, true),
             eq(recipeComments.recipeId, input.recipeId),
+            inArray(recipeComments.parentId, commentIds),
           ),
         )
         .orderBy(recipeComments.createdAt)
@@ -82,6 +84,12 @@ export const commentsRouter = {
   createRecipeComment: protectedProcedure
     .input(createRecipeCommentSchema)
     .mutation(async ({ ctx, input }) => {
+      assertRateLimit({
+        key: clientRateLimitKey(ctx.headers, "comments.createRecipe", ctx.session.user.id),
+        limit: 10,
+        windowMs: 60_000,
+      })
+
       const [comment] = await ctx.db
         .insert(recipeComments)
         .values({
@@ -104,12 +112,7 @@ export const commentsRouter = {
       const [comment] = await ctx.db
         .update(recipeComments)
         .set({ content: input.content })
-        .where(
-          and(
-            eq(recipeComments.id, input.id),
-            eq(recipeComments.userId, ctx.session.user.id),
-          ),
-        )
+        .where(and(eq(recipeComments.id, input.id), eq(recipeComments.userId, ctx.session.user.id)))
         .returning()
 
       return comment
@@ -121,12 +124,7 @@ export const commentsRouter = {
       await ctx.db
         .update(recipeComments)
         .set({ isActive: false })
-        .where(
-          and(
-            eq(recipeComments.id, input.id),
-            eq(recipeComments.userId, ctx.session.user.id),
-          ),
-        )
+        .where(and(eq(recipeComments.id, input.id), eq(recipeComments.userId, ctx.session.user.id)))
 
       return { success: true }
     }),
@@ -135,7 +133,7 @@ export const commentsRouter = {
     .input(
       z.object({
         wineId: z.string().uuid(),
-        limit: z.number().min(1).max(100).default(20),
+        limit: z.number().min(1).max(50).default(20),
         offset: z.number().min(0).default(0),
       }),
     )
@@ -162,6 +160,9 @@ export const commentsRouter = {
         .limit(input.limit)
         .offset(input.offset)
 
+      const commentIds = topLevel.map((c) => c.comment.id)
+      if (commentIds.length === 0) return []
+
       const replies = await ctx.db
         .select({
           comment: wineComments,
@@ -177,6 +178,7 @@ export const commentsRouter = {
           and(
             eq(wineComments.isActive, true),
             eq(wineComments.wineId, input.wineId),
+            inArray(wineComments.parentId, commentIds),
           ),
         )
         .orderBy(wineComments.createdAt)
@@ -199,6 +201,12 @@ export const commentsRouter = {
   createWineComment: protectedProcedure
     .input(createWineCommentSchema)
     .mutation(async ({ ctx, input }) => {
+      assertRateLimit({
+        key: clientRateLimitKey(ctx.headers, "comments.createWine", ctx.session.user.id),
+        limit: 10,
+        windowMs: 60_000,
+      })
+
       const [comment] = await ctx.db
         .insert(wineComments)
         .values({
@@ -221,12 +229,7 @@ export const commentsRouter = {
       const [comment] = await ctx.db
         .update(wineComments)
         .set({ content: input.content })
-        .where(
-          and(
-            eq(wineComments.id, input.id),
-            eq(wineComments.userId, ctx.session.user.id),
-          ),
-        )
+        .where(and(eq(wineComments.id, input.id), eq(wineComments.userId, ctx.session.user.id)))
         .returning()
 
       return comment
@@ -238,12 +241,7 @@ export const commentsRouter = {
       await ctx.db
         .update(wineComments)
         .set({ isActive: false })
-        .where(
-          and(
-            eq(wineComments.id, input.id),
-            eq(wineComments.userId, ctx.session.user.id),
-          ),
-        )
+        .where(and(eq(wineComments.id, input.id), eq(wineComments.userId, ctx.session.user.id)))
 
       return { success: true }
     }),

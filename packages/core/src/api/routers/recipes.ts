@@ -2,6 +2,7 @@ import type { TRPCRouterRecord } from "@trpc/server"
 import { recipes, recipeTags, tags } from "@twt/db/schema"
 import { and, desc, eq, sql } from "drizzle-orm"
 import { z } from "zod"
+import { assertRateLimit, clientRateLimitKey } from "../rate-limit"
 import { publicProcedure } from "../trpc"
 
 export const recipesRouter = {
@@ -32,17 +33,15 @@ export const recipesRouter = {
         .offset(offset)
     }),
 
-  bySlug: publicProcedure
-    .input(z.object({ slug: z.string() }))
-    .query(async ({ ctx, input }) => {
-      const [recipe] = await ctx.db
-        .select()
-        .from(recipes)
-        .where(and(eq(recipes.slug, input.slug), eq(recipes.published, true)))
-        .limit(1)
+  bySlug: publicProcedure.input(z.object({ slug: z.string() })).query(async ({ ctx, input }) => {
+    const [recipe] = await ctx.db
+      .select()
+      .from(recipes)
+      .where(and(eq(recipes.slug, input.slug), eq(recipes.published, true)))
+      .limit(1)
 
-      return recipe ?? null
-    }),
+    return recipe ?? null
+  }),
 
   categories: publicProcedure.query(async ({ ctx }) => {
     const result = await ctx.db
@@ -78,6 +77,12 @@ export const recipesRouter = {
   incrementView: publicProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
+      assertRateLimit({
+        key: clientRateLimitKey(ctx.headers, "recipes.incrementView", input.id),
+        limit: 1,
+        windowMs: 10 * 60_000,
+      })
+
       await ctx.db
         .update(recipes)
         .set({ viewCount: sql`${recipes.viewCount} + 1` })

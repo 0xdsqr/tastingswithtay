@@ -22,7 +22,7 @@
     }
   },
   "scripts": {
-    "auth:generate": "bunx @better-auth/cli generate --config scripts/auth-cli.ts --output ../db/src/auth-schema.ts",
+    "auth:generate": "bunx @better-auth/cli@1.4.21 generate --config scripts/auth-cli.ts --output ../db/src/auth-schema.ts",
     "build": "bun run scripts/build.ts",
     "clean": "git clean -xdf dist node_modules",
     "typecheck": "tsc --noEmit"
@@ -30,14 +30,13 @@
   "dependencies": {
     "@trpc/server": "^11.1.0",
     "@twt/db": "workspace:*",
-    "better-auth": "1.4.18",
-    "drizzle-orm": "^0.45.1",
+    "better-auth": "1.6.9",
+    "drizzle-orm": "^0.45.2",
     "pg": "^8.16.3",
     "superjson": "^2.2.5",
     "zod": "^4.3.5"
   },
   "devDependencies": {
-    "@better-auth/cli": "1.4.18",
     "@twt/tsconfig": "workspace:*",
     "@types/pg": "^8.15.6",
     "bun-types": "latest"

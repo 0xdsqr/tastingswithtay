@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start"
-import { and, desc, eq } from "@twt/db"
+import { desc, eq } from "@twt/db"
 import { user as authUsers } from "@twt/db/auth-schema"
 import { db } from "@twt/db/client"
 import {
@@ -17,6 +17,7 @@ import {
   galleryImages,
   priceRangeEnum,
   recipes,
+  siteSettings,
   wineTypeEnum,
   wines,
 } from "@twt/db/schema"
@@ -29,6 +30,9 @@ type SessionUser = {
   name?: string | null
   role?: string | null
 }
+
+type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue }
+type JsonObject = { [key: string]: JsonValue }
 
 export type AdminUserRecord = {
   id: string
@@ -117,7 +121,7 @@ function parseInstructions(value: string): Array<{ step: number; text: string }>
     .split("\n")
     .map((line) => line.trim())
     .filter(Boolean)
-    .map((line) => line.replace(/^\d+[\.\)]\s*/, ""))
+    .map((line) => line.replace(/^\d+[.)]\s*/, ""))
 
   if (lines.length === 0) {
     throw new Error("Add at least one instruction.")
@@ -261,6 +265,14 @@ const updateUserRoleSchema = z.object({
   role: z.enum(["admin", "user"]),
 })
 
+const siteDraftInputSchema = z.object({
+  draft: z.custom<JsonObject>(
+    (value) => typeof value === "object" && value !== null && !Array.isArray(value),
+  ),
+})
+
+const siteDraftSettingKey = "site-draft"
+
 async function requireAdminUser(): Promise<SessionUser> {
   const user = await getAdminSessionUser()
   if (!user) {
@@ -273,16 +285,16 @@ async function requireAdminUser(): Promise<SessionUser> {
 export const getAdminBootstrap = createServerFn({ method: "GET" }).handler(async () => {
   const user = await requireAdminUser()
 
-  const [recipeRows, wineRows, experimentRows, entryRows, galleryRows, userRows] = await Promise.all(
-    [
-    db.select().from(recipes).orderBy(desc(recipes.updatedAt)),
-    db.select().from(wines).orderBy(desc(wines.updatedAt)),
-    db.select().from(experiments).orderBy(desc(experiments.updatedAt)),
-    db.select().from(experimentEntries).orderBy(desc(experimentEntries.createdAt)),
-    db.select().from(galleryImages).orderBy(desc(galleryImages.updatedAt)),
+  const [recipeRows, wineRows, experimentRows, entryRows, galleryRows, userRows, siteDraftRows] =
+    await Promise.all([
+      db.select().from(recipes).orderBy(desc(recipes.updatedAt)),
+      db.select().from(wines).orderBy(desc(wines.updatedAt)),
+      db.select().from(experiments).orderBy(desc(experiments.updatedAt)),
+      db.select().from(experimentEntries).orderBy(desc(experimentEntries.createdAt)),
+      db.select().from(galleryImages).orderBy(desc(galleryImages.updatedAt)),
       db.select().from(authUsers).orderBy(desc(authUsers.createdAt)),
-    ],
-  )
+      db.select().from(siteSettings).where(eq(siteSettings.key, siteDraftSettingKey)).limit(1),
+    ])
 
   const entriesByExperimentId = new Map<string, typeof entryRows>()
   for (const entry of entryRows) {
@@ -314,8 +326,32 @@ export const getAdminBootstrap = createServerFn({ method: "GET" }).handler(async
       entries: entriesByExperimentId.get(experiment.id) ?? [],
     })),
     gallery: galleryRows,
+    siteDraft: (siteDraftRows[0]?.value as JsonObject | undefined) ?? null,
   }
 })
+
+export const saveSiteDraft = createServerFn({ method: "POST" })
+  .inputValidator(siteDraftInputSchema)
+  .handler(async ({ data }) => {
+    await requireAdminUser()
+
+    const [saved] = await db
+      .insert(siteSettings)
+      .values({
+        key: siteDraftSettingKey,
+        value: data.draft,
+      })
+      .onConflictDoUpdate({
+        target: siteSettings.key,
+        set: {
+          value: data.draft,
+          updatedAt: new Date(),
+        },
+      })
+      .returning()
+
+    return (saved?.value as JsonObject | undefined) ?? data.draft
+  })
 
 export const updateAdminUserRole = createServerFn({ method: "POST" })
   .inputValidator(updateUserRoleSchema)
@@ -380,7 +416,11 @@ export const saveRecipe = createServerFn({ method: "POST" })
     }
 
     if (data.id) {
-      const [updated] = await db.update(recipes).set(values).where(eq(recipes.id, data.id)).returning()
+      const [updated] = await db
+        .update(recipes)
+        .set(values)
+        .where(eq(recipes.id, data.id))
+        .returning()
       return updated
     }
 
@@ -468,7 +508,10 @@ export const saveExperiment = createServerFn({ method: "POST" })
         )
       }
 
-      const [experiment] = await tx.select().from(experiments).where(eq(experiments.id, experimentId!))
+      const [experiment] = await tx
+        .select()
+        .from(experiments)
+        .where(eq(experiments.id, experimentId!))
       const savedEntries = await tx
         .select()
         .from(experimentEntries)
@@ -660,9 +703,7 @@ export function mapWineToForm(item: Wine) {
   }
 }
 
-export function mapExperimentToForm(
-  item: Experiment & { entries: ExperimentEntry[] },
-) {
+export function mapExperimentToForm(item: Experiment & { entries: ExperimentEntry[] }) {
   return {
     id: item.id,
     title: item.title,

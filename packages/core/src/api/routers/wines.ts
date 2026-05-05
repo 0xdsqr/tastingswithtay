@@ -36,17 +36,15 @@ export const winesRouter = {
         .offset(offset)
     }),
 
-  bySlug: publicProcedure
-    .input(z.object({ slug: z.string() }))
-    .query(async ({ ctx, input }) => {
-      const [wine] = await ctx.db
-        .select()
-        .from(wines)
-        .where(and(eq(wines.slug, input.slug), eq(wines.published, true)))
-        .limit(1)
+  bySlug: publicProcedure.input(z.object({ slug: z.string() })).query(async ({ ctx, input }) => {
+    const [wine] = await ctx.db
+      .select()
+      .from(wines)
+      .where(and(eq(wines.slug, input.slug), eq(wines.published, true)))
+      .limit(1)
 
-      return wine ?? null
-    }),
+    return wine ?? null
+  }),
 
   types: publicProcedure.query(async ({ ctx }) => {
     const result = await ctx.db

@@ -13,50 +13,41 @@ export const collectionsRouter = {
       .orderBy(desc(collections.createdAt))
   }),
 
-  bySlug: publicProcedure
-    .input(z.object({ slug: z.string() }))
-    .query(async ({ ctx, input }) => {
-      const [collection] = await ctx.db
-        .select()
-        .from(collections)
-        .where(
-          and(
-            eq(collections.slug, input.slug),
-            eq(collections.published, true),
-          ),
-        )
-        .limit(1)
+  bySlug: publicProcedure.input(z.object({ slug: z.string() })).query(async ({ ctx, input }) => {
+    const [collection] = await ctx.db
+      .select()
+      .from(collections)
+      .where(and(eq(collections.slug, input.slug), eq(collections.published, true)))
+      .limit(1)
 
-      if (!collection) return null
+    if (!collection) return null
 
-      const collectionRecipesList = await ctx.db
-        .select({ recipe: recipes, sortOrder: collectionRecipes.sortOrder })
-        .from(collectionRecipes)
-        .innerJoin(recipes, eq(collectionRecipes.recipeId, recipes.id))
-        .where(eq(collectionRecipes.collectionId, collection.id))
-        .orderBy(asc(collectionRecipes.sortOrder))
+    const collectionRecipesList = await ctx.db
+      .select({ recipe: recipes, sortOrder: collectionRecipes.sortOrder })
+      .from(collectionRecipes)
+      .innerJoin(recipes, eq(collectionRecipes.recipeId, recipes.id))
+      .where(eq(collectionRecipes.collectionId, collection.id))
+      .orderBy(asc(collectionRecipes.sortOrder))
 
-      const collectionWinesList = await ctx.db
-        .select({ wine: wines, sortOrder: collectionWines.sortOrder })
-        .from(collectionWines)
-        .innerJoin(wines, eq(collectionWines.wineId, wines.id))
-        .where(eq(collectionWines.collectionId, collection.id))
-        .orderBy(asc(collectionWines.sortOrder))
+    const collectionWinesList = await ctx.db
+      .select({ wine: wines, sortOrder: collectionWines.sortOrder })
+      .from(collectionWines)
+      .innerJoin(wines, eq(collectionWines.wineId, wines.id))
+      .where(eq(collectionWines.collectionId, collection.id))
+      .orderBy(asc(collectionWines.sortOrder))
 
-      return {
-        ...collection,
-        recipes: collectionRecipesList.map((r) => r.recipe),
-        wines: collectionWinesList.map((w) => w.wine),
-      }
-    }),
+    return {
+      ...collection,
+      recipes: collectionRecipesList.map((r) => r.recipe),
+      wines: collectionWinesList.map((w) => w.wine),
+    }
+  }),
 
   featured: publicProcedure.query(async ({ ctx }) => {
     return ctx.db
       .select()
       .from(collections)
-      .where(
-        and(eq(collections.published, true), eq(collections.featured, true)),
-      )
+      .where(and(eq(collections.published, true), eq(collections.featured, true)))
       .orderBy(desc(collections.createdAt))
       .limit(4)
   }),

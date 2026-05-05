@@ -29,6 +29,19 @@ export const experimentEntryTypeEnum = ["update", "photo", "note", "result", "it
 export const galleryCategoryEnum = ["garden", "flock"] as const
 
 // ============================================
+// SITE SETTINGS
+// ============================================
+
+export const siteSettings = pgTable("site_settings", {
+  key: varchar("key", { length: 100 }).primaryKey(),
+  value: jsonb("value").$type<Record<string, unknown>>().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .defaultNow()
+    .$onUpdate(() => new Date())
+    .notNull(),
+})
+
+// ============================================
 // TAGS (shared across recipes & wines)
 // ============================================
 
@@ -968,6 +981,8 @@ export const updateGalleryImageSchema = createGalleryImageSchema.partial()
 
 export type GalleryImage = typeof galleryImages.$inferSelect
 export type NewGalleryImage = typeof galleryImages.$inferInsert
+
+export type SiteSetting = typeof siteSettings.$inferSelect
 
 export type Tag = typeof tags.$inferSelect
 export type NewTag = typeof tags.$inferInsert

@@ -263,7 +263,11 @@ export function BentoGrid({ recipes, categories }: BentoGridProps): React.ReactE
 
           {/* Garden & Flock Preview */}
           <BentoItem delay={400}>
-            <Link to="/garden-and-flock" search={{ category: undefined }} className="group block h-full">
+            <Link
+              to="/garden-and-flock"
+              search={{ category: undefined }}
+              className="group block h-full"
+            >
               <div className="relative flex h-full flex-col justify-between overflow-hidden rounded-2xl border border-border bg-card p-6">
                 <div>
                   <Flower2 className="mb-3 h-8 w-8 text-primary" />

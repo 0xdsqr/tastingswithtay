@@ -6,11 +6,91 @@ import { OptimizedImage } from "../components/optimized-image"
 import { SiteFooter } from "../components/site-footer"
 import { SiteHeader } from "../components/site-header"
 
+type AboutValue = {
+  id: string
+  title: string
+  body: string
+}
+
+type AboutContent = {
+  heroEyebrow: string
+  heroTitle: string
+  heroImage: string
+  introBody: string
+  philosophyEyebrow: string
+  philosophyTitle: string
+  philosophyBody: string
+  valuesEyebrow: string
+  valuesTitle: string
+  values: AboutValue[]
+  quoteText: string
+  quoteAuthor: string
+  quoteImage: string
+  whatsIncludedEyebrow: string
+  whatsIncludedTitle: string
+  whatsIncludedBody: string
+  whatsIncludedImage: string
+  connectEyebrow: string
+  connectTitle: string
+  connectBody: string
+}
+
+type SiteDraftValue = {
+  about?: Partial<AboutContent>
+}
+
+const defaultAboutContent: AboutContent = {
+  heroEyebrow: "The Story Behind the Recipes",
+  heroTitle: "Hi, I'm Tay",
+  heroImage: "/warm-portrait-of-woman-cooking-in-bright-kitchen-n.jpg",
+  introBody:
+    "Welcome to my corner of the internet where flour dust is a fashion statement and taste-testing is considered cardio. I'm so glad you're here.\n\nMy love affair with food started in my grandmother's kitchen, where Sunday dinners were sacred and recipes were passed down through generations—never written, always remembered. Those memories of wooden spoons, simmering pots, and the way good food brings people together shaped who I am today.\n\nAfter years of collecting recipes, experimenting in my own kitchen, and sharing meals with the people I love, I finally decided to share this passion with the world. Tastings with Tay is my love letter to home cooking—real food, made with intention, meant to be savored and shared.",
+  philosophyEyebrow: "My Philosophy",
+  philosophyTitle: "Food is love made visible",
+  philosophyBody:
+    "I believe that the best meals aren't about perfection—they're about presence. About slowing down, using good ingredients, and cooking with care. About the conversation that happens around the table and the memories we make there.\n\nHere, you won't find overly complicated techniques or impossible-to-find ingredients. My recipes are approachable, tested multiple times in my own kitchen, and designed to bring joy—both in the making and the eating.",
+  valuesEyebrow: "What I Value",
+  valuesTitle: "The Heart of This Kitchen",
+  values: [
+    {
+      id: "simplicity",
+      title: "Simplicity",
+      body: "The best dishes often have the fewest ingredients. I focus on quality over quantity, letting good produce shine.",
+    },
+    {
+      id: "seasonality",
+      title: "Seasonality",
+      body: "Cooking with the seasons means better flavor, better nutrition, and a deeper connection to what we eat.",
+    },
+    {
+      id: "connection",
+      title: "Connection",
+      body: "Food is meant to be shared. Every recipe here is designed to bring people together around the table.",
+    },
+  ],
+  quoteText: '"Cooking is like love. It should be entered into with abandon or not at all."',
+  quoteAuthor: "Harriet Van Horne",
+  quoteImage: "/elegant-kitchen-scene-with-fresh-ingredients-and-s.jpg",
+  whatsIncludedEyebrow: "What You'll Find Here",
+  whatsIncludedTitle: "More Than Just Recipes",
+  whatsIncludedBody:
+    "Recipes: From quick weeknight dinners to weekend baking projects, each recipe is thoroughly tested and written with detailed instructions so you can recreate them with confidence.\nKitchen Tips: Little tricks and techniques I've learned along the way that make cooking easier and more enjoyable.\nLife & Stories: Because food is about more than just eating—it's about the stories we tell, the traditions we keep, and the moments we share.\nThe Shop: A curated collection of kitchen essentials I genuinely love and use in my own kitchen every day.",
+  whatsIncludedImage: "/colorful-fresh-ingredients-arranged-beautifully-on.jpg",
+  connectEyebrow: "Let's Connect",
+  connectTitle: "I'd Love to Hear From You",
+  connectBody:
+    "Whether you have a question about a recipe, want to share how a dish turned out, or just want to say hello—my inbox is always open. You can also follow along on Instagram for behind-the-scenes kitchen moments.",
+}
+
 export const Route = createFileRoute("/about")({
+  loader: async ({ context }) =>
+    context.queryClient.fetchQuery(context.trpc.site.draft.queryOptions()),
   component: AboutPage,
 })
 
 function AboutPage(): React.ReactElement {
+  const about = getAboutContent(Route.useLoaderData())
+
   return (
     <div className="flex min-h-screen flex-col">
       <SiteHeader />
@@ -23,7 +103,7 @@ function AboutPage(): React.ReactElement {
               <div className="relative">
                 <div className="aspect-[4/5] overflow-hidden rounded-lg bg-muted">
                   <OptimizedImage
-                    src="/warm-portrait-of-woman-cooking-in-bright-kitchen-n.jpg"
+                    src={about.heroImage}
                     alt="Tay in her kitchen"
                     className="h-full w-full object-cover"
                   />
@@ -33,28 +113,13 @@ function AboutPage(): React.ReactElement {
               {/* Content */}
               <div>
                 <p className="mb-4 text-sm font-medium uppercase tracking-widest text-muted-foreground">
-                  The Story Behind the Recipes
+                  {about.heroEyebrow}
                 </p>
                 <h1 className="mb-6 font-serif text-4xl leading-tight tracking-tight text-foreground sm:text-5xl lg:text-6xl">
-                  Hi, I'm Tay
+                  {about.heroTitle}
                 </h1>
                 <div className="space-y-4 leading-relaxed text-muted-foreground">
-                  <p>
-                    Welcome to my corner of the internet where flour dust is a fashion statement and
-                    taste-testing is considered cardio. I'm so glad you're here.
-                  </p>
-                  <p>
-                    My love affair with food started in my grandmother's kitchen, where Sunday
-                    dinners were sacred and recipes were passed down through generations—never
-                    written, always remembered. Those memories of wooden spoons, simmering pots, and
-                    the way good food brings people together shaped who I am today.
-                  </p>
-                  <p>
-                    After years of collecting recipes, experimenting in my own kitchen, and sharing
-                    meals with the people I love, I finally decided to share this passion with the
-                    world. Tastings with Tay is my love letter to home cooking—real food, made with
-                    intention, meant to be savored and shared.
-                  </p>
+                  {renderParagraphs(about.introBody)}
                 </div>
               </div>
             </div>
@@ -66,22 +131,13 @@ function AboutPage(): React.ReactElement {
           <div className="mx-auto max-w-7xl px-6 lg:px-8">
             <div className="mx-auto max-w-3xl text-center">
               <p className="mb-4 text-sm font-medium uppercase tracking-widest text-muted-foreground">
-                My Philosophy
+                {about.philosophyEyebrow}
               </p>
               <h2 className="mb-8 font-serif text-3xl tracking-tight text-foreground sm:text-4xl">
-                Food is love made visible
+                {about.philosophyTitle}
               </h2>
               <div className="space-y-4 text-lg leading-relaxed text-muted-foreground">
-                <p>
-                  I believe that the best meals aren't about perfection—they're about presence.
-                  About slowing down, using good ingredients, and cooking with care. About the
-                  conversation that happens around the table and the memories we make there.
-                </p>
-                <p>
-                  Here, you won't find overly complicated techniques or impossible-to-find
-                  ingredients. My recipes are approachable, tested multiple times in my own kitchen,
-                  and designed to bring joy—both in the making and the eating.
-                </p>
+                {renderParagraphs(about.philosophyBody)}
               </div>
             </div>
           </div>
@@ -92,46 +148,25 @@ function AboutPage(): React.ReactElement {
           <div className="mx-auto max-w-7xl px-6 lg:px-8">
             <div className="mb-12 text-center">
               <p className="mb-2 text-sm font-medium uppercase tracking-widest text-muted-foreground">
-                What I Value
+                {about.valuesEyebrow}
               </p>
               <h2 className="font-serif text-3xl tracking-tight text-foreground sm:text-4xl">
-                The Heart of This Kitchen
+                {about.valuesTitle}
               </h2>
             </div>
 
             <div className="grid gap-8 md:grid-cols-3 lg:gap-12">
-              <div className="text-center">
-                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-secondary">
-                  <span className="font-serif text-2xl text-foreground">01</span>
+              {about.values.map((value, index) => (
+                <div key={value.id || value.title} className="text-center">
+                  <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-secondary">
+                    <span className="font-serif text-2xl text-foreground">
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+                  </div>
+                  <h3 className="mb-3 font-serif text-xl text-foreground">{value.title}</h3>
+                  <p className="leading-relaxed text-muted-foreground">{value.body}</p>
                 </div>
-                <h3 className="mb-3 font-serif text-xl text-foreground">Simplicity</h3>
-                <p className="leading-relaxed text-muted-foreground">
-                  The best dishes often have the fewest ingredients. I focus on quality over
-                  quantity, letting good produce shine.
-                </p>
-              </div>
-
-              <div className="text-center">
-                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-secondary">
-                  <span className="font-serif text-2xl text-foreground">02</span>
-                </div>
-                <h3 className="mb-3 font-serif text-xl text-foreground">Seasonality</h3>
-                <p className="leading-relaxed text-muted-foreground">
-                  Cooking with the seasons means better flavor, better nutrition, and a deeper
-                  connection to what we eat.
-                </p>
-              </div>
-
-              <div className="text-center">
-                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-secondary">
-                  <span className="font-serif text-2xl text-foreground">03</span>
-                </div>
-                <h3 className="mb-3 font-serif text-xl text-foreground">Connection</h3>
-                <p className="leading-relaxed text-muted-foreground">
-                  Food is meant to be shared. Every recipe here is designed to bring people together
-                  around the table.
-                </p>
-              </div>
+              ))}
             </div>
           </div>
         </section>
@@ -139,7 +174,7 @@ function AboutPage(): React.ReactElement {
         {/* Image Break */}
         <section className="relative h-[50vh] lg:h-[60vh]">
           <OptimizedImage
-            src="/beautiful-kitchen-scene-with-ingredients-and-cooki.jpg"
+            src={about.quoteImage}
             alt="Cooking process in the kitchen"
             className="h-full w-full object-cover"
           />
@@ -147,10 +182,10 @@ function AboutPage(): React.ReactElement {
           <div className="absolute inset-0 flex items-center justify-center">
             <blockquote className="max-w-2xl px-6 text-center">
               <p className="font-serif text-2xl italic leading-relaxed text-primary-foreground sm:text-3xl lg:text-4xl">
-                "Cooking is like love. It should be entered into with abandon or not at all."
+                {about.quoteText}
               </p>
               <cite className="mt-4 block text-sm tracking-wide text-primary-foreground/80">
-                — Harriet Van Horne
+                — {about.quoteAuthor}
               </cite>
             </blockquote>
           </div>
@@ -162,31 +197,13 @@ function AboutPage(): React.ReactElement {
             <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-20">
               <div>
                 <p className="mb-4 text-sm font-medium uppercase tracking-widest text-muted-foreground">
-                  What You'll Find Here
+                  {about.whatsIncludedEyebrow}
                 </p>
                 <h2 className="mb-6 font-serif text-3xl tracking-tight text-foreground sm:text-4xl">
-                  More Than Just Recipes
+                  {about.whatsIncludedTitle}
                 </h2>
                 <div className="space-y-4 leading-relaxed text-muted-foreground">
-                  <p>
-                    <strong className="text-foreground">Recipes:</strong> From quick weeknight
-                    dinners to weekend baking projects, each recipe is thoroughly tested and written
-                    with detailed instructions so you can recreate them with confidence.
-                  </p>
-                  <p>
-                    <strong className="text-foreground">Kitchen Tips:</strong> Little tricks and
-                    techniques I've learned along the way that make cooking easier and more
-                    enjoyable.
-                  </p>
-                  <p>
-                    <strong className="text-foreground">Life & Stories:</strong> Because food is
-                    about more than just eating—it's about the stories we tell, the traditions we
-                    keep, and the moments we share.
-                  </p>
-                  <p>
-                    <strong className="text-foreground">The Shop:</strong> A curated collection of
-                    kitchen essentials I genuinely love and use in my own kitchen every day.
-                  </p>
+                  {renderLabeledLines(about.whatsIncludedBody)}
                 </div>
                 <div className="mt-8">
                   <Button asChild>
@@ -198,7 +215,7 @@ function AboutPage(): React.ReactElement {
               <div className="relative">
                 <div className="aspect-square overflow-hidden rounded-lg bg-muted">
                   <OptimizedImage
-                    src="/overhead-shot-of-colorful-ingredients-on-cutting-.jpg"
+                    src={about.whatsIncludedImage}
                     alt="Fresh ingredients on a cutting board"
                     className="h-full w-full object-cover"
                   />
@@ -213,16 +230,12 @@ function AboutPage(): React.ReactElement {
           <div className="mx-auto max-w-7xl px-6 lg:px-8">
             <div className="mx-auto max-w-2xl text-center">
               <p className="mb-4 text-sm font-medium uppercase tracking-widest text-muted-foreground">
-                Let's Connect
+                {about.connectEyebrow}
               </p>
               <h2 className="mb-6 font-serif text-3xl tracking-tight text-foreground sm:text-4xl">
-                I'd Love to Hear From You
+                {about.connectTitle}
               </h2>
-              <p className="mb-8 leading-relaxed text-muted-foreground">
-                Whether you have a question about a recipe, want to share how a dish turned out, or
-                just want to say hello—my inbox is always open. You can also follow along on
-                Instagram for behind-the-scenes kitchen moments.
-              </p>
+              <p className="mb-8 leading-relaxed text-muted-foreground">{about.connectBody}</p>
               <div className="flex flex-col justify-center gap-4 sm:flex-row">
                 <Button variant="outline" size="lg" asChild>
                   <a href="mailto:hello@tastingswithtay.com">
@@ -251,4 +264,43 @@ function AboutPage(): React.ReactElement {
       <SiteFooter />
     </div>
   )
+}
+
+function getAboutContent(rawDraft: unknown): AboutContent {
+  const draft = rawDraft as SiteDraftValue | null
+  const about = draft?.about ?? {}
+
+  return {
+    ...defaultAboutContent,
+    ...about,
+    values: about.values && about.values.length > 0 ? about.values : defaultAboutContent.values,
+  }
+}
+
+function splitTextBlocks(value: string): string[] {
+  return value
+    .split(/\n{2,}|\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+}
+
+function renderParagraphs(value: string): React.ReactNode {
+  return splitTextBlocks(value).map((paragraph) => <p key={paragraph}>{paragraph}</p>)
+}
+
+function renderLabeledLines(value: string): React.ReactNode {
+  return splitTextBlocks(value).map((line) => {
+    const [label = "", ...bodyParts] = line.split(":")
+    const body = bodyParts.join(":").trim()
+
+    if (!body) {
+      return <p key={line}>{line}</p>
+    }
+
+    return (
+      <p key={line}>
+        <strong className="text-foreground">{label.trim()}:</strong> {body}
+      </p>
+    )
+  })
 }

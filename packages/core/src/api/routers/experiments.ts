@@ -32,48 +32,39 @@ export const experimentsRouter = {
         .offset(offset)
     }),
 
-  bySlug: publicProcedure
-    .input(z.object({ slug: z.string() }))
-    .query(async ({ ctx, input }) => {
-      const [experiment] = await ctx.db
-        .select()
-        .from(experiments)
-        .where(
-          and(
-            eq(experiments.slug, input.slug),
-            eq(experiments.published, true),
-          ),
-        )
-        .limit(1)
+  bySlug: publicProcedure.input(z.object({ slug: z.string() })).query(async ({ ctx, input }) => {
+    const [experiment] = await ctx.db
+      .select()
+      .from(experiments)
+      .where(and(eq(experiments.slug, input.slug), eq(experiments.published, true)))
+      .limit(1)
 
-      if (!experiment) return null
+    if (!experiment) return null
 
-      const entries = await ctx.db
-        .select()
-        .from(experimentEntries)
-        .where(eq(experimentEntries.experimentId, experiment.id))
-        .orderBy(desc(experimentEntries.createdAt))
+    const entries = await ctx.db
+      .select()
+      .from(experimentEntries)
+      .where(eq(experimentEntries.experimentId, experiment.id))
+      .orderBy(desc(experimentEntries.createdAt))
 
-      const experimentTagsResult = await ctx.db
-        .select({ tag: tags })
-        .from(experimentTags)
-        .innerJoin(tags, eq(experimentTags.tagId, tags.id))
-        .where(eq(experimentTags.experimentId, experiment.id))
+    const experimentTagsResult = await ctx.db
+      .select({ tag: tags })
+      .from(experimentTags)
+      .innerJoin(tags, eq(experimentTags.tagId, tags.id))
+      .where(eq(experimentTags.experimentId, experiment.id))
 
-      return {
-        ...experiment,
-        entries,
-        tags: experimentTagsResult.map((r) => r.tag),
-      }
-    }),
+    return {
+      ...experiment,
+      entries,
+      tags: experimentTagsResult.map((r) => r.tag),
+    }
+  }),
 
   featured: publicProcedure.query(async ({ ctx }) => {
     return ctx.db
       .select()
       .from(experiments)
-      .where(
-        and(eq(experiments.published, true), eq(experiments.featured, true)),
-      )
+      .where(and(eq(experiments.published, true), eq(experiments.featured, true)))
       .orderBy(desc(experiments.updatedAt))
       .limit(6)
   }),

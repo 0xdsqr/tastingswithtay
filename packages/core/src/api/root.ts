@@ -5,6 +5,7 @@ import { favoritesRouter } from "./routers/favorites"
 import { galleryRouter } from "./routers/gallery"
 import { ratingsRouter } from "./routers/ratings"
 import { recipesRouter } from "./routers/recipes"
+import { siteRouter } from "./routers/site"
 import { subscribersRouter } from "./routers/subscribers"
 import { tagsRouter } from "./routers/tags"
 import { winesRouter } from "./routers/wines"
@@ -21,6 +22,7 @@ export const appRouter = createTRPCRouter({
   favorites: favoritesRouter,
   comments: commentsRouter,
   ratings: ratingsRouter,
+  site: siteRouter,
 })
 
 export type AppRouter = typeof appRouter
