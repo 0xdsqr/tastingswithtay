@@ -3,4 +3,4 @@ name: tastingswithtay-web
 description: Helm chart for deploying the Tastings with Tay web application.
 type: application
 version: 0.1.0
-appVersion: "sha-3683a6df693809428e095534100d5d45d527225c"
+appVersion: "sha-8048e9bf27952050ff7fd6f3c97782e5ef33f95d"
