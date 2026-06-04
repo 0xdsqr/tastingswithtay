@@ -21,6 +21,18 @@ env:
   OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
   OTEL_RESOURCE_ATTRIBUTES: deployment.environment=prod,k8s.namespace.name=twt
 existingSecret: twt-secrets
+networkPolicy:
+  enabled: true
+  ingress:
+    from:
+      - namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: traefik
+      - namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: twt
+  egress:
+    allowAll: true
 ingress:
   enabled: true
   className: traefik
