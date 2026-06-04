@@ -37,11 +37,16 @@ jobs:
       - name: Lint
         run: nix develop -c bun run lint
 
+      - name: Build workspace packages
+        run: |
+          nix develop -c bun run --filter '@twt/db' build
+          nix develop -c bun run --filter '@twt/core' build
+
       - name: Typecheck
         run: nix develop -c bun run typecheck
 
-      - name: Build
-        run: nix develop -c bun run build
+      - name: Build apps
+        run: nix develop -c bun run --filter './apps/*' build
 
   helm:
     name: Helm chart check
