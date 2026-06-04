@@ -4,8 +4,13 @@ on:
   push:
     branches:
       - master
-    paths-ignore:
-      - "helm/**"
+    paths:
+      - ".github/workflows/publish-web-image.yml"
+      - "apps/**"
+      - "packages/**"
+      - "tooling/**"
+      - "bun.lock"
+      - "package.json"
   workflow_dispatch:
 
 permissions:
