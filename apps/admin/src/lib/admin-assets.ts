@@ -9,6 +9,7 @@ import {
 import { createServerFn } from "@tanstack/react-start"
 import { Buffer } from "node:buffer"
 import { randomUUID } from "node:crypto"
+import { isMissingObjectError } from "@twt/core/storage/object-error"
 import { sql } from "@twt/db"
 import { db } from "@twt/db/client"
 import { adminAuditLog } from "@twt/db/schema"
@@ -436,6 +437,8 @@ export async function getManagedImage(
       lastModified: response.LastModified,
     }
   } catch (error) {
+    if (isMissingObjectError(error)) return null
+
     console.error("[admin-assets] RustFS image fetch failed", {
       bucket: getBucketName(),
       key,

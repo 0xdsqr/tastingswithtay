@@ -1,11 +1,11 @@
 import { Link } from "@tanstack/react-router"
 import type { Recipe } from "@twt/db/schema"
-import { Button } from "@twt/ui/components/button"
 import { ArrowRight, Clock, CookingPot, Flower2, Users, Wine } from "lucide-react"
 import type React from "react"
-import { GhostCard } from "./empty-state"
-import { OptimizedImage } from "./optimized-image"
 import type { HomeContent } from "../lib/site-content"
+import { GhostCard } from "./empty-state"
+import { NewsletterSignupForm } from "./newsletter-signup-form"
+import { OptimizedImage } from "./optimized-image"
 
 function formatTime(minutes: number | null): string {
   if (!minutes) return ""
@@ -313,20 +313,7 @@ export function BentoGrid({ recipes, categories, content }: BentoGridProps): Rea
                     Join the community and receive a free recipe eBook.
                   </p>
                 </div>
-                <div className="flex gap-2">
-                  <input
-                    type="email"
-                    placeholder="Enter your email"
-                    className="w-full rounded-lg border border-brand-cream/20 bg-brand-cream/10 px-4 py-2 text-sm text-brand-cream placeholder:text-brand-cream/50 focus:outline-none focus:ring-2 focus:ring-brand-gold/40 lg:w-auto"
-                  />
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    className="flex-shrink-0 bg-brand-gold text-brand-charcoal hover:bg-brand-gold/90"
-                  >
-                    Subscribe
-                  </Button>
-                </div>
+                <NewsletterSignupForm appearance="card" />
               </div>
             </div>
           </BentoItem>

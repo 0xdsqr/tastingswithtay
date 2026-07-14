@@ -1,4 +1,5 @@
 import { GetObjectCommand, HeadObjectCommand, S3Client } from "@aws-sdk/client-s3"
+import { isMissingObjectError } from "@twt/core/storage/object-error"
 
 const managedImageFolders = new Set([
   "about",
@@ -94,6 +95,8 @@ export async function getManagedImage(
       lastModified: response.LastModified,
     }
   } catch (error) {
+    if (isMissingObjectError(error)) return null
+
     console.error("[managed-images] RustFS image fetch failed", {
       bucket: getBucketName(),
       key,

@@ -41,6 +41,7 @@ ENV PORT=3011
 
 COPY docker/runtime/package.json docker/runtime/package-lock.json ./
 RUN npm ci --omit=dev --ignore-scripts --no-audit --no-fund
+COPY --chown=node:node docker/runtime/instrumentation.mjs docker/runtime/loader.mjs ./
 
 COPY --from=build --chown=node:node /app/apps/admin/.output ./.output
 
@@ -48,4 +49,4 @@ EXPOSE 3011
 
 USER node
 
-CMD ["node", ".output/server/index.mjs"]
+CMD ["node", "--import", "./loader.mjs", "--import", "./instrumentation.mjs", ".output/server/index.mjs"]

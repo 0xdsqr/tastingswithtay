@@ -432,13 +432,87 @@ const siteDraftSchema = z
         privacyNote: siteContentText,
       })
       .strict(),
+    gardenAndFlock: z
+      .object({
+        metaTitle: siteHeadingText,
+        metaDescription: siteContentText,
+        heroTitle: siteHeadingText,
+        heroBody: siteContentText,
+        allFilterLabel: siteHeadingText,
+        gardenFilterLabel: siteHeadingText,
+        flockFilterLabel: siteHeadingText,
+        emptyAllHeading: siteHeadingText,
+        emptyAllBody: siteContentText,
+        emptyGardenHeading: siteHeadingText,
+        emptyGardenBody: siteContentText,
+        emptyFlockHeading: siteHeadingText,
+        emptyFlockBody: siteContentText,
+      })
+      .strict(),
   })
   .strict()
 
 const siteDraftInputSchema = z.object({ draft: siteDraftSchema }).strict()
 
+const taxonomyDraftSchema = z
+  .object({
+    tags: z
+      .array(
+        z
+          .object({
+            id: z
+              .string()
+              .min(1)
+              .max(100)
+              .regex(/^[a-zA-Z0-9_-]+$/),
+            name: siteHeadingText,
+            type: z.enum(["recipe", "wine", "experiment", "both"]),
+          })
+          .strict(),
+      )
+      .max(200),
+    collections: z
+      .array(
+        z
+          .object({
+            id: z
+              .string()
+              .min(1)
+              .max(100)
+              .regex(/^[a-zA-Z0-9_-]+$/),
+            name: siteHeadingText,
+            description: siteContentText,
+            featured: z.boolean(),
+          })
+          .strict(),
+      )
+      .max(100),
+    pairings: z
+      .array(
+        z
+          .object({
+            id: z
+              .string()
+              .min(1)
+              .max(100)
+              .regex(/^[a-zA-Z0-9_-]+$/),
+            recipeId: z.union([z.literal(""), z.string().uuid()]),
+            wineId: z.union([z.literal(""), z.string().uuid()]),
+            note: siteContentText,
+            isPrimary: z.boolean(),
+          })
+          .strict(),
+      )
+      .max(200),
+    notes: siteContentText,
+  })
+  .strict()
+
+const taxonomyDraftInputSchema = z.object({ draft: taxonomyDraftSchema }).strict()
+
 const siteDraftSettingKey = "site-draft"
 const sitePublicationSettingKey = "site-publication"
+const taxonomyDraftSettingKey = "taxonomy-draft"
 
 function asJsonObject(value: JsonValue | undefined): JsonObject {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
@@ -481,16 +555,25 @@ function actorId(user: SessionUser): string {
 export const getAdminBootstrap = createServerFn({ method: "GET" }).handler(async () => {
   const user = await requireAdminUser()
 
-  const [recipeRows, wineRows, experimentRows, entryRows, galleryRows, userRows, siteDraftRows] =
-    await Promise.all([
-      db.select().from(recipes).orderBy(desc(recipes.updatedAt)),
-      db.select().from(wines).orderBy(desc(wines.updatedAt)),
-      db.select().from(experiments).orderBy(desc(experiments.updatedAt)),
-      db.select().from(experimentEntries).orderBy(desc(experimentEntries.createdAt)),
-      db.select().from(galleryImages).orderBy(desc(galleryImages.updatedAt)),
-      db.select().from(authUsers).orderBy(desc(authUsers.createdAt)),
-      db.select().from(siteSettings).where(eq(siteSettings.key, siteDraftSettingKey)).limit(1),
-    ])
+  const [
+    recipeRows,
+    wineRows,
+    experimentRows,
+    entryRows,
+    galleryRows,
+    userRows,
+    siteDraftRows,
+    taxonomyDraftRows,
+  ] = await Promise.all([
+    db.select().from(recipes).orderBy(desc(recipes.updatedAt)),
+    db.select().from(wines).orderBy(desc(wines.updatedAt)),
+    db.select().from(experiments).orderBy(desc(experiments.updatedAt)),
+    db.select().from(experimentEntries).orderBy(desc(experimentEntries.createdAt)),
+    db.select().from(galleryImages).orderBy(desc(galleryImages.updatedAt)),
+    db.select().from(authUsers).orderBy(desc(authUsers.createdAt)),
+    db.select().from(siteSettings).where(eq(siteSettings.key, siteDraftSettingKey)).limit(1),
+    db.select().from(siteSettings).where(eq(siteSettings.key, taxonomyDraftSettingKey)).limit(1),
+  ])
 
   const entriesByExperimentId = new Map<string, typeof entryRows>()
   for (const entry of entryRows) {
@@ -523,6 +606,7 @@ export const getAdminBootstrap = createServerFn({ method: "GET" }).handler(async
     })),
     gallery: galleryRows,
     siteDraft: (siteDraftRows[0]?.value as JsonObject | undefined) ?? null,
+    taxonomyDraft: (taxonomyDraftRows[0]?.value as JsonObject | undefined) ?? null,
   }
 })
 
@@ -593,6 +677,33 @@ export const publishSiteDraft = createServerFn({ method: "POST" }).handler(async
     return (publication?.value as JsonObject | undefined) ?? (draft.value as JsonObject)
   })
 })
+
+export const saveTaxonomyDraft = createServerFn({ method: "POST" })
+  .validator(taxonomyDraftInputSchema)
+  .handler(async ({ data }) => {
+    const actor = await requireAdminUser()
+
+    return db.transaction(async (tx) => {
+      const [saved] = await tx
+        .insert(siteSettings)
+        .values({ key: taxonomyDraftSettingKey, value: data.draft })
+        .onConflictDoUpdate({
+          target: siteSettings.key,
+          set: { value: data.draft, updatedAt: new Date() },
+        })
+        .returning()
+
+      await tx.insert(adminAuditLog).values({
+        actorUserId: actorId(actor),
+        action: "taxonomy.draft.save",
+        targetType: "site",
+        targetId: taxonomyDraftSettingKey,
+        metadata: {},
+      })
+
+      return (saved?.value as JsonObject | undefined) ?? data.draft
+    })
+  })
 
 export const updateAdminUserRole = createServerFn({ method: "POST" })
   .validator(updateUserRoleSchema)

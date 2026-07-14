@@ -2,16 +2,18 @@
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "workspaces": {
     "apps/admin": {
-      "entry": ["src/router.tsx", "src/server.ts", "src/routes/**/*.tsx"]
+      "entry": ["src/router.tsx", "src/server.ts", "src/routes/**/*.ts", "src/routes/**/*.tsx"],
+      "ignoreDependencies": ["@img/sharp-wasm32"]
     },
     "apps/web": {
-      "entry": ["src/router.tsx", "src/server.ts", "src/routes/**/*.tsx"]
+      "entry": ["src/router.tsx", "src/server.ts", "src/routes/**/*.ts", "src/routes/**/*.tsx"]
     },
     "packages/core": {
       "entry": [
         "src/api/index.ts",
         "src/auth/index.ts",
         "src/http/readiness.ts",
+        "src/http/request-body.ts",
         "src/http/security.ts",
         "scripts/auth-cli.ts"
       ]
@@ -21,6 +23,10 @@
     },
     "packages/ui": {
       "entry": ["src/components/*.tsx", "src/hooks/*.ts", "src/styles/*.css"]
+    },
+    "docker/runtime": {
+      "entry": ["*.mjs"],
+      "ignoreDependencies": ["pg"]
     },
     ".": {
       "entry": ["scripts/*.ts"]

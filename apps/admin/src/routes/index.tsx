@@ -50,7 +50,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@twt/ui/components/tabs"
 import { Textarea } from "@twt/ui/components/textarea"
 import type { Experiment, ExperimentEntry, GalleryImage, Recipe, Wine } from "@twt/db/schema"
-import { useDeferredValue, useEffect, useMemo, useState, useTransition } from "react"
+import { useDeferredValue, useMemo, useState, useTransition } from "react"
 import { authClient } from "../auth/client"
 import { getAdminSessionUser } from "../lib/admin-access"
 import {
@@ -79,6 +79,7 @@ import {
   saveGalleryImage,
   saveRecipe,
   saveSiteDraft,
+  saveTaxonomyDraft,
   saveWine,
   updateAdminUserRole,
 } from "../lib/admin-data"
@@ -92,6 +93,7 @@ type ContentSectionId =
   | "experiments"
   | "gallery"
   | "taxonomy"
+type SitePageId = "home" | "about" | "gardenAndFlock" | "newsletter"
 type ManagedRole = "admin" | "user"
 type ExperimentWithEntries = Experiment & { entries: ExperimentEntry[] }
 type RecipeForm = ReturnType<typeof createEmptyRecipe> & { id?: string }
@@ -173,6 +175,21 @@ type SiteDraft = {
     title: string
     body: string
     privacyNote: string
+  }
+  gardenAndFlock: {
+    metaTitle: string
+    metaDescription: string
+    heroTitle: string
+    heroBody: string
+    allFilterLabel: string
+    gardenFilterLabel: string
+    flockFilterLabel: string
+    emptyAllHeading: string
+    emptyAllBody: string
+    emptyGardenHeading: string
+    emptyGardenBody: string
+    emptyFlockHeading: string
+    emptyFlockBody: string
   }
 }
 
@@ -262,6 +279,22 @@ const defaultSiteDraft: SiteDraft = {
     body: "Get weekly recipes, cooking tips, and new notes from Tay delivered straight to your inbox.",
     privacyNote: "No spam, unsubscribe anytime.",
   },
+  gardenAndFlock: {
+    metaTitle: "Garden & Flock | Tastings with Tay",
+    metaDescription: "Photos and stories from Tay's garden beds, seasonal harvests, and flock.",
+    heroTitle: "Garden & Flock",
+    heroBody:
+      "A peek into our little homestead. From the garden beds to the chicken coop — this is where the good stuff grows.",
+    allFilterLabel: "All",
+    gardenFilterLabel: "Garden",
+    flockFilterLabel: "Flock",
+    emptyAllHeading: "The garden is growing",
+    emptyAllBody: "Photos from the garden and flock are on their way!",
+    emptyGardenHeading: "No garden photos yet",
+    emptyGardenBody: "Check back soon or try a different filter.",
+    emptyFlockHeading: "No flock photos yet",
+    emptyFlockBody: "Check back soon or try a different filter.",
+  },
 }
 
 const defaultTaxonomyDraft: TaxonomyDraft = {
@@ -309,8 +342,9 @@ function AdminPortalPage(): React.ReactElement {
   const [siteDraft, setSiteDraft] = useState<SiteDraft>(
     mergeSiteDraft(bootstrap.siteDraft as Partial<SiteDraft> | null),
   )
-  const [taxonomyDraft, setTaxonomyDraft, taxonomyDraftHydrated] =
-    useLocalStorageDraft<TaxonomyDraft>("twt-admin-taxonomy-draft", defaultTaxonomyDraft)
+  const [taxonomyDraft, setTaxonomyDraft] = useState<TaxonomyDraft>(
+    mergeTaxonomyDraft(bootstrap.taxonomyDraft as Partial<TaxonomyDraft> | null),
+  )
   const [signingOut, startSignOutTransition] = useTransition()
 
   const adminCount = users.filter((user) => toManagedRole(user.role) === "admin").length
@@ -434,7 +468,7 @@ function AdminPortalPage(): React.ReactElement {
                     {activeSection === "dashboard"
                       ? "A quick read on what exists, what is live, and how the admin is organized."
                       : activeSection === "content"
-                        ? "One workspace for site copy, recipes, wines, experiments, gallery, and taxonomy planning."
+                        ? "Write pages, publish recipes and wines, manage photos, and organize collections in one place."
                         : "Manage accounts and who can access the admin portal."}
                   </p>
                 </div>
@@ -487,7 +521,6 @@ function AdminPortalPage(): React.ReactElement {
               siteDraftHydrated
               taxonomyDraft={taxonomyDraft}
               setTaxonomyDraft={setTaxonomyDraft}
-              taxonomyDraftHydrated={taxonomyDraftHydrated}
             />
           ) : null}
 
@@ -544,16 +577,16 @@ function DashboardPanel({
           </CardHeader>
           <CardContent className="space-y-4 text-sm text-muted-foreground">
             <InfoRow
-              title="Site copy"
-              body="Homepage and About page storytelling live in saved draft forms. The public About page reads from the saved Site tab content."
+              title="Website pages"
+              body="Home, About Tay, Garden & Flock, and newsletter copy each have a focused editor. Save privately, then publish when ready."
             />
             <InfoRow
               title="Structured content"
               body="Recipes, wines, test-kitchen entries, and garden/flock images use the real schema-backed forms so Tay can already add, edit, delete, and publish those."
             />
             <InfoRow
-              title="Taxonomy planning"
-              body="Tags, collections, and pairings are drafted in one place first. Once the exact relationships feel right, we wire those into the database and public site."
+              title="Organization"
+              body="Tags, collections, and recipe-to-wine pairings are saved to the shared admin workspace with an audit record."
             />
           </CardContent>
         </Card>
@@ -593,7 +626,6 @@ function ContentStudio({
   siteDraftHydrated,
   taxonomyDraft,
   setTaxonomyDraft,
-  taxonomyDraftHydrated,
 }: {
   contentSection: ContentSectionId
   onContentSectionChange: (value: ContentSectionId) => void
@@ -610,7 +642,6 @@ function ContentStudio({
   siteDraftHydrated: boolean
   taxonomyDraft: TaxonomyDraft
   setTaxonomyDraft: React.Dispatch<React.SetStateAction<TaxonomyDraft>>
-  taxonomyDraftHydrated: boolean
 }): React.ReactElement {
   return (
     <div className="space-y-6">
@@ -619,13 +650,13 @@ function ContentStudio({
         onValueChange={(value) => onContentSectionChange(value as ContentSectionId)}
       >
         <TabsList className="grid h-auto w-full grid-cols-2 gap-2 bg-transparent p-0 md:grid-cols-4 xl:grid-cols-7">
-          <ContentTab value="site" label="Site" draft />
-          <ContentTab value="images" label="Images" />
+          <ContentTab value="site" label="Pages" draft />
+          <ContentTab value="images" label="Media" />
           <ContentTab value="recipes" label="Recipes" />
           <ContentTab value="wines" label="Wines" />
           <ContentTab value="experiments" label="Test Kitchen" />
-          <ContentTab value="gallery" label="Gallery" />
-          <ContentTab value="taxonomy" label="Taxonomy" draft />
+          <ContentTab value="gallery" label="Garden & Flock" />
+          <ContentTab value="taxonomy" label="Organize" draft />
         </TabsList>
       </Tabs>
 
@@ -664,7 +695,6 @@ function ContentStudio({
         <TaxonomyManager
           draft={taxonomyDraft}
           setDraft={setTaxonomyDraft}
-          hydrated={taxonomyDraftHydrated}
           recipes={recipes}
           wines={wines}
         />
@@ -685,6 +715,7 @@ function SiteContentManager({
   recipeCount: number
 }): React.ReactElement {
   const [message, setMessage] = useState<string | null>(null)
+  const [selectedPage, setSelectedPage] = useState<SitePageId>("home")
   const [isPending, startTransition] = useTransition()
 
   if (!hydrated) {
@@ -723,40 +754,76 @@ function SiteContentManager({
     })
   }
 
+  const updateGardenAndFlock = (field: keyof SiteDraft["gardenAndFlock"], value: string) => {
+    setDraft((current) => ({
+      ...current,
+      gardenAndFlock: { ...current.gardenAndFlock, [field]: value },
+    }))
+  }
+
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Site pages and storytelling</CardTitle>
+          <CardTitle>Website pages</CardTitle>
           <CardDescription>
-            This area controls page copy, section images, and story-led content for the public site.
+            Choose a page, edit the words visitors see, then publish when everything is ready.
           </CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-3">
-          <InfoRow
-            title="Homepage hero"
-            body={`The rotating homepage hero already uses featured recipes. Right now ${recipeCount} recipe${recipeCount === 1 ? "" : "s"} are marked featured.`}
-          />
-          <InfoRow
-            title="About page"
-            body="The public About page reads the saved hero image, story, philosophy, values, quote, and connection copy from here."
-          />
-          <InfoRow
-            title="Images"
-            body="Upload through the Images tab or directly from image fields. URLs are written from the tastingswithtay RustFS bucket."
-          />
+        <CardContent>
+          <Tabs
+            value={selectedPage}
+            onValueChange={(value) => setSelectedPage(value as SitePageId)}
+          >
+            <TabsList className="grid h-auto w-full grid-cols-2 gap-2 bg-transparent p-0 lg:grid-cols-4">
+              <SitePageTab value="home" label="Home" description="Hero and homepage sections" />
+              <SitePageTab
+                value="about"
+                label="About Tay"
+                description="Story, values, and images"
+              />
+              <SitePageTab
+                value="gardenAndFlock"
+                label="Garden & Flock"
+                description="Page copy and visitor labels"
+              />
+              <SitePageTab
+                value="newsletter"
+                label="Newsletter"
+                description="Signup section copy"
+              />
+            </TabsList>
+          </Tabs>
         </CardContent>
       </Card>
 
-      {message ? (
-        <div className="rounded-md border px-3 py-2 text-sm text-muted-foreground">{message}</div>
-      ) : null}
+      <StatusBar message={message} />
 
-      <div className="grid gap-6 xl:grid-cols-2">
-        <Card>
+      <div className="sticky top-4 z-20 flex flex-col gap-3 rounded-lg border bg-background/95 p-4 shadow-sm backdrop-blur sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <div className="text-sm font-medium">Editing a private draft</div>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Save your progress at any time. Visitors only see changes after you publish.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button onClick={saveDraft} disabled={isPending} variant="outline">
+            {isPending ? "Working..." : "Save changes"}
+          </Button>
+          <Button onClick={publishDraft} disabled={isPending}>
+            Publish to website
+          </Button>
+        </div>
+      </div>
+
+      <div className="max-w-5xl">
+        <Card className={selectedPage === "home" ? undefined : "hidden"}>
           <CardHeader>
             <CardTitle>Homepage copy</CardTitle>
-            <CardDescription>Fallback messaging and section copy for the homepage.</CardDescription>
+            <CardDescription>
+              Fallback messaging and section copy for the homepage. The rotating hero uses your
+              featured recipes; {recipeCount} {recipeCount === 1 ? "is" : "are"} featured now.
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-5">
             <Field label="Fallback eyebrow">
@@ -913,7 +980,7 @@ function SiteContentManager({
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className={selectedPage === "about" ? undefined : "hidden"}>
           <CardHeader>
             <CardTitle>About page and newsletter</CardTitle>
             <CardDescription>
@@ -1117,7 +1184,145 @@ function SiteContentManager({
                 }
               />
             </Field>
-            <Field label="Newsletter title">
+          </CardContent>
+        </Card>
+
+        <Card className={selectedPage === "gardenAndFlock" ? undefined : "hidden"}>
+          <CardHeader>
+            <CardTitle>Garden &amp; Flock page</CardTitle>
+            <CardDescription>
+              Visitor-facing copy, search metadata, filters, and empty states. Manage the actual
+              garden and flock photos in the Garden &amp; Flock tab.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-5">
+            <Field label="Page title">
+              <Input
+                value={draft.gardenAndFlock.heroTitle}
+                onChange={(event) => updateGardenAndFlock("heroTitle", event.target.value)}
+              />
+            </Field>
+            <Field label="Page introduction">
+              <Textarea
+                rows={4}
+                value={draft.gardenAndFlock.heroBody}
+                onChange={(event) => updateGardenAndFlock("heroBody", event.target.value)}
+              />
+            </Field>
+            <div className="grid gap-4 md:grid-cols-2">
+              <Field label="Browser and sharing title">
+                <Input
+                  value={draft.gardenAndFlock.metaTitle}
+                  onChange={(event) => updateGardenAndFlock("metaTitle", event.target.value)}
+                />
+              </Field>
+              <Field label="Search description">
+                <Textarea
+                  rows={3}
+                  value={draft.gardenAndFlock.metaDescription}
+                  onChange={(event) => updateGardenAndFlock("metaDescription", event.target.value)}
+                />
+              </Field>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-3">
+              <Field label="All filter label">
+                <Input
+                  value={draft.gardenAndFlock.allFilterLabel}
+                  onChange={(event) => updateGardenAndFlock("allFilterLabel", event.target.value)}
+                />
+              </Field>
+              <Field label="Garden filter label">
+                <Input
+                  value={draft.gardenAndFlock.gardenFilterLabel}
+                  onChange={(event) =>
+                    updateGardenAndFlock("gardenFilterLabel", event.target.value)
+                  }
+                />
+              </Field>
+              <Field label="Flock filter label">
+                <Input
+                  value={draft.gardenAndFlock.flockFilterLabel}
+                  onChange={(event) => updateGardenAndFlock("flockFilterLabel", event.target.value)}
+                />
+              </Field>
+            </div>
+            <div className="space-y-4 rounded-md border p-4">
+              <div>
+                <div className="text-sm font-medium">Empty gallery messages</div>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  These appear when a visitor selects a view with no published photos.
+                </p>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <Field label="All photos heading">
+                  <Input
+                    value={draft.gardenAndFlock.emptyAllHeading}
+                    onChange={(event) =>
+                      updateGardenAndFlock("emptyAllHeading", event.target.value)
+                    }
+                  />
+                </Field>
+                <Field label="All photos message">
+                  <Input
+                    value={draft.gardenAndFlock.emptyAllBody}
+                    onChange={(event) => updateGardenAndFlock("emptyAllBody", event.target.value)}
+                  />
+                </Field>
+                <Field label="Garden heading">
+                  <Input
+                    value={draft.gardenAndFlock.emptyGardenHeading}
+                    onChange={(event) =>
+                      updateGardenAndFlock("emptyGardenHeading", event.target.value)
+                    }
+                  />
+                </Field>
+                <Field label="Garden message">
+                  <Input
+                    value={draft.gardenAndFlock.emptyGardenBody}
+                    onChange={(event) =>
+                      updateGardenAndFlock("emptyGardenBody", event.target.value)
+                    }
+                  />
+                </Field>
+                <Field label="Flock heading">
+                  <Input
+                    value={draft.gardenAndFlock.emptyFlockHeading}
+                    onChange={(event) =>
+                      updateGardenAndFlock("emptyFlockHeading", event.target.value)
+                    }
+                  />
+                </Field>
+                <Field label="Flock message">
+                  <Input
+                    value={draft.gardenAndFlock.emptyFlockBody}
+                    onChange={(event) => updateGardenAndFlock("emptyFlockBody", event.target.value)}
+                  />
+                </Field>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className={selectedPage === "newsletter" ? undefined : "hidden"}>
+          <CardHeader>
+            <CardTitle>Newsletter signup</CardTitle>
+            <CardDescription>
+              The invitation shown above newsletter signup forms across the public website.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-5">
+            <Field label="Small heading" description="A short introduction above the main title.">
+              <Input
+                value={draft.newsletter.eyebrow}
+                onChange={(event) =>
+                  setDraft((current) => ({
+                    ...current,
+                    newsletter: { ...current.newsletter, eyebrow: event.target.value },
+                  }))
+                }
+              />
+            </Field>
+            <Field label="Signup title">
               <Input
                 value={draft.newsletter.title}
                 onChange={(event) =>
@@ -1128,9 +1333,9 @@ function SiteContentManager({
                 }
               />
             </Field>
-            <Field label="Newsletter body">
+            <Field label="Signup message">
               <Textarea
-                rows={3}
+                rows={4}
                 value={draft.newsletter.body}
                 onChange={(event) =>
                   setDraft((current) => ({
@@ -1140,25 +1345,39 @@ function SiteContentManager({
                 }
               />
             </Field>
+            <Field
+              label="Privacy note"
+              description="A brief reassurance shown underneath the signup form."
+            >
+              <Input
+                value={draft.newsletter.privacyNote}
+                onChange={(event) =>
+                  setDraft((current) => ({
+                    ...current,
+                    newsletter: { ...current.newsletter, privacyNote: event.target.value },
+                  }))
+                }
+              />
+            </Field>
           </CardContent>
         </Card>
       </div>
 
-      <div className="flex flex-wrap gap-3">
-        <Button onClick={saveDraft} disabled={isPending}>
-          {isPending ? "Saving..." : "Save site draft"}
-        </Button>
-        <Button onClick={publishDraft} disabled={isPending} variant="secondary">
-          Publish site changes
-        </Button>
+      <div className="flex flex-col gap-3 border-t pt-5 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-xs text-muted-foreground">
+          Need a clean starting point? Restoring starter copy only changes this draft until you save
+          or publish it.
+        </p>
         <Button
+          type="button"
           variant="outline"
           onClick={() => {
+            if (!window.confirm("Replace this draft with the starter website copy?")) return
             setDraft(defaultSiteDraft)
-            setMessage("Site draft reset to the current default mock content.")
+            setMessage("Starter copy restored. Save or publish when you are ready.")
           }}
         >
-          Reset defaults
+          Restore starter copy
         </Button>
       </div>
     </div>
@@ -2012,7 +2231,7 @@ function ExperimentManager({
                   </Field>
                   <Field
                     label="Image URLs"
-                    description="One image URL per line. Use the Images tab to upload several photos, then paste URLs here."
+                    description="One image URL per line. Use the Media tab to upload several photos, then paste URLs here."
                   >
                     <Textarea
                       rows={3}
@@ -2449,32 +2668,27 @@ function ImageManager(): React.ReactElement {
 function TaxonomyManager({
   draft,
   setDraft,
-  hydrated,
   recipes,
   wines,
 }: {
   draft: TaxonomyDraft
   setDraft: React.Dispatch<React.SetStateAction<TaxonomyDraft>>
-  hydrated: boolean
   recipes: Recipe[]
   wines: Wine[]
 }): React.ReactElement {
   const [message, setMessage] = useState<string | null>(null)
-
-  if (!hydrated) {
-    return (
-      <Card>
-        <CardContent className="flex items-center gap-3 py-10 text-sm text-muted-foreground">
-          <Spinner className="size-4" />
-          Loading taxonomy draft...
-        </CardContent>
-      </Card>
-    )
-  }
+  const [isPending, startTransition] = useTransition()
 
   const saveDraft = () => {
-    console.log("Taxonomy draft saved", draft)
-    setMessage("Taxonomy draft saved locally in this browser and logged to the console.")
+    setMessage(null)
+    startTransition(async () => {
+      try {
+        await saveTaxonomyDraft({ data: { draft } })
+        setMessage("Organization changes saved. They are available to every admin.")
+      } catch (error) {
+        setMessage(error instanceof Error ? error.message : "Could not save these changes.")
+      }
+    })
   }
 
   return (
@@ -2483,8 +2697,8 @@ function TaxonomyManager({
         <CardHeader>
           <CardTitle>Tags, collections, and pairings</CardTitle>
           <CardDescription>
-            This is the planning space for all the content relationships that deserve a thoughtful
-            model before we wire them into the live site.
+            Organize recipes, wines, and future collections in one shared workspace. These changes
+            are private to the admin team until a public collection uses them.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-3">
@@ -2503,15 +2717,13 @@ function TaxonomyManager({
         </CardContent>
       </Card>
 
-      {message ? (
-        <div className="rounded-md border px-3 py-2 text-sm text-muted-foreground">{message}</div>
-      ) : null}
+      <StatusBar message={message} />
 
       <div className="grid gap-6 xl:grid-cols-3">
         <Card>
           <CardHeader>
             <CardTitle>Tags</CardTitle>
-            <CardDescription>Draft the vocab Tay will actually use.</CardDescription>
+            <CardDescription>Use familiar words visitors would understand.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {draft.tags.map((tag) => (
@@ -2588,7 +2800,7 @@ function TaxonomyManager({
           <CardHeader>
             <CardTitle>Collections</CardTitle>
             <CardDescription>
-              Curated sets of recipes or wines for future landing surfaces.
+              Group recipes or wines around a season, menu, or moment.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -2674,9 +2886,7 @@ function TaxonomyManager({
         <Card>
           <CardHeader>
             <CardTitle>Recipe + wine pairings</CardTitle>
-            <CardDescription>
-              Mock the future pairing editor before we wire the junction table.
-            </CardDescription>
+            <CardDescription>Connect a recipe with the wine that suits it best.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {draft.pairings.map((pairing) => (
@@ -2809,15 +3019,21 @@ function TaxonomyManager({
       </div>
 
       <div className="flex flex-wrap gap-3">
-        <Button onClick={saveDraft}>Save taxonomy draft</Button>
+        <Button onClick={saveDraft} disabled={isPending}>
+          {isPending ? "Saving..." : "Save organization changes"}
+        </Button>
         <Button
+          type="button"
           variant="outline"
           onClick={() => {
+            if (!window.confirm("Replace these organization changes with the starter examples?")) {
+              return
+            }
             setDraft(defaultTaxonomyDraft)
-            setMessage("Taxonomy draft reset to the current default mock content.")
+            setMessage("Starter examples restored. Save when you are ready.")
           }}
         >
-          Reset defaults
+          Restore starter examples
         </Button>
       </div>
     </div>
@@ -3147,6 +3363,28 @@ function ContentTab({
           Draft
         </Badge>
       ) : null}
+    </TabsTrigger>
+  )
+}
+
+function SitePageTab({
+  value,
+  label,
+  description,
+}: {
+  value: SitePageId
+  label: string
+  description: string
+}): React.ReactElement {
+  return (
+    <TabsTrigger
+      value={value}
+      className="h-auto min-h-20 flex-col items-start justify-center whitespace-normal rounded-lg border px-4 py-3 text-left data-[state=active]:border-primary/40 data-[state=active]:bg-primary/5"
+    >
+      <span className="text-sm font-semibold">{label}</span>
+      <span className="text-xs font-normal leading-relaxed text-muted-foreground">
+        {description}
+      </span>
     </TabsTrigger>
   )
 }
@@ -3619,42 +3857,15 @@ function InfoRow({ title, body }: { title: string; body: string }): React.ReactE
 function StatusBar({ message }: { message: string | null }): React.ReactElement | null {
   if (!message) return null
 
-  return <div className="rounded-md border px-3 py-2 text-sm text-muted-foreground">{message}</div>
-}
-
-function useLocalStorageDraft<T>(
-  key: string,
-  initialValue: T,
-): [T, React.Dispatch<React.SetStateAction<T>>, boolean] {
-  const [value, setValue] = useState<T>(initialValue)
-  const [hydrated, setHydrated] = useState(false)
-
-  useEffect(() => {
-    if (typeof window === "undefined") return
-
-    try {
-      const raw = window.localStorage.getItem(key)
-      if (raw) {
-        setValue(JSON.parse(raw) as T)
-      }
-    } catch (error) {
-      console.warn(`Could not load local draft for ${key}`, error)
-    } finally {
-      setHydrated(true)
-    }
-  }, [key])
-
-  useEffect(() => {
-    if (!hydrated || typeof window === "undefined") return
-
-    try {
-      window.localStorage.setItem(key, JSON.stringify(value))
-    } catch (error) {
-      console.warn(`Could not persist local draft for ${key}`, error)
-    }
-  }, [hydrated, key, value])
-
-  return [value, setValue, hydrated]
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      className="rounded-md border px-3 py-2 text-sm text-muted-foreground"
+    >
+      {message}
+    </div>
+  )
 }
 
 function toManagedRole(role: string | null | undefined): ManagedRole {
@@ -3811,6 +4022,21 @@ function mergeSiteDraft(value: Partial<SiteDraft> | null | undefined): SiteDraft
       ...defaultSiteDraft.newsletter,
       ...(value?.newsletter ?? {}),
     },
+    gardenAndFlock: {
+      ...defaultSiteDraft.gardenAndFlock,
+      ...(value?.gardenAndFlock ?? {}),
+    },
+  }
+}
+
+function mergeTaxonomyDraft(value: Partial<TaxonomyDraft> | null | undefined): TaxonomyDraft {
+  return {
+    tags: Array.isArray(value?.tags) ? value.tags : defaultTaxonomyDraft.tags,
+    collections: Array.isArray(value?.collections)
+      ? value.collections
+      : defaultTaxonomyDraft.collections,
+    pairings: Array.isArray(value?.pairings) ? value.pairings : defaultTaxonomyDraft.pairings,
+    notes: typeof value?.notes === "string" ? value.notes : defaultTaxonomyDraft.notes,
   }
 }
 

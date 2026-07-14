@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router"
+import { createFileRoute, Link } from "@tanstack/react-router"
 import type { GalleryImage } from "@twt/db/schema"
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@twt/ui/components/dialog"
 import { ChevronLeft, ChevronRight, Egg, Flower2, X } from "lucide-react"
@@ -8,35 +8,39 @@ import { EmptyState } from "../../components/empty-state"
 import { OptimizedImage } from "../../components/optimized-image"
 import { SiteFooter } from "../../components/site-footer"
 import { SiteHeader } from "../../components/site-header"
+import { getGardenAndFlockContent } from "../../lib/site-content"
 
-const categoryFilters = ["All", "Garden", "Flock"] as const
 const galleryCategoryValues = ["garden", "flock"] as const
 
-const categoryMap: Record<string, string> = {
-  Garden: "garden",
-  Flock: "flock",
-}
-
 export const Route = createFileRoute("/garden-and-flock/")({
-  head: () => ({
-    meta: [
-      { title: "Garden & Flock | Tastings with Tay" },
-      {
-        name: "description",
-        content: "Photos and stories from Tay's garden beds, seasonal harvests, and flock.",
-      },
-    ],
-  }),
   validateSearch: z.object({ category: z.enum(galleryCategoryValues).optional() }),
   loaderDeps: ({ search }) => ({ category: search.category }),
   loader: async ({ context, deps }) => {
-    const images = (await context.queryClient.fetchQuery(
-      context.trpc.gallery.list.queryOptions({
-        category: deps.category,
-      }),
-    )) as GalleryImage[]
-    return { images, activeCategory: deps.category ?? "All" }
+    const [images, sitePublication] = await Promise.all([
+      context.queryClient.fetchQuery(
+        context.trpc.gallery.list.queryOptions({
+          category: deps.category,
+        }),
+      ) as Promise<GalleryImage[]>,
+      context.queryClient.fetchQuery(context.trpc.site.published.queryOptions()),
+    ])
+
+    return {
+      images,
+      activeCategory: deps.category,
+      content: getGardenAndFlockContent(sitePublication),
+    }
   },
+  head: ({ loaderData }) => ({
+    meta: loaderData
+      ? [
+          { title: loaderData.content.metaTitle },
+          { name: "description", content: loaderData.content.metaDescription },
+          { property: "og:title", content: loaderData.content.metaTitle },
+          { property: "og:description", content: loaderData.content.metaDescription },
+        ]
+      : [{ title: "Garden & Flock | Tastings with Tay" }],
+  }),
   component: GardenAndFlockPage,
 })
 
@@ -140,8 +144,21 @@ function Lightbox({
 }
 
 function GardenAndFlockPage(): React.ReactElement {
-  const { images, activeCategory } = Route.useLoaderData()
+  const { images, activeCategory, content } = Route.useLoaderData()
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
+
+  const categoryFilters = [
+    { id: "all", category: undefined, label: content.allFilterLabel },
+    { id: "garden", category: "garden" as const, label: content.gardenFilterLabel },
+    { id: "flock", category: "flock" as const, label: content.flockFilterLabel },
+  ]
+
+  const emptyState =
+    activeCategory === "garden"
+      ? { heading: content.emptyGardenHeading, body: content.emptyGardenBody }
+      : activeCategory === "flock"
+        ? { heading: content.emptyFlockHeading, body: content.emptyFlockBody }
+        : { heading: content.emptyAllHeading, body: content.emptyAllBody }
 
   const openLightbox = (index: number) => setLightboxIndex(index)
   const closeLightbox = () => setLightboxIndex(null)
@@ -176,11 +193,10 @@ function GardenAndFlockPage(): React.ReactElement {
               <Egg className="h-8 w-8 text-amber-600" />
             </div>
             <h1 className="text-balance mb-4 font-serif text-4xl text-foreground sm:text-5xl lg:text-6xl">
-              Garden & Flock
+              {content.heroTitle}
             </h1>
             <p className="mx-auto max-w-2xl text-lg leading-relaxed text-muted-foreground">
-              A peek into our little homestead. From the garden beds to the chicken coop — this is
-              where the good stuff grows.
+              {content.heroBody}
             </p>
           </div>
         </section>
@@ -190,25 +206,21 @@ function GardenAndFlockPage(): React.ReactElement {
           <div className="mx-auto max-w-7xl px-6 lg:px-8">
             {/* Category Tabs */}
             <div className="mb-12 flex flex-wrap justify-center gap-3">
-              {categoryFilters.map((cat) => {
-                const isActive =
-                  cat === "All" ? activeCategory === "All" : categoryMap[cat] === activeCategory
+              {categoryFilters.map((filter) => {
+                const isActive = filter.category === activeCategory
                 return (
-                  <a
-                    key={cat}
-                    href={
-                      cat === "All"
-                        ? "/garden-and-flock"
-                        : `/garden-and-flock?category=${categoryMap[cat]}`
-                    }
+                  <Link
+                    key={filter.id}
+                    to="/garden-and-flock"
+                    search={{ category: filter.category }}
                     className={`rounded-full px-5 py-2 text-sm font-medium transition-all duration-300 ${
                       isActive
                         ? "bg-primary text-primary-foreground"
                         : "bg-muted text-muted-foreground hover:bg-muted/80"
                     }`}
                   >
-                    {cat}
-                  </a>
+                    {filter.label}
+                  </Link>
                 )
               })}
             </div>
@@ -252,7 +264,9 @@ function GardenAndFlockPage(): React.ReactElement {
                                 : "bg-amber-500/80 text-white"
                             }`}
                           >
-                            {image.category === "garden" ? "Garden" : "Flock"}
+                            {image.category === "garden"
+                              ? content.gardenFilterLabel
+                              : content.flockFilterLabel}
                           </span>
                         </div>
                       </div>
@@ -263,16 +277,8 @@ function GardenAndFlockPage(): React.ReactElement {
             ) : (
               <EmptyState
                 icon={Flower2}
-                heading={
-                  activeCategory !== "All"
-                    ? `No ${activeCategory} photos yet`
-                    : "The garden is growing"
-                }
-                message={
-                  activeCategory !== "All"
-                    ? "Check back soon or try a different filter."
-                    : "Photos from the garden and flock are on their way!"
-                }
+                heading={emptyState.heading}
+                message={emptyState.body}
                 variant="recipe"
               />
             )}
