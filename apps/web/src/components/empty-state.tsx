@@ -125,4 +125,4 @@ export function EmptyState({
   )
 }
 
-export { GhostCard, GhostWineCard, GhostPostCard }
+export { GhostCard }

@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
+import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router"
 import { Button } from "@twt/ui/components/button"
 import { Card, CardContent } from "@twt/ui/components/card"
 import {
@@ -10,14 +10,17 @@ import {
   FieldSeparator,
 } from "@twt/ui/components/field"
 import { Input } from "@twt/ui/components/input"
-import { Spinner } from "@twt/ui/components/spinner"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { authClient } from "../auth/client"
+import { getServerSession } from "../auth/get-session"
 import { OptimizedImage } from "../components/optimized-image"
 import { SiteFooter } from "../components/site-footer"
 import { SiteHeader } from "../components/site-header"
 
 export const Route = createFileRoute("/login")({
+  beforeLoad: async () => {
+    if (await getServerSession()) throw redirect({ to: "/" })
+  },
   component: LoginPage,
 })
 
@@ -39,45 +42,10 @@ function DiscordIcon({ className }: { className?: string }) {
 
 function LoginPage(): React.ReactElement {
   const navigate = useNavigate()
-  const { data: session, isPending: sessionPending } = authClient.useSession()
-
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-
-  // If already logged in, redirect to home
-  useEffect(() => {
-    if (session && !sessionPending) {
-      navigate({ to: "/" })
-    }
-  }, [session, sessionPending, navigate])
-
-  // Show nothing while checking session to avoid flash
-  if (sessionPending) {
-    return (
-      <div className="flex min-h-screen flex-col">
-        <SiteHeader />
-        <main className="flex flex-1 items-center justify-center">
-          <Spinner className="size-8" />
-        </main>
-        <SiteFooter />
-      </div>
-    )
-  }
-
-  // Already authenticated, will redirect via useEffect
-  if (session) {
-    return (
-      <div className="flex min-h-screen flex-col">
-        <SiteHeader />
-        <main className="flex flex-1 items-center justify-center">
-          <Spinner className="size-8" />
-        </main>
-        <SiteFooter />
-      </div>
-    )
-  }
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -91,7 +59,7 @@ function LoginPage(): React.ReactElement {
       })
 
       if (res.error) {
-        setError(res.error.message ?? "Login failed")
+        setError("The email or password is incorrect.")
       } else {
         navigate({ to: "/" })
       }
@@ -103,13 +71,22 @@ function LoginPage(): React.ReactElement {
   }
 
   const handleDiscordLogin = async () => {
+    setError(null)
     setIsLoading(true)
-    const res = await authClient.signIn.social({
-      provider: "discord",
-      callbackURL: "/",
-    })
-    if (res.data?.url) {
-      window.location.href = res.data.url
+    try {
+      const res = await authClient.signIn.social({
+        provider: "discord",
+        callbackURL: "/",
+      })
+      if (res.data?.url) {
+        window.location.href = res.data.url
+        return
+      }
+      setError("Discord sign-in is not available right now.")
+    } catch {
+      setError("Discord sign-in is not available right now.")
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -136,32 +113,30 @@ function LoginPage(): React.ReactElement {
                     <FieldLabel htmlFor="email">Email</FieldLabel>
                     <Input
                       id="email"
+                      name="email"
                       type="email"
+                      autoComplete="email"
                       placeholder="you@example.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
+                      maxLength={255}
                       className="h-12"
                     />
                   </Field>
 
                   <Field>
-                    <div className="flex items-center justify-between">
-                      <FieldLabel htmlFor="password">Password</FieldLabel>
-                      <a
-                        href="/forgot-password"
-                        className="text-muted-foreground hover:text-primary text-sm underline-offset-4 hover:underline"
-                      >
-                        Forgot password?
-                      </a>
-                    </div>
+                    <FieldLabel htmlFor="password">Password</FieldLabel>
                     <Input
                       id="password"
+                      name="password"
                       type="password"
+                      autoComplete="current-password"
                       placeholder="Enter your password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
+                      maxLength={128}
                       className="h-12"
                     />
                   </Field>
@@ -217,15 +192,7 @@ function LoginPage(): React.ReactElement {
           </Card>
 
           <FieldDescription className="px-6 text-center">
-            By signing in, you agree to our{" "}
-            <a href="/terms" className="hover:text-primary underline underline-offset-4">
-              Terms of Service
-            </a>{" "}
-            and{" "}
-            <a href="/privacy" className="hover:text-primary underline underline-offset-4">
-              Privacy Policy
-            </a>
-            .
+            Authentication is protected by secure, HTTP-only session cookies.
           </FieldDescription>
         </div>
       </main>

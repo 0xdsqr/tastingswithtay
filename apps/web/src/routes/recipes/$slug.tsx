@@ -1,4 +1,4 @@
-import { createFileRoute, notFound } from "@tanstack/react-router"
+import { createFileRoute, Link, notFound } from "@tanstack/react-router"
 import { Button } from "@twt/ui/components/button"
 import { ArrowLeft, ChefHat, Clock, Heart, Printer, Share2, Users } from "lucide-react"
 import { OptimizedImage } from "../../components/optimized-image"
@@ -33,13 +33,31 @@ export const Route = createFileRoute("/recipes/$slug")({
     }
     return { recipe }
   },
+  head: ({ loaderData }) => ({
+    meta: loaderData
+      ? [
+          { title: `${loaderData.recipe.title} | Tastings with Tay` },
+          { name: "description", content: loaderData.recipe.description.slice(0, 160) },
+          { property: "og:type", content: "article" },
+          { property: "og:title", content: loaderData.recipe.title },
+          { property: "og:description", content: loaderData.recipe.description.slice(0, 160) },
+          ...(loaderData.recipe.image
+            ? [{ property: "og:image", content: loaderData.recipe.image }]
+            : []),
+        ]
+      : [{ title: "Recipe | Tastings with Tay" }],
+  }),
   component: RecipeDetailPage,
   notFoundComponent: () => (
     <div className="flex min-h-screen flex-col items-center justify-center">
       <h1 className="font-serif text-4xl">Recipe not found</h1>
-      <a href="/recipes" className="mt-4 text-primary hover:underline">
+      <Link
+        to="/recipes"
+        search={{ category: undefined }}
+        className="mt-4 text-primary hover:underline"
+      >
         Back to recipes
-      </a>
+      </Link>
     </div>
   ),
 })
@@ -55,13 +73,14 @@ function RecipeDetailPage(): React.ReactElement {
         <section className="relative">
           {/* Back link */}
           <div className="absolute left-6 top-6 z-10">
-            <a
-              href="/recipes"
+            <Link
+              to="/recipes"
+              search={{ category: undefined }}
               className="inline-flex items-center rounded-full bg-foreground/20 px-4 py-2 text-sm text-primary-foreground/80 backdrop-blur-sm transition-colors hover:text-primary-foreground"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
               All Recipes
-            </a>
+            </Link>
           </div>
 
           {/* Hero Image */}

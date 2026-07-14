@@ -1,4 +1,4 @@
-import { createFileRoute, notFound } from "@tanstack/react-router"
+import { createFileRoute, Link, notFound } from "@tanstack/react-router"
 import { Button } from "@twt/ui/components/button"
 import { ArrowLeft, Calendar, Grape, MapPin, Star, Tag } from "lucide-react"
 import { OptimizedImage } from "../../components/optimized-image"
@@ -18,13 +18,31 @@ export const Route = createFileRoute("/wine/$slug")({
     const related = relatedWines.filter((w) => w.slug !== params.slug).slice(0, 3)
     return { wine, relatedWines: related }
   },
+  head: ({ loaderData }) => ({
+    meta: loaderData
+      ? [
+          { title: `${loaderData.wine.name} | Tastings with Tay` },
+          {
+            name: "description",
+            content: (
+              loaderData.wine.notes || `${loaderData.wine.name} by ${loaderData.wine.winery}`
+            ).slice(0, 160),
+          },
+          { property: "og:type", content: "article" },
+          { property: "og:title", content: loaderData.wine.name },
+          ...(loaderData.wine.image
+            ? [{ property: "og:image", content: loaderData.wine.image }]
+            : []),
+        ]
+      : [{ title: "Wine | Tastings with Tay" }],
+  }),
   component: WineDetailPage,
   notFoundComponent: () => (
     <div className="flex min-h-screen flex-col items-center justify-center">
       <h1 className="font-serif text-4xl">Wine not found</h1>
-      <a href="/wine" className="mt-4 text-primary hover:underline">
+      <Link to="/wine" search={{ type: undefined }} className="mt-4 text-primary hover:underline">
         Back to Wine Cellar
-      </a>
+      </Link>
     </div>
   ),
 })
@@ -46,13 +64,14 @@ function WineDetailPage(): React.ReactElement {
       <main className="flex-1">
         {/* Back Link */}
         <div className="mx-auto max-w-7xl px-6 pt-8 lg:px-8">
-          <a
-            href="/wine"
+          <Link
+            to="/wine"
+            search={{ type: undefined }}
             className="inline-flex items-center text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Wine Cellar
-          </a>
+          </Link>
         </div>
 
         {/* Wine Detail */}
@@ -202,12 +221,14 @@ function WineDetailPage(): React.ReactElement {
               <div className="mb-8 flex items-center justify-between">
                 <h2 className="font-serif text-2xl text-foreground">More from the Cellar</h2>
                 <Button variant="outline" className="bg-transparent" asChild>
-                  <a href="/wine">View All</a>
+                  <Link to="/wine" search={{ type: undefined }}>
+                    View All
+                  </Link>
                 </Button>
               </div>
               <div className="grid gap-8 md:grid-cols-3">
                 {relatedWines.map((w) => (
-                  <a key={w.id} href={`/wine/${w.slug}`} className="group">
+                  <Link key={w.id} to="/wine/$slug" params={{ slug: w.slug }} className="group">
                     <div className="relative mb-4 aspect-[4/3] overflow-hidden rounded-2xl bg-muted">
                       {w.image && (
                         <OptimizedImage
@@ -221,7 +242,7 @@ function WineDetailPage(): React.ReactElement {
                       {w.name}
                     </h3>
                     <p className="text-sm text-muted-foreground">{w.winery}</p>
-                  </a>
+                  </Link>
                 ))}
               </div>
             </div>

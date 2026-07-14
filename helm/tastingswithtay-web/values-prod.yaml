@@ -7,6 +7,7 @@ imagePullSecrets:
   - name: ghcr-creds
 env:
   BASE_URL: https://tastingswithtay.com
+  INTERNAL_API_BASE_URL: http://127.0.0.1:3010
   CDN_BASE: https://cdn.dsqr.dev
   DISCORD_CLIENT_ID: "1465977766485688370"
   S3_BUCKET: tastingswithtay
@@ -15,6 +16,11 @@ env:
   S3_REGION: us-east-1
   S3_USE_SSL: "true"
   TRUSTED_ORIGINS: https://tastingswithtay.com
+  TRUST_PROXY_HEADERS: "true"
+  DATABASE_APPLICATION_NAME: twt-web
+  DATABASE_CONNECTION_TIMEOUT_MS: "5000"
+  DATABASE_QUERY_TIMEOUT_MS: "15000"
+  DATABASE_STATEMENT_TIMEOUT_MS: "15000"
   OTEL_SERVICE_NAME: twt-web
   OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector.observability.svc.cluster.local:4318
   OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://otel-collector.observability.svc.cluster.local:4318/v1/traces
@@ -28,11 +34,8 @@ networkPolicy:
       - namespaceSelector:
           matchLabels:
             kubernetes.io/metadata.name: traefik
-      - namespaceSelector:
-          matchLabels:
-            kubernetes.io/metadata.name: twt
   egress:
-    allowAll: true
+    allowAll: false
 ingress:
   enabled: true
   className: traefik

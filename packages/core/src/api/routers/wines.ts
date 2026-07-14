@@ -1,6 +1,6 @@
 import type { TRPCRouterRecord } from "@trpc/server"
-import { tags, wines, wineTags } from "@twt/db/schema"
-import { and, desc, eq } from "drizzle-orm"
+import { tags, wines, wineTags, wineTypeEnum } from "@twt/db/schema"
+import { and, desc, eq } from "@twt/db"
 import { z } from "zod"
 import { publicProcedure } from "../trpc"
 
@@ -9,10 +9,10 @@ export const winesRouter = {
     .input(
       z
         .object({
-          type: z.string().optional(),
-          country: z.string().optional(),
-          limit: z.number().min(1).max(100).default(20),
-          offset: z.number().min(0).default(0),
+          type: z.enum(wineTypeEnum).optional(),
+          country: z.string().trim().min(1).max(100).optional(),
+          limit: z.number().int().min(1).max(100).default(20),
+          offset: z.number().int().min(0).max(10_000).default(0),
         })
         .optional(),
     )
@@ -36,15 +36,25 @@ export const winesRouter = {
         .offset(offset)
     }),
 
-  bySlug: publicProcedure.input(z.object({ slug: z.string() })).query(async ({ ctx, input }) => {
-    const [wine] = await ctx.db
-      .select()
-      .from(wines)
-      .where(and(eq(wines.slug, input.slug), eq(wines.published, true)))
-      .limit(1)
+  bySlug: publicProcedure
+    .input(
+      z.object({
+        slug: z
+          .string()
+          .min(1)
+          .max(256)
+          .regex(/^[a-z0-9-]+$/),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const [wine] = await ctx.db
+        .select()
+        .from(wines)
+        .where(and(eq(wines.slug, input.slug), eq(wines.published, true)))
+        .limit(1)
 
-    return wine ?? null
-  }),
+      return wine ?? null
+    }),
 
   types: publicProcedure.query(async ({ ctx }) => {
     const result = await ctx.db
@@ -63,7 +73,8 @@ export const winesRouter = {
         .select({ tag: tags })
         .from(wineTags)
         .innerJoin(tags, eq(wineTags.tagId, tags.id))
-        .where(eq(wineTags.wineId, input.wineId))
+        .innerJoin(wines, eq(wineTags.wineId, wines.id))
+        .where(and(eq(wineTags.wineId, input.wineId), eq(wines.published, true)))
 
       return result.map((r) => r.tag)
     }),

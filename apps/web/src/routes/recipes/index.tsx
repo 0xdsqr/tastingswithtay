@@ -12,6 +12,15 @@ const searchSchema = z.object({
 })
 
 export const Route = createFileRoute("/recipes/")({
+  head: () => ({
+    meta: [
+      { title: "Recipes | Tastings with Tay" },
+      {
+        name: "description",
+        content: "Browse Tay's tested recipes for everyday meals, gatherings, and baking projects.",
+      },
+    ],
+  }),
   validateSearch: searchSchema,
   loaderDeps: ({ search }) => ({ category: search.category }),
   loader: async ({ context, deps }) => {

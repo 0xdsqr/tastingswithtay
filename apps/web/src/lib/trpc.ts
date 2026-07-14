@@ -15,7 +15,7 @@ export const trpc = createTRPCClient<AppRouter>({
 })
 
 // React Query integration for client-side mutations/queries
-export const { TRPCProvider, useTRPC, useTRPCClient } = createTRPCContext<AppRouter>()
+export const { TRPCProvider, useTRPCClient } = createTRPCContext<AppRouter>()
 
 // Re-export types for convenience
 export type { AppRouter }

@@ -13,9 +13,13 @@ export const Route = createRootRouteWithContext<{
   queryClient: QueryClient
   trpc: TRPCOptionsProxy<AppRouter>
 }>()({
-  loader: async () => ({
-    session: await getServerSession(),
-  }),
+  loader: async ({ context }) => {
+    const [session, sitePublication] = await Promise.all([
+      getServerSession(),
+      context.queryClient.fetchQuery(context.trpc.site.published.queryOptions()),
+    ])
+    return { session, sitePublication }
+  },
   head: () => ({
     meta: [
       { charSet: "utf-8" },
@@ -26,6 +30,16 @@ export const Route = createRootRouteWithContext<{
         content:
           "Join Tay on a culinary journey through delicious recipes, lifestyle tips, and curated kitchen essentials.",
       },
+      { name: "robots", content: "index,follow,max-image-preview:large" },
+      { name: "theme-color", content: "#722f37" },
+      { property: "og:type", content: "website" },
+      { property: "og:site_name", content: "Tastings with Tay" },
+      { property: "og:title", content: "Tastings with Tay | Recipes, Life & Good Food" },
+      {
+        property: "og:description",
+        content: "Recipes, wine tastings, kitchen experiments, and stories from Tay.",
+      },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
@@ -42,8 +56,16 @@ function RootComponent(): React.ReactElement {
         <HeadContent />
       </head>
       <body className="min-h-screen bg-background font-sans text-foreground antialiased">
+        <a
+          href="#main-content"
+          className="fixed left-4 top-4 z-[100] -translate-y-24 rounded-md bg-background px-4 py-2 text-foreground shadow focus:translate-y-0"
+        >
+          Skip to content
+        </a>
         <ErrorBoundary>
-          <Outlet />
+          <div id="main-content" tabIndex={-1}>
+            <Outlet />
+          </div>
         </ErrorBoundary>
         <Scripts />
       </body>

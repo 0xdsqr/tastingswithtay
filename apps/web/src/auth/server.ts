@@ -7,4 +7,6 @@ export const auth = initAuth({
   secret: process.env.AUTH_SECRET,
   extraPlugins: [tanstackStartCookies()],
   trustedOrigins: getTrustedOrigins(),
+  allowSignUp: true,
+  allowSocialProviders: true,
 })

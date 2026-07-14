@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@twt/ui/components/dropdown-menu"
 import { Skeleton } from "@twt/ui/components/skeleton"
-import { LogOut, Menu, Search, X } from "lucide-react"
+import { LogOut, Menu, X } from "lucide-react"
 import { useState } from "react"
 import { authClient } from "../auth/client"
 import { BrandLogo } from "./brand-logo"
@@ -69,9 +69,11 @@ export function SiteHeader(): React.ReactElement {
           <button
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-expanded={mobileMenuOpen}
+            aria-controls="mobile-navigation"
+            aria-label={mobileMenuOpen ? "Close main menu" : "Open main menu"}
             className="inline-flex items-center justify-center p-2 text-foreground"
           >
-            <span className="sr-only">Open main menu</span>
             {mobileMenuOpen ? (
               <X className="h-6 w-6" aria-hidden="true" />
             ) : (
@@ -98,13 +100,6 @@ export function SiteHeader(): React.ReactElement {
               {item.name}
             </Link>
           ))}
-          <button
-            type="button"
-            className="p-2 text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <Search className="h-5 w-5" />
-            <span className="sr-only">Search</span>
-          </button>
           {showSessionSkeleton ? (
             <Skeleton className="size-8 rounded-full" />
           ) : resolvedSession ? (
@@ -160,7 +155,7 @@ export function SiteHeader(): React.ReactElement {
 
       {/* Mobile menu */}
       {mobileMenuOpen && (
-        <div className="border-t border-border bg-background lg:hidden">
+        <div id="mobile-navigation" className="border-t border-border bg-background lg:hidden">
           <div className="space-y-1 px-6 py-4">
             {navigation.map((item) => (
               <Link

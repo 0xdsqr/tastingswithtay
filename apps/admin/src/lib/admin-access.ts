@@ -10,7 +10,7 @@ export type SessionUser = {
   role?: string | null
 }
 
-export function isAdminUser(user: SessionUser | null | undefined): boolean {
+function isAdminUser(user: SessionUser | null | undefined): boolean {
   if (!user) return false
 
   return user.role?.toLowerCase() === "admin"
@@ -18,27 +18,15 @@ export function isAdminUser(user: SessionUser | null | undefined): boolean {
 
 async function lookupAdminUser(user: SessionUser | null | undefined): Promise<SessionUser | null> {
   if (!user) return null
-  if (isAdminUser(user)) return user
+  if (!user.id) return null
 
-  if (user.id) {
-    const dbUser =
-      (await db.query.user.findFirst({
-        where: (fields, operators) => operators.eq(fields.id, user.id!),
-      })) ?? null
+  const dbUser =
+    (await db.query.user.findFirst({
+      where: (fields, operators) => operators.eq(fields.id, user.id!),
+    })) ?? null
 
-    return isAdminUser(dbUser) ? dbUser : null
-  }
-
-  if (user.email) {
-    const dbUser =
-      (await db.query.user.findFirst({
-        where: (fields, operators) => operators.eq(fields.email, user.email!),
-      })) ?? null
-
-    return isAdminUser(dbUser) ? dbUser : null
-  }
-
-  return null
+  if (!dbUser || !isAdminUser(dbUser) || dbUser.banned) return null
+  return dbUser
 }
 
 async function getAdminSessionUserFromRequest(): Promise<SessionUser | null> {

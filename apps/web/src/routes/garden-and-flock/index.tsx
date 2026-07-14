@@ -3,12 +3,14 @@ import type { GalleryImage } from "@twt/db/schema"
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@twt/ui/components/dialog"
 import { ChevronLeft, ChevronRight, Egg, Flower2, X } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
+import { z } from "zod"
 import { EmptyState } from "../../components/empty-state"
 import { OptimizedImage } from "../../components/optimized-image"
 import { SiteFooter } from "../../components/site-footer"
 import { SiteHeader } from "../../components/site-header"
 
 const categoryFilters = ["All", "Garden", "Flock"] as const
+const galleryCategoryValues = ["garden", "flock"] as const
 
 const categoryMap: Record<string, string> = {
   Garden: "garden",
@@ -16,9 +18,16 @@ const categoryMap: Record<string, string> = {
 }
 
 export const Route = createFileRoute("/garden-and-flock/")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    category: (search.category as string) || undefined,
+  head: () => ({
+    meta: [
+      { title: "Garden & Flock | Tastings with Tay" },
+      {
+        name: "description",
+        content: "Photos and stories from Tay's garden beds, seasonal harvests, and flock.",
+      },
+    ],
   }),
+  validateSearch: z.object({ category: z.enum(galleryCategoryValues).optional() }),
   loaderDeps: ({ search }) => ({ category: search.category }),
   loader: async ({ context, deps }) => {
     const images = (await context.queryClient.fetchQuery(
@@ -73,6 +82,7 @@ function Lightbox({
         <button
           type="button"
           onClick={onClose}
+          aria-label="Close image viewer"
           className="absolute right-4 top-4 z-10 rounded-full bg-black/50 p-2 text-white/80 backdrop-blur-sm transition-colors hover:text-white"
         >
           <X className="size-5" />
@@ -84,6 +94,7 @@ function Lightbox({
             <button
               type="button"
               onClick={onPrev}
+              aria-label="Previous image"
               className="absolute left-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/50 p-2 text-white/80 backdrop-blur-sm transition-colors hover:text-white"
             >
               <ChevronLeft className="size-6" />
@@ -91,6 +102,7 @@ function Lightbox({
             <button
               type="button"
               onClick={onNext}
+              aria-label="Next image"
               className="absolute right-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/50 p-2 text-white/80 backdrop-blur-sm transition-colors hover:text-white"
             >
               <ChevronRight className="size-6" />

@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start"
-import { desc, eq } from "@twt/db"
-import { user as authUsers } from "@twt/db/auth-schema"
+import { desc, eq, sql } from "@twt/db"
+import { session as authSessions, user as authUsers } from "@twt/db/auth-schema"
 import { db } from "@twt/db/client"
 import {
   type Experiment,
@@ -8,6 +8,7 @@ import {
   type GalleryImage,
   type Recipe,
   type Wine,
+  adminAuditLog,
   difficultyEnum,
   experimentEntries,
   experimentEntryTypeEnum,
@@ -52,6 +53,12 @@ function slugify(value: string): string {
     .replace(/[^a-z0-9\s-]/g, "")
     .replace(/\s+/g, "-")
     .replace(/-+/g, "-")
+}
+
+function requireSlug(value: string): string {
+  const slug = slugify(value)
+  if (!slug) throw new Error("Add a slug using lowercase letters, numbers, or hyphens.")
+  return slug
 }
 
 function parseStringList(value: string): string[] {
@@ -138,7 +145,7 @@ function formatInstructions(value: Array<{ step: number; text: string }>): strin
 }
 
 function toNullableNumber(value: number | null | undefined): number | null {
-  return value && Number.isFinite(value) ? value : null
+  return value !== null && value !== undefined && Number.isFinite(value) ? value : null
 }
 
 function toNullableString(value: string | null | undefined): string | null {
@@ -259,41 +266,51 @@ function mapAdminUserRecord(value: {
   }
 }
 
+const shortText = z.string().trim().min(1).max(256)
+const longText = z.string().trim().max(20_000)
+const managedImageInput = z.string().trim().max(512).optional()
+const optionalSlug = z
+  .string()
+  .trim()
+  .max(256)
+  .regex(/^[a-z0-9-]*$/, "Use lowercase letters, numbers, and hyphens for slugs.")
+  .optional()
+
 const recipeInputSchema = z.object({
   id: z.string().uuid().optional(),
-  title: z.string().min(1),
-  slug: z.string().optional(),
-  description: z.string().min(1),
-  category: z.string().min(1),
+  title: shortText,
+  slug: optionalSlug,
+  description: z.string().trim().min(1).max(20_000),
+  category: z.string().trim().min(1).max(100),
   difficulty: z.enum(difficultyEnum),
-  prepTime: z.number().nullable().optional(),
-  cookTime: z.number().nullable().optional(),
-  servings: z.number().nullable().optional(),
-  ingredientsText: z.string().min(1),
-  instructionsText: z.string().min(1),
-  tipsText: z.string().optional(),
-  image: z.string().optional(),
+  prepTime: z.number().int().positive().max(10_080).nullable().optional(),
+  cookTime: z.number().int().positive().max(10_080).nullable().optional(),
+  servings: z.number().int().positive().max(10_000).nullable().optional(),
+  ingredientsText: z.string().trim().min(1).max(50_000),
+  instructionsText: z.string().trim().min(1).max(100_000),
+  tipsText: z.string().max(50_000).optional(),
+  image: managedImageInput,
   published: z.boolean(),
   featured: z.boolean(),
 })
 
 const wineInputSchema = z.object({
   id: z.string().uuid().optional(),
-  name: z.string().min(1),
-  slug: z.string().optional(),
-  winery: z.string().min(1),
-  region: z.string().optional(),
-  country: z.string().optional(),
-  vintage: z.number().nullable().optional(),
+  name: shortText,
+  slug: optionalSlug,
+  winery: shortText,
+  region: z.string().trim().max(256).optional(),
+  country: z.string().trim().max(100).optional(),
+  vintage: z.number().int().min(1800).max(2200).nullable().optional(),
   type: z.enum(wineTypeEnum),
-  grapes: z.string().optional(),
-  rating: z.number().min(1).max(5).nullable().optional(),
-  notes: z.string().optional(),
-  aromasText: z.string().optional(),
-  pairingsText: z.string().optional(),
+  grapes: z.string().trim().max(256).optional(),
+  rating: z.number().int().min(1).max(5).nullable().optional(),
+  notes: longText.optional(),
+  aromasText: z.string().max(20_000).optional(),
+  pairingsText: z.string().max(20_000).optional(),
   priceRange: z.enum(priceRangeEnum).nullable().optional(),
-  occasion: z.string().optional(),
-  image: z.string().optional(),
+  occasion: z.string().trim().max(100).optional(),
+  image: managedImageInput,
   published: z.boolean(),
   featured: z.boolean(),
 })
@@ -301,36 +318,36 @@ const wineInputSchema = z.object({
 const experimentEntryInputSchema = z.object({
   id: z.string().uuid().optional(),
   entryType: z.enum(experimentEntryTypeEnum),
-  content: z.string().min(1),
-  imagesText: z.string().optional(),
-  sortOrder: z.number().int().min(0),
+  content: z.string().trim().min(1).max(5_000),
+  imagesText: z.string().max(10_000).optional(),
+  sortOrder: z.number().int().min(0).max(100_000),
 })
 
 const experimentInputSchema = z.object({
   id: z.string().uuid().optional(),
-  title: z.string().min(1),
-  slug: z.string().optional(),
-  description: z.string().min(1),
+  title: shortText,
+  slug: optionalSlug,
+  description: z.string().trim().min(1).max(20_000),
   status: z.enum(experimentStatusEnum),
-  hypothesis: z.string().optional(),
-  result: z.string().optional(),
+  hypothesis: longText.optional(),
+  result: longText.optional(),
   recipeId: z.string().uuid().nullable().optional(),
-  image: z.string().optional(),
+  image: managedImageInput,
   published: z.boolean(),
   featured: z.boolean(),
-  entries: z.array(experimentEntryInputSchema),
+  entries: z.array(experimentEntryInputSchema).max(100),
 })
 
 const galleryInputSchema = z.object({
   id: z.string().uuid().optional(),
-  title: z.string().optional(),
-  caption: z.string().optional(),
-  image: z.string().min(1),
+  title: z.string().trim().max(256).optional(),
+  caption: z.string().trim().max(2_000).optional(),
+  image: z.string().trim().min(1).max(512),
   category: z.enum(galleryCategoryEnum),
-  sortOrder: z.number().int().min(0),
+  sortOrder: z.number().int().min(0).max(100_000),
   published: z.boolean(),
   featured: z.boolean(),
-  takenAt: z.string().optional(),
+  takenAt: z.iso.date().optional(),
 })
 
 const deleteInputSchema = z.object({
@@ -339,17 +356,89 @@ const deleteInputSchema = z.object({
 })
 
 const updateUserRoleSchema = z.object({
-  userId: z.string().min(1),
+  userId: z.string().min(1).max(256),
   role: z.enum(["admin", "user"]),
 })
 
-const siteDraftInputSchema = z.object({
-  draft: z.custom<JsonObject>(
-    (value) => typeof value === "object" && value !== null && !Array.isArray(value),
-  ),
-})
+const siteContentText = z.string().max(20_000)
+const siteHeadingText = z.string().max(256)
+const localHref = z
+  .string()
+  .max(2_048)
+  .regex(/^\/(?!\/)/, "Site links must be root-relative paths.")
+
+const siteDraftSchema = z
+  .object({
+    home: z
+      .object({
+        heroFallbackEyebrow: siteHeadingText,
+        heroFallbackTitle: siteHeadingText,
+        heroFallbackBody: siteContentText,
+        primaryCtaLabel: siteHeadingText,
+        primaryCtaHref: localHref,
+        secondaryCtaLabel: siteHeadingText,
+        secondaryCtaHref: localHref,
+        bentoEyebrow: siteHeadingText,
+        bentoTitle: siteHeadingText,
+        storiesEyebrow: siteHeadingText,
+        storiesTitle: siteHeadingText,
+        storiesEmptyHeading: siteHeadingText,
+        storiesEmptyBody: siteContentText,
+      })
+      .strict(),
+    about: z
+      .object({
+        heroEyebrow: siteHeadingText,
+        heroTitle: siteHeadingText,
+        heroImage: z.string().max(512),
+        introBody: siteContentText,
+        philosophyEyebrow: siteHeadingText,
+        philosophyTitle: siteHeadingText,
+        philosophyBody: siteContentText,
+        valuesEyebrow: siteHeadingText,
+        valuesTitle: siteHeadingText,
+        values: z
+          .array(
+            z
+              .object({
+                id: z
+                  .string()
+                  .min(1)
+                  .max(100)
+                  .regex(/^[a-zA-Z0-9_-]+$/),
+                title: siteHeadingText,
+                body: siteContentText,
+              })
+              .strict(),
+          )
+          .max(12),
+        quoteText: siteContentText,
+        quoteAuthor: siteHeadingText,
+        quoteImage: z.string().max(512),
+        whatsIncludedEyebrow: siteHeadingText,
+        whatsIncludedTitle: siteHeadingText,
+        whatsIncludedBody: siteContentText,
+        whatsIncludedImage: z.string().max(512),
+        connectEyebrow: siteHeadingText,
+        connectTitle: siteHeadingText,
+        connectBody: siteContentText,
+      })
+      .strict(),
+    newsletter: z
+      .object({
+        eyebrow: siteHeadingText,
+        title: siteHeadingText,
+        body: siteContentText,
+        privacyNote: siteContentText,
+      })
+      .strict(),
+  })
+  .strict()
+
+const siteDraftInputSchema = z.object({ draft: siteDraftSchema }).strict()
 
 const siteDraftSettingKey = "site-draft"
+const sitePublicationSettingKey = "site-publication"
 
 function asJsonObject(value: JsonValue | undefined): JsonObject {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
@@ -382,6 +471,11 @@ async function requireAdminUser(): Promise<SessionUser> {
   }
 
   return user
+}
+
+function actorId(user: SessionUser): string {
+  if (!user.id) throw new Error("Authenticated admin has no user id.")
+  return user.id
 }
 
 export const getAdminBootstrap = createServerFn({ method: "GET" }).handler(async () => {
@@ -433,31 +527,75 @@ export const getAdminBootstrap = createServerFn({ method: "GET" }).handler(async
 })
 
 export const saveSiteDraft = createServerFn({ method: "POST" })
-  .inputValidator(siteDraftInputSchema)
+  .validator(siteDraftInputSchema)
   .handler(async ({ data }) => {
-    await requireAdminUser()
+    const actor = await requireAdminUser()
     validateSiteDraftImages(data.draft)
 
-    const [saved] = await db
-      .insert(siteSettings)
-      .values({
-        key: siteDraftSettingKey,
-        value: data.draft,
+    return db.transaction(async (tx) => {
+      const [saved] = await tx
+        .insert(siteSettings)
+        .values({
+          key: siteDraftSettingKey,
+          value: data.draft,
+        })
+        .onConflictDoUpdate({
+          target: siteSettings.key,
+          set: {
+            value: data.draft,
+            updatedAt: new Date(),
+          },
+        })
+        .returning()
+
+      await tx.insert(adminAuditLog).values({
+        actorUserId: actorId(actor),
+        action: "site.draft.save",
+        targetType: "site",
+        targetId: siteDraftSettingKey,
+        metadata: {},
       })
+
+      return (saved?.value as JsonObject | undefined) ?? data.draft
+    })
+  })
+
+export const publishSiteDraft = createServerFn({ method: "POST" }).handler(async () => {
+  const actor = await requireAdminUser()
+
+  return db.transaction(async (tx) => {
+    const [draft] = await tx
+      .select({ value: siteSettings.value })
+      .from(siteSettings)
+      .where(eq(siteSettings.key, siteDraftSettingKey))
+      .limit(1)
+
+    if (!draft) throw new Error("Save the site draft before publishing it.")
+    validateSiteDraftImages(draft.value as JsonObject)
+
+    const [publication] = await tx
+      .insert(siteSettings)
+      .values({ key: sitePublicationSettingKey, value: draft.value })
       .onConflictDoUpdate({
         target: siteSettings.key,
-        set: {
-          value: data.draft,
-          updatedAt: new Date(),
-        },
+        set: { value: draft.value, updatedAt: new Date() },
       })
       .returning()
 
-    return (saved?.value as JsonObject | undefined) ?? data.draft
+    await tx.insert(adminAuditLog).values({
+      actorUserId: actorId(actor),
+      action: "site.publish",
+      targetType: "site",
+      targetId: sitePublicationSettingKey,
+      metadata: {},
+    })
+
+    return (publication?.value as JsonObject | undefined) ?? (draft.value as JsonObject)
   })
+})
 
 export const updateAdminUserRole = createServerFn({ method: "POST" })
-  .inputValidator(updateUserRoleSchema)
+  .validator(updateUserRoleSchema)
   .handler(async ({ data }) => {
     const currentUser = await requireAdminUser()
 
@@ -465,45 +603,54 @@ export const updateAdminUserRole = createServerFn({ method: "POST" })
       throw new Error("Keep your own account as an admin.")
     }
 
-    const targetUser = await db.query.user.findFirst({
-      where: (fields, operators) => operators.eq(fields.id, data.userId),
-    })
+    const updatedUser = await db.transaction(async (tx) => {
+      await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext('twt-admin-role-update'))`)
 
-    if (!targetUser) {
-      throw new Error("User not found.")
-    }
+      const [targetUser] = await tx
+        .select()
+        .from(authUsers)
+        .where(eq(authUsers.id, data.userId))
+        .limit(1)
+      if (!targetUser) throw new Error("User not found.")
 
-    if (normalizeRole(targetUser.role) === "admin" && data.role !== "admin") {
-      const adminUsers = await db.query.user.findMany({
-        where: (fields, operators) => operators.eq(fields.role, "admin"),
+      if (normalizeRole(targetUser.role) === "admin" && data.role !== "admin") {
+        const adminUsers = await tx
+          .select({ id: authUsers.id })
+          .from(authUsers)
+          .where(eq(authUsers.role, "admin"))
+        if (adminUsers.length <= 1) throw new Error("Keep at least one admin account.")
+      }
+
+      const [updated] = await tx
+        .update(authUsers)
+        .set({ role: data.role })
+        .where(eq(authUsers.id, data.userId))
+        .returning()
+      if (!updated) throw new Error("Updated user could not be loaded.")
+
+      await tx.delete(authSessions).where(eq(authSessions.userId, data.userId))
+      await tx.insert(adminAuditLog).values({
+        actorUserId: actorId(currentUser),
+        action: "user.role.update",
+        targetType: "user",
+        targetId: data.userId,
+        metadata: { from: normalizeRole(targetUser.role), to: data.role },
       })
 
-      if (adminUsers.length <= 1) {
-        throw new Error("Keep at least one admin account.")
-      }
-    }
-
-    const [updatedUser] = await db
-      .update(authUsers)
-      .set({ role: data.role })
-      .where(eq(authUsers.id, data.userId))
-      .returning()
-
-    if (!updatedUser) {
-      throw new Error("Updated user could not be loaded.")
-    }
+      return updated
+    })
 
     return mapAdminUserRecord(updatedUser)
   })
 
 export const saveRecipe = createServerFn({ method: "POST" })
-  .inputValidator(recipeInputSchema)
+  .validator(recipeInputSchema)
   .handler(async ({ data }) => {
-    await requireAdminUser()
+    const actor = await requireAdminUser()
 
     const values = {
       title: data.title.trim(),
-      slug: slugify(data.slug?.trim() || data.title),
+      slug: requireSlug(data.slug?.trim() || data.title),
       description: data.description.trim(),
       category: data.category.trim(),
       difficulty: data.difficulty,
@@ -520,27 +667,45 @@ export const saveRecipe = createServerFn({ method: "POST" })
       featured: data.featured,
     }
 
-    if (data.id) {
-      const [updated] = await db
-        .update(recipes)
-        .set(values)
-        .where(eq(recipes.id, data.id))
-        .returning()
-      return updated
-    }
+    return db.transaction(async (tx) => {
+      if (data.id) {
+        const [updated] = await tx
+          .update(recipes)
+          .set(values)
+          .where(eq(recipes.id, data.id))
+          .returning()
+        if (!updated) throw new Error("Recipe not found.")
+        await tx.insert(adminAuditLog).values({
+          actorUserId: actorId(actor),
+          action: "recipe.update",
+          targetType: "recipe",
+          targetId: updated.id,
+          metadata: { published: updated.published },
+        })
+        return updated
+      }
 
-    const [created] = await db.insert(recipes).values(values).returning()
-    return created
+      const [created] = await tx.insert(recipes).values(values).returning()
+      if (!created) throw new Error("Recipe could not be created.")
+      await tx.insert(adminAuditLog).values({
+        actorUserId: actorId(actor),
+        action: "recipe.create",
+        targetType: "recipe",
+        targetId: created.id,
+        metadata: { published: created.published },
+      })
+      return created
+    })
   })
 
 export const saveWine = createServerFn({ method: "POST" })
-  .inputValidator(wineInputSchema)
+  .validator(wineInputSchema)
   .handler(async ({ data }) => {
-    await requireAdminUser()
+    const actor = await requireAdminUser()
 
     const values = {
       name: data.name.trim(),
-      slug: slugify(data.slug?.trim() || data.name),
+      slug: requireSlug(data.slug?.trim() || data.name),
       winery: data.winery.trim(),
       region: toNullableString(data.region) ?? undefined,
       country: toNullableString(data.country) ?? undefined,
@@ -560,23 +725,45 @@ export const saveWine = createServerFn({ method: "POST" })
       featured: data.featured,
     }
 
-    if (data.id) {
-      const [updated] = await db.update(wines).set(values).where(eq(wines.id, data.id)).returning()
-      return updated
-    }
+    return db.transaction(async (tx) => {
+      if (data.id) {
+        const [updated] = await tx
+          .update(wines)
+          .set(values)
+          .where(eq(wines.id, data.id))
+          .returning()
+        if (!updated) throw new Error("Wine not found.")
+        await tx.insert(adminAuditLog).values({
+          actorUserId: actorId(actor),
+          action: "wine.update",
+          targetType: "wine",
+          targetId: updated.id,
+          metadata: { published: updated.published },
+        })
+        return updated
+      }
 
-    const [created] = await db.insert(wines).values(values).returning()
-    return created
+      const [created] = await tx.insert(wines).values(values).returning()
+      if (!created) throw new Error("Wine could not be created.")
+      await tx.insert(adminAuditLog).values({
+        actorUserId: actorId(actor),
+        action: "wine.create",
+        targetType: "wine",
+        targetId: created.id,
+        metadata: { published: created.published },
+      })
+      return created
+    })
   })
 
 export const saveExperiment = createServerFn({ method: "POST" })
-  .inputValidator(experimentInputSchema)
+  .validator(experimentInputSchema)
   .handler(async ({ data }) => {
-    await requireAdminUser()
+    const actor = await requireAdminUser()
 
     const experimentValues = {
       title: data.title.trim(),
-      slug: slugify(data.slug?.trim() || data.title),
+      slug: requireSlug(data.slug?.trim() || data.title),
       description: data.description.trim(),
       status: data.status,
       hypothesis: toNullableString(data.hypothesis) ?? undefined,
@@ -598,11 +785,13 @@ export const saveExperiment = createServerFn({ method: "POST" })
           .set(experimentValues)
           .where(eq(experiments.id, experimentId))
           .returning()
-        experimentId = updated!.id
+        if (!updated) throw new Error("Experiment not found.")
+        experimentId = updated.id
         await tx.delete(experimentEntries).where(eq(experimentEntries.experimentId, experimentId))
       } else {
         const [created] = await tx.insert(experiments).values(experimentValues).returning()
-        experimentId = created!.id
+        if (!created) throw new Error("Experiment could not be created.")
+        experimentId = created.id
       }
 
       if (data.entries.length > 0) {
@@ -621,14 +810,23 @@ export const saveExperiment = createServerFn({ method: "POST" })
         .select()
         .from(experiments)
         .where(eq(experiments.id, experimentId!))
+      if (!experiment) throw new Error("Saved experiment could not be loaded.")
       const savedEntries = await tx
         .select()
         .from(experimentEntries)
         .where(eq(experimentEntries.experimentId, experimentId!))
         .orderBy(desc(experimentEntries.createdAt))
 
+      await tx.insert(adminAuditLog).values({
+        actorUserId: actorId(actor),
+        action: data.id ? "experiment.update" : "experiment.create",
+        targetType: "experiment",
+        targetId: experiment.id,
+        metadata: { published: experiment.published },
+      })
+
       return {
-        ...experiment!,
+        ...experiment,
         entries: savedEntries,
       }
     })
@@ -637,9 +835,9 @@ export const saveExperiment = createServerFn({ method: "POST" })
   })
 
 export const saveGalleryImage = createServerFn({ method: "POST" })
-  .inputValidator(galleryInputSchema)
+  .validator(galleryInputSchema)
   .handler(async ({ data }) => {
-    await requireAdminUser()
+    const actor = await requireAdminUser()
 
     const values = {
       title: toNullableString(data.title) ?? undefined,
@@ -654,41 +852,89 @@ export const saveGalleryImage = createServerFn({ method: "POST" })
       takenAt: data.takenAt ? new Date(data.takenAt) : null,
     }
 
-    if (data.id) {
-      const [updated] = await db
-        .update(galleryImages)
-        .set(values)
-        .where(eq(galleryImages.id, data.id))
-        .returning()
-      return updated
-    }
+    return db.transaction(async (tx) => {
+      if (data.id) {
+        const [updated] = await tx
+          .update(galleryImages)
+          .set(values)
+          .where(eq(galleryImages.id, data.id))
+          .returning()
+        if (!updated) throw new Error("Gallery image not found.")
+        await tx.insert(adminAuditLog).values({
+          actorUserId: actorId(actor),
+          action: "gallery.update",
+          targetType: "gallery",
+          targetId: updated.id,
+          metadata: { published: updated.published },
+        })
+        return updated
+      }
 
-    const [created] = await db.insert(galleryImages).values(values).returning()
-    return created
+      const [created] = await tx.insert(galleryImages).values(values).returning()
+      if (!created) throw new Error("Gallery image could not be created.")
+      await tx.insert(adminAuditLog).values({
+        actorUserId: actorId(actor),
+        action: "gallery.create",
+        targetType: "gallery",
+        targetId: created.id,
+        metadata: { published: created.published },
+      })
+      return created
+    })
   })
 
 export const deleteRecord = createServerFn({ method: "POST" })
-  .inputValidator(deleteInputSchema)
+  .validator(deleteInputSchema)
   .handler(async ({ data }) => {
-    await requireAdminUser()
+    const actor = await requireAdminUser()
 
-    if (data.kind === "recipe") {
-      await db.delete(recipes).where(eq(recipes.id, data.id))
-    }
+    return db.transaction(async (tx) => {
+      let deleted = false
 
-    if (data.kind === "wine") {
-      await db.delete(wines).where(eq(wines.id, data.id))
-    }
+      if (data.kind === "recipe") {
+        const [row] = await tx
+          .delete(recipes)
+          .where(eq(recipes.id, data.id))
+          .returning({ id: recipes.id })
+        deleted = Boolean(row)
+      }
 
-    if (data.kind === "experiment") {
-      await db.delete(experiments).where(eq(experiments.id, data.id))
-    }
+      if (data.kind === "wine") {
+        const [row] = await tx
+          .delete(wines)
+          .where(eq(wines.id, data.id))
+          .returning({ id: wines.id })
+        deleted = Boolean(row)
+      }
 
-    if (data.kind === "gallery") {
-      await db.delete(galleryImages).where(eq(galleryImages.id, data.id))
-    }
+      if (data.kind === "experiment") {
+        const [row] = await tx
+          .delete(experiments)
+          .where(eq(experiments.id, data.id))
+          .returning({ id: experiments.id })
+        deleted = Boolean(row)
+      }
 
-    return { success: true, id: data.id, kind: data.kind }
+      if (data.kind === "gallery") {
+        const [row] = await tx
+          .delete(galleryImages)
+          .where(eq(galleryImages.id, data.id))
+          .returning({ id: galleryImages.id })
+        deleted = Boolean(row)
+      }
+
+      if (!deleted) throw new Error(`${data.kind} not found.`)
+
+      await tx.insert(adminAuditLog).values({
+        actorUserId: actorId(actor),
+        action: `${data.kind}.delete`,
+        targetType: data.kind,
+        targetId: data.id,
+        metadata: {},
+      })
+
+      return { success: true, id: data.id, kind: data.kind }
+    })
   })
 
 export function createEmptyRecipe() {

@@ -11,6 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiReadyRouteImport } from './routes/api/ready'
+import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth.$'
 import { Route as ApiImagesFolderFileNameRouteImport } from './routes/api/images.$folder.$fileName'
 
@@ -22,6 +24,16 @@ const LoginRoute = LoginRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiReadyRoute = ApiReadyRouteImport.update({
+  id: '/api/ready',
+  path: '/api/ready',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiHealthRoute = ApiHealthRouteImport.update({
+  id: '/api/health',
+  path: '/api/health',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
@@ -38,12 +50,16 @@ const ApiImagesFolderFileNameRoute = ApiImagesFolderFileNameRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/api/health': typeof ApiHealthRoute
+  '/api/ready': typeof ApiReadyRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/images/$folder/$fileName': typeof ApiImagesFolderFileNameRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/api/health': typeof ApiHealthRoute
+  '/api/ready': typeof ApiReadyRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/images/$folder/$fileName': typeof ApiImagesFolderFileNameRoute
 }
@@ -51,18 +67,34 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/api/health': typeof ApiHealthRoute
+  '/api/ready': typeof ApiReadyRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/images/$folder/$fileName': typeof ApiImagesFolderFileNameRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/api/auth/$' | '/api/images/$folder/$fileName'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/api/health'
+    | '/api/ready'
+    | '/api/auth/$'
+    | '/api/images/$folder/$fileName'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/api/auth/$' | '/api/images/$folder/$fileName'
+  to:
+    | '/'
+    | '/login'
+    | '/api/health'
+    | '/api/ready'
+    | '/api/auth/$'
+    | '/api/images/$folder/$fileName'
   id:
     | '__root__'
     | '/'
     | '/login'
+    | '/api/health'
+    | '/api/ready'
     | '/api/auth/$'
     | '/api/images/$folder/$fileName'
   fileRoutesById: FileRoutesById
@@ -70,6 +102,8 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LoginRoute: typeof LoginRoute
+  ApiHealthRoute: typeof ApiHealthRoute
+  ApiReadyRoute: typeof ApiReadyRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiImagesFolderFileNameRoute: typeof ApiImagesFolderFileNameRoute
 }
@@ -88,6 +122,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/ready': {
+      id: '/api/ready'
+      path: '/api/ready'
+      fullPath: '/api/ready'
+      preLoaderRoute: typeof ApiReadyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/health': {
+      id: '/api/health'
+      path: '/api/health'
+      fullPath: '/api/health'
+      preLoaderRoute: typeof ApiHealthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/auth/$': {
@@ -110,6 +158,8 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
+  ApiHealthRoute: ApiHealthRoute,
+  ApiReadyRoute: ApiReadyRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiImagesFolderFileNameRoute: ApiImagesFolderFileNameRoute,
 }

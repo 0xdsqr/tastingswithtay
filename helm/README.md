@@ -14,10 +14,10 @@ Create these in namespace `twt` before syncing:
 ```sh
 kubectl -n twt create secret generic twt-secrets \
   --from-literal=DATABASE_URL='postgres://...' \
-  --from-literal=BETTER_AUTH_SECRET='...' \
+  --from-literal=AUTH_SECRET='...' \
   --from-literal=DISCORD_CLIENT_SECRET='...' \
-  --from-literal=S3_ACCESS_KEY_ID='...' \
-  --from-literal=S3_SECRET_ACCESS_KEY='...' \
+  --from-literal=S3_ACCESS_KEY='...' \
+  --from-literal=S3_SECRET_KEY='...' \
   --dry-run=client -o yaml | kubectl apply -f -
 ```
 

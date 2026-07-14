@@ -1,7 +1,8 @@
-import type { TRPCRouterRecord } from "@trpc/server"
+import { TRPCError, type TRPCRouterRecord } from "@trpc/server"
 import { createRecipeRatingSchema, recipeRatings, recipes, user } from "@twt/db/schema"
-import { and, avg, count, eq, sql } from "drizzle-orm"
+import { and, avg, count, eq, sql } from "@twt/db"
 import { z } from "zod"
+import { clientRateLimitKey, enforceRateLimit } from "../rate-limit"
 import { protectedProcedure, publicProcedure } from "../trpc"
 
 export const ratingsRouter = {
@@ -14,7 +15,8 @@ export const ratingsRouter = {
           count: count(),
         })
         .from(recipeRatings)
-        .where(eq(recipeRatings.recipeId, input.recipeId))
+        .innerJoin(recipes, eq(recipeRatings.recipeId, recipes.id))
+        .where(and(eq(recipeRatings.recipeId, input.recipeId), eq(recipes.published, true)))
 
       return {
         average: result?.average ? Number(result.average) : null,
@@ -31,7 +33,8 @@ export const ratingsRouter = {
           count: count(),
         })
         .from(recipeRatings)
-        .where(eq(recipeRatings.recipeId, input.recipeId))
+        .innerJoin(recipes, eq(recipeRatings.recipeId, recipes.id))
+        .where(and(eq(recipeRatings.recipeId, input.recipeId), eq(recipes.published, true)))
         .groupBy(recipeRatings.rating)
 
       const distribution: Record<number, number> = {
@@ -53,8 +56,8 @@ export const ratingsRouter = {
     .input(
       z.object({
         recipeId: z.string().uuid(),
-        limit: z.number().min(1).max(50).default(10),
-        offset: z.number().min(0).default(0),
+        limit: z.number().int().min(1).max(50).default(10),
+        offset: z.number().int().min(0).max(10_000).default(0),
       }),
     )
     .query(async ({ ctx, input }) => {
@@ -69,7 +72,8 @@ export const ratingsRouter = {
         })
         .from(recipeRatings)
         .innerJoin(user, eq(recipeRatings.userId, user.id))
-        .where(eq(recipeRatings.recipeId, input.recipeId))
+        .innerJoin(recipes, eq(recipeRatings.recipeId, recipes.id))
+        .where(and(eq(recipeRatings.recipeId, input.recipeId), eq(recipes.published, true)))
         .orderBy(sql`${recipeRatings.createdAt} DESC`)
         .limit(input.limit)
         .offset(input.offset)
@@ -95,28 +99,20 @@ export const ratingsRouter = {
   rateRecipe: protectedProcedure
     .input(createRecipeRatingSchema)
     .mutation(async ({ ctx, input }) => {
-      const [existing] = await ctx.db
-        .select()
-        .from(recipeRatings)
-        .where(
-          and(
-            eq(recipeRatings.recipeId, input.recipeId),
-            eq(recipeRatings.userId, ctx.session.user.id),
-          ),
-        )
+      await enforceRateLimit({
+        db: ctx.db,
+        key: clientRateLimitKey(ctx.headers, "ratings.rateRecipe", ctx.session.user.id),
+        limit: 20,
+        windowMs: 60_000,
+      })
+
+      const [recipe] = await ctx.db
+        .select({ id: recipes.id })
+        .from(recipes)
+        .where(and(eq(recipes.id, input.recipeId), eq(recipes.published, true)))
         .limit(1)
-
-      if (existing) {
-        const [rating] = await ctx.db
-          .update(recipeRatings)
-          .set({
-            rating: input.rating,
-            review: input.review,
-          })
-          .where(eq(recipeRatings.id, existing.id))
-          .returning()
-
-        return rating
+      if (!recipe) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Recipe not found." })
       }
 
       const [rating] = await ctx.db
@@ -124,6 +120,14 @@ export const ratingsRouter = {
         .values({
           ...input,
           userId: ctx.session.user.id,
+        })
+        .onConflictDoUpdate({
+          target: [recipeRatings.userId, recipeRatings.recipeId],
+          set: {
+            rating: input.rating,
+            review: input.review,
+            updatedAt: new Date(),
+          },
         })
         .returning()
 
@@ -149,8 +153,8 @@ export const ratingsRouter = {
     .input(
       z
         .object({
-          limit: z.number().min(1).max(20).default(10),
-          minRatings: z.number().min(1).default(3),
+          limit: z.number().int().min(1).max(20).default(10),
+          minRatings: z.number().int().min(1).max(10_000).default(3),
         })
         .optional(),
     )

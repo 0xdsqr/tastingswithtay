@@ -1,6 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router"
+import { createFileRoute, Link } from "@tanstack/react-router"
 import { Button } from "@twt/ui/components/button"
 import { Instagram, Mail } from "lucide-react"
+import { z } from "zod"
 import { NewsletterSection } from "../components/newsletter-section"
 import { OptimizedImage } from "../components/optimized-image"
 import { SiteFooter } from "../components/site-footer"
@@ -35,9 +36,30 @@ type AboutContent = {
   connectBody: string
 }
 
-type SiteDraftValue = {
-  about?: Partial<AboutContent>
-}
+const aboutContentSchema = z
+  .object({
+    heroEyebrow: z.string(),
+    heroTitle: z.string(),
+    heroImage: z.string(),
+    introBody: z.string(),
+    philosophyEyebrow: z.string(),
+    philosophyTitle: z.string(),
+    philosophyBody: z.string(),
+    valuesEyebrow: z.string(),
+    valuesTitle: z.string(),
+    values: z.array(z.object({ id: z.string(), title: z.string(), body: z.string() }).strict()),
+    quoteText: z.string(),
+    quoteAuthor: z.string(),
+    quoteImage: z.string(),
+    whatsIncludedEyebrow: z.string(),
+    whatsIncludedTitle: z.string(),
+    whatsIncludedBody: z.string(),
+    whatsIncludedImage: z.string(),
+    connectEyebrow: z.string(),
+    connectTitle: z.string(),
+    connectBody: z.string(),
+  })
+  .partial()
 
 const defaultAboutHeroImageUrl = "/about/taylor_and_dave_about.jpg"
 
@@ -85,8 +107,18 @@ const defaultAboutContent: AboutContent = {
 }
 
 export const Route = createFileRoute("/about")({
+  head: () => ({
+    meta: [
+      { title: "About Tay | Tastings with Tay" },
+      {
+        name: "description",
+        content:
+          "Meet Tay and learn the story, values, and seasonal philosophy behind Tastings with Tay.",
+      },
+    ],
+  }),
   loader: async ({ context }) =>
-    context.queryClient.fetchQuery(context.trpc.site.draft.queryOptions()),
+    context.queryClient.fetchQuery(context.trpc.site.published.queryOptions()),
   component: AboutPage,
 })
 
@@ -209,7 +241,9 @@ function AboutPage(): React.ReactElement {
                 </div>
                 <div className="mt-8">
                   <Button asChild>
-                    <a href="/recipes">Explore Recipes</a>
+                    <Link to="/recipes" search={{ category: undefined }}>
+                      Explore Recipes
+                    </Link>
                   </Button>
                 </div>
               </div>
@@ -269,8 +303,12 @@ function AboutPage(): React.ReactElement {
 }
 
 function getAboutContent(rawDraft: unknown): AboutContent {
-  const draft = rawDraft as SiteDraftValue | null
-  const about = draft?.about ?? {}
+  const rawAbout =
+    rawDraft && typeof rawDraft === "object" && !Array.isArray(rawDraft)
+      ? (rawDraft as Record<string, unknown>).about
+      : undefined
+  const parsed = aboutContentSchema.safeParse(rawAbout)
+  const about = parsed.success ? parsed.data : {}
   const managedImageValue = (imageValue: string | undefined, defaultValue: string): string =>
     imageValue?.trim() || defaultValue
 

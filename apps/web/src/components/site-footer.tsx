@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router"
-import { Facebook, Instagram, Mail, Youtube } from "lucide-react"
+import { Instagram, Mail } from "lucide-react"
 import { BrandLogo } from "./brand-logo"
 
 const mainNavigation = [
@@ -11,9 +11,7 @@ const mainNavigation = [
 ] as const
 
 const socialLinks = [
-  { name: "Instagram", href: "#", icon: Instagram },
-  { name: "Facebook", href: "#", icon: Facebook },
-  { name: "YouTube", href: "#", icon: Youtube },
+  { name: "Instagram", href: "https://instagram.com/tastingswithtay", icon: Instagram },
   { name: "Email", href: "mailto:hello@tastingswithtay.com", icon: Mail },
 ] as const
 
@@ -46,6 +44,8 @@ export function SiteFooter(): React.ReactElement {
               <a
                 key={item.name}
                 href={item.href}
+                target={item.href.startsWith("https://") ? "_blank" : undefined}
+                rel={item.href.startsWith("https://") ? "noopener noreferrer" : undefined}
                 className="text-muted-foreground transition-colors hover:text-foreground"
               >
                 <span className="sr-only">{item.name}</span>

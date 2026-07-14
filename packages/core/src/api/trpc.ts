@@ -20,11 +20,14 @@ export const createTRPCContext = async (opts: { headers: Headers; auth: Auth }) 
 const t = initTRPC.context<typeof createTRPCContext>().create({
   transformer: superjson,
   errorFormatter: ({ shape, error }) => {
+    const internal = error.code === "INTERNAL_SERVER_ERROR"
     return {
       ...shape,
+      message: internal ? "An unexpected server error occurred." : shape.message,
       data: {
         ...shape.data,
-        zodError: error.cause instanceof ZodError ? error.cause.flatten() : null,
+        stack: process.env.NODE_ENV === "production" ? undefined : shape.data.stack,
+        zodError: !internal && error.cause instanceof ZodError ? error.cause.flatten() : null,
       },
     }
   },
@@ -33,23 +36,14 @@ const t = initTRPC.context<typeof createTRPCContext>().create({
 export const createTRPCRouter = t.router
 export const createCallerFactory = t.createCallerFactory
 
-const timingMiddleware = t.middleware(async ({ next, path, ctx }) => {
+const timingMiddleware = t.middleware(async ({ next, path }) => {
   const start = Date.now()
 
   const result = await next()
 
   const duration = Date.now() - start
-  const userId = ctx.session?.user?.id
-
-  if (result.ok) {
-    console.log(`[TRPC] ${path} - ${duration}ms${userId ? ` (user: ${userId})` : ""}`)
-  } else {
-    console.error(`[TRPC] ${path} - ERROR`, {
-      duration,
-      userId,
-      code: result.error.code,
-      message: result.error.message,
-    })
+  if (result.ok && duration >= 1_000) {
+    console.warn("[trpc] Slow procedure", { path, durationMs: duration })
   }
 
   return result

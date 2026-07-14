@@ -1,6 +1,12 @@
 import type { TRPCRouterRecord } from "@trpc/server"
-import { experimentEntries, experiments, experimentTags, tags } from "@twt/db/schema"
-import { and, desc, eq, sql } from "drizzle-orm"
+import {
+  experimentEntries,
+  experiments,
+  experimentStatusEnum,
+  experimentTags,
+  tags,
+} from "@twt/db/schema"
+import { and, desc, eq, sql } from "@twt/db"
 import { z } from "zod"
 import { publicProcedure } from "../trpc"
 
@@ -9,9 +15,9 @@ export const experimentsRouter = {
     .input(
       z
         .object({
-          status: z.string().optional(),
-          limit: z.number().min(1).max(100).default(20),
-          offset: z.number().min(0).default(0),
+          status: z.enum(experimentStatusEnum).optional(),
+          limit: z.number().int().min(1).max(100).default(20),
+          offset: z.number().int().min(0).max(10_000).default(0),
         })
         .optional(),
     )
@@ -32,33 +38,43 @@ export const experimentsRouter = {
         .offset(offset)
     }),
 
-  bySlug: publicProcedure.input(z.object({ slug: z.string() })).query(async ({ ctx, input }) => {
-    const [experiment] = await ctx.db
-      .select()
-      .from(experiments)
-      .where(and(eq(experiments.slug, input.slug), eq(experiments.published, true)))
-      .limit(1)
+  bySlug: publicProcedure
+    .input(
+      z.object({
+        slug: z
+          .string()
+          .min(1)
+          .max(256)
+          .regex(/^[a-z0-9-]+$/),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const [experiment] = await ctx.db
+        .select()
+        .from(experiments)
+        .where(and(eq(experiments.slug, input.slug), eq(experiments.published, true)))
+        .limit(1)
 
-    if (!experiment) return null
+      if (!experiment) return null
 
-    const entries = await ctx.db
-      .select()
-      .from(experimentEntries)
-      .where(eq(experimentEntries.experimentId, experiment.id))
-      .orderBy(desc(experimentEntries.createdAt))
+      const entries = await ctx.db
+        .select()
+        .from(experimentEntries)
+        .where(eq(experimentEntries.experimentId, experiment.id))
+        .orderBy(desc(experimentEntries.createdAt))
 
-    const experimentTagsResult = await ctx.db
-      .select({ tag: tags })
-      .from(experimentTags)
-      .innerJoin(tags, eq(experimentTags.tagId, tags.id))
-      .where(eq(experimentTags.experimentId, experiment.id))
+      const experimentTagsResult = await ctx.db
+        .select({ tag: tags })
+        .from(experimentTags)
+        .innerJoin(tags, eq(experimentTags.tagId, tags.id))
+        .where(eq(experimentTags.experimentId, experiment.id))
 
-    return {
-      ...experiment,
-      entries,
-      tags: experimentTagsResult.map((r) => r.tag),
-    }
-  }),
+      return {
+        ...experiment,
+        entries,
+        tags: experimentTagsResult.map((r) => r.tag),
+      }
+    }),
 
   featured: publicProcedure.query(async ({ ctx }) => {
     return ctx.db

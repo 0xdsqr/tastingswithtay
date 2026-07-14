@@ -1,8 +1,8 @@
 import type { TRPCRouterRecord } from "@trpc/server"
 import { recipes, recipeTags, tags } from "@twt/db/schema"
-import { and, desc, eq, sql } from "drizzle-orm"
+import { and, desc, eq, sql } from "@twt/db"
 import { z } from "zod"
-import { assertRateLimit, clientRateLimitKey } from "../rate-limit"
+import { clientRateLimitKey, enforceRateLimit } from "../rate-limit"
 import { publicProcedure } from "../trpc"
 
 export const recipesRouter = {
@@ -10,9 +10,9 @@ export const recipesRouter = {
     .input(
       z
         .object({
-          category: z.string().optional(),
-          limit: z.number().min(1).max(100).default(20),
-          offset: z.number().min(0).default(0),
+          category: z.string().trim().min(1).max(100).optional(),
+          limit: z.number().int().min(1).max(100).default(20),
+          offset: z.number().int().min(0).max(10_000).default(0),
         })
         .optional(),
     )
@@ -33,15 +33,25 @@ export const recipesRouter = {
         .offset(offset)
     }),
 
-  bySlug: publicProcedure.input(z.object({ slug: z.string() })).query(async ({ ctx, input }) => {
-    const [recipe] = await ctx.db
-      .select()
-      .from(recipes)
-      .where(and(eq(recipes.slug, input.slug), eq(recipes.published, true)))
-      .limit(1)
+  bySlug: publicProcedure
+    .input(
+      z.object({
+        slug: z
+          .string()
+          .min(1)
+          .max(256)
+          .regex(/^[a-z0-9-]+$/),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const [recipe] = await ctx.db
+        .select()
+        .from(recipes)
+        .where(and(eq(recipes.slug, input.slug), eq(recipes.published, true)))
+        .limit(1)
 
-    return recipe ?? null
-  }),
+      return recipe ?? null
+    }),
 
   categories: publicProcedure.query(async ({ ctx }) => {
     const result = await ctx.db
@@ -60,7 +70,8 @@ export const recipesRouter = {
         .select({ tag: tags })
         .from(recipeTags)
         .innerJoin(tags, eq(recipeTags.tagId, tags.id))
-        .where(eq(recipeTags.recipeId, input.recipeId))
+        .innerJoin(recipes, eq(recipeTags.recipeId, recipes.id))
+        .where(and(eq(recipeTags.recipeId, input.recipeId), eq(recipes.published, true)))
 
       return result.map((r) => r.tag)
     }),
@@ -77,8 +88,16 @@ export const recipesRouter = {
   incrementView: publicProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
-      assertRateLimit({
-        key: clientRateLimitKey(ctx.headers, "recipes.incrementView", input.id),
+      const [recipe] = await ctx.db
+        .select({ id: recipes.id })
+        .from(recipes)
+        .where(and(eq(recipes.id, input.id), eq(recipes.published, true)))
+        .limit(1)
+      if (!recipe) return { success: true }
+
+      await enforceRateLimit({
+        db: ctx.db,
+        key: clientRateLimitKey(ctx.headers, `recipes.incrementView:${input.id}`),
         limit: 1,
         windowMs: 10 * 60_000,
       })
@@ -86,7 +105,7 @@ export const recipesRouter = {
       await ctx.db
         .update(recipes)
         .set({ viewCount: sql`${recipes.viewCount} + 1` })
-        .where(eq(recipes.id, input.id))
+        .where(eq(recipes.id, recipe.id))
       return { success: true }
     }),
 } satisfies TRPCRouterRecord

@@ -4,10 +4,6 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": {
-      "import": "./dist/esm/index.js",
-      "types": "./dist/types/index.d.ts"
-    },
     "./auth": {
       "import": "./dist/esm/auth/index.js",
       "types": "./dist/types/auth/index.d.ts"
@@ -22,23 +18,21 @@
     }
   },
   "scripts": {
-    "auth:generate": "bunx @better-auth/cli@1.4.21 generate --config scripts/auth-cli.ts --output ../db/src/auth-schema.ts",
+    "auth:generate": "bunx @better-auth/cli@1.6.23 generate --config scripts/auth-cli.ts --output ../db/src/auth-schema.ts",
     "build": "bun run scripts/build.ts",
-    "clean": "git clean -xdf dist node_modules",
-    "typecheck": "tsc --noEmit"
+    "clean": "bun ../../scripts/clean.ts packages/core",
+    "typecheck": "tsc --noEmit",
+    "typecheck:ts6": "tsc6 --noEmit"
   },
   "dependencies": {
-    "@trpc/server": "^11.1.0",
+    "@trpc/server": "11.18.0",
     "@twt/db": "workspace:*",
-    "better-auth": "1.6.9",
-    "drizzle-orm": "^0.45.2",
-    "pg": "^8.16.3",
-    "superjson": "^2.2.5",
-    "zod": "^4.3.5"
+    "better-auth": "1.6.23",
+    "effect": "3.22.0",
+    "superjson": "2.2.6",
+    "zod": "4.4.3"
   },
   "devDependencies": {
-    "@twt/tsconfig": "workspace:*",
-    "@types/pg": "^8.15.6",
-    "bun-types": "latest"
+    "@twt/tsconfig": "workspace:*"
   }
 }

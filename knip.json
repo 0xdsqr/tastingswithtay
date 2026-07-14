@@ -1,0 +1,29 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "workspaces": {
+    "apps/admin": {
+      "entry": ["src/router.tsx", "src/server.ts", "src/routes/**/*.tsx"]
+    },
+    "apps/web": {
+      "entry": ["src/router.tsx", "src/server.ts", "src/routes/**/*.tsx"]
+    },
+    "packages/core": {
+      "entry": [
+        "src/api/index.ts",
+        "src/auth/index.ts",
+        "src/http/readiness.ts",
+        "src/http/security.ts",
+        "scripts/auth-cli.ts"
+      ]
+    },
+    "packages/db": {
+      "entry": ["src/index.ts", "src/client.ts"]
+    },
+    "packages/ui": {
+      "entry": ["src/components/*.tsx", "src/hooks/*.ts", "src/styles/*.css"]
+    },
+    ".": {
+      "entry": ["scripts/*.ts"]
+    }
+  }
+}

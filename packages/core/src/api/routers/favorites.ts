@@ -1,7 +1,8 @@
 import type { TRPCRouterRecord } from "@trpc/server"
 import { recipeFavorites, recipes, wineFavorites, wines } from "@twt/db/schema"
-import { and, desc, eq } from "drizzle-orm"
+import { and, desc, eq } from "@twt/db"
 import { z } from "zod"
+import { TRPCError } from "@trpc/server"
 import { protectedProcedure } from "../trpc"
 
 export const favoritesRouter = {
@@ -11,7 +12,7 @@ export const favoritesRouter = {
       .select({ recipe: recipes, favoritedAt: recipeFavorites.createdAt })
       .from(recipeFavorites)
       .innerJoin(recipes, eq(recipeFavorites.recipeId, recipes.id))
-      .where(eq(recipeFavorites.userId, ctx.session.user.id))
+      .where(and(eq(recipeFavorites.userId, ctx.session.user.id), eq(recipes.published, true)))
       .orderBy(desc(recipeFavorites.createdAt))
 
     return result.map((r) => ({ ...r.recipe, favoritedAt: r.favoritedAt }))
@@ -44,10 +45,23 @@ export const favoritesRouter = {
         return { favorited: false }
       }
 
-      await ctx.db.insert(recipeFavorites).values({
-        userId: ctx.session.user.id,
-        recipeId: input.recipeId,
-      })
+      const [recipe] = await ctx.db
+        .select({ id: recipes.id })
+        .from(recipes)
+        .where(and(eq(recipes.id, input.recipeId), eq(recipes.published, true)))
+        .limit(1)
+
+      if (!recipe) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Recipe not found." })
+      }
+
+      await ctx.db
+        .insert(recipeFavorites)
+        .values({
+          userId: ctx.session.user.id,
+          recipeId: input.recipeId,
+        })
+        .onConflictDoNothing()
       return { favorited: true }
     }),
 
@@ -75,7 +89,7 @@ export const favoritesRouter = {
       .select({ wine: wines, favoritedAt: wineFavorites.createdAt })
       .from(wineFavorites)
       .innerJoin(wines, eq(wineFavorites.wineId, wines.id))
-      .where(eq(wineFavorites.userId, ctx.session.user.id))
+      .where(and(eq(wineFavorites.userId, ctx.session.user.id), eq(wines.published, true)))
       .orderBy(desc(wineFavorites.createdAt))
 
     return result.map((r) => ({ ...r.wine, favoritedAt: r.favoritedAt }))
@@ -108,10 +122,23 @@ export const favoritesRouter = {
         return { favorited: false }
       }
 
-      await ctx.db.insert(wineFavorites).values({
-        userId: ctx.session.user.id,
-        wineId: input.wineId,
-      })
+      const [wine] = await ctx.db
+        .select({ id: wines.id })
+        .from(wines)
+        .where(and(eq(wines.id, input.wineId), eq(wines.published, true)))
+        .limit(1)
+
+      if (!wine) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Wine not found." })
+      }
+
+      await ctx.db
+        .insert(wineFavorites)
+        .values({
+          userId: ctx.session.user.id,
+          wineId: input.wineId,
+        })
+        .onConflictDoNothing()
       return { favorited: true }
     }),
 

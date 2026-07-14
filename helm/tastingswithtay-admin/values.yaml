@@ -2,8 +2,8 @@ replicaCount: 1
 
 image:
   repository: ghcr.io/0xdsqr/tastingswithtay-admin
-  tag: latest
-  pullPolicy: Always
+  tag: sha-8048e9bf27952050ff7fd6f3c97782e5ef33f95d
+  pullPolicy: IfNotPresent
 
 imagePullSecrets:
   - name: ghcr-creds
@@ -19,8 +19,17 @@ serviceAccount:
 podAnnotations: {}
 podLabels: {}
 
-podSecurityContext: {}
-securityContext: {}
+podSecurityContext:
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop: ["ALL"]
+  readOnlyRootFilesystem: true
+  runAsGroup: 1000
+  runAsUser: 1000
 
 service:
   type: ClusterIP
@@ -39,6 +48,11 @@ env:
   S3_REGION: us-east-1
   S3_USE_SSL: "true"
   TRUSTED_ORIGINS: https://admin.tastingswithtay.com,https://tastingswithtay.com
+  TRUST_PROXY_HEADERS: "true"
+  DATABASE_APPLICATION_NAME: twt-admin
+  DATABASE_CONNECTION_TIMEOUT_MS: "5000"
+  DATABASE_QUERY_TIMEOUT_MS: "15000"
+  DATABASE_STATEMENT_TIMEOUT_MS: "15000"
   OTEL_SERVICE_NAME: twt-admin
   OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector.observability.svc.cluster.local:4318
   OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://otel-collector.observability.svc.cluster.local:4318/v1/traces
@@ -54,7 +68,7 @@ networkPolicy:
     # Prod values should narrow this to Traefik plus trusted same-namespace apps.
     from: []
   egress:
-    allowAll: true
+    allowAll: false
     dns:
       enabled: true
       to:
@@ -64,7 +78,14 @@ networkPolicy:
           podSelector:
             matchLabels:
               k8s-app: kube-dns
-    extra: []
+    extra:
+      - ports:
+          - protocol: TCP
+            port: 443
+          - protocol: TCP
+            port: 5432
+          - protocol: TCP
+            port: 4318
 
 resources:
   requests:
@@ -75,15 +96,24 @@ resources:
     memory: 2Gi
 
 startupProbe:
-  tcpSocket:
+  httpGet:
+    path: /api/health
     port: http
   periodSeconds: 5
   failureThreshold: 24
 
 readinessProbe:
-  tcpSocket:
+  httpGet:
+    path: /api/ready
     port: http
   periodSeconds: 5
+  failureThreshold: 3
+
+livenessProbe:
+  httpGet:
+    path: /api/health
+    port: http
+  periodSeconds: 15
   failureThreshold: 3
 
 ingress:

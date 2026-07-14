@@ -10,12 +10,14 @@ import {
   Sparkles,
   Trophy,
 } from "lucide-react"
+import { z } from "zod"
 import { EmptyState } from "../../components/empty-state"
 import { OptimizedImage } from "../../components/optimized-image"
 import { SiteFooter } from "../../components/site-footer"
 import { SiteHeader } from "../../components/site-header"
 
 const statusFilters = ["All", "In Progress", "Paused", "Completed", "Graduated"] as const
+const experimentStatusValues = ["in_progress", "paused", "completed", "graduated"] as const
 
 const statusMap: Record<string, string> = {
   "In Progress": "in_progress",
@@ -48,9 +50,16 @@ const statusConfig: Record<string, { label: string; color: string; icon: typeof 
 }
 
 export const Route = createFileRoute("/test-kitchen/")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    status: (search.status as string) || undefined,
+  head: () => ({
+    meta: [
+      { title: "Test Kitchen | Tastings with Tay" },
+      {
+        name: "description",
+        content: "Follow Tay's in-progress kitchen experiments, iterations, and results.",
+      },
+    ],
   }),
+  validateSearch: z.object({ status: z.enum(experimentStatusValues).optional() }),
   loaderDeps: ({ search }) => ({ status: search.status }),
   loader: async ({ context, deps }) => {
     const experiments = (await context.queryClient.fetchQuery(

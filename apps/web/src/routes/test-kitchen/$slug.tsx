@@ -1,4 +1,4 @@
-import { createFileRoute, notFound } from "@tanstack/react-router"
+import { createFileRoute, Link, notFound } from "@tanstack/react-router"
 import { Badge } from "@twt/ui/components/badge"
 import { Button } from "@twt/ui/components/button"
 import {
@@ -30,13 +30,30 @@ export const Route = createFileRoute("/test-kitchen/$slug")({
     }
     return { experiment }
   },
+  head: ({ loaderData }) => ({
+    meta: loaderData
+      ? [
+          { title: `${loaderData.experiment.title} | Tastings with Tay` },
+          { name: "description", content: loaderData.experiment.description.slice(0, 160) },
+          { property: "og:type", content: "article" },
+          { property: "og:title", content: loaderData.experiment.title },
+          ...(loaderData.experiment.image
+            ? [{ property: "og:image", content: loaderData.experiment.image }]
+            : []),
+        ]
+      : [{ title: "Test Kitchen | Tastings with Tay" }],
+  }),
   component: ExperimentDetailPage,
   notFoundComponent: () => (
     <div className="flex min-h-screen flex-col items-center justify-center">
       <h1 className="font-serif text-4xl">Experiment not found</h1>
-      <a href="/test-kitchen" className="mt-4 text-primary hover:underline">
+      <Link
+        to="/test-kitchen"
+        search={{ status: undefined }}
+        className="mt-4 text-primary hover:underline"
+      >
         Back to Test Kitchen
-      </a>
+      </Link>
     </div>
   ),
 })
@@ -90,13 +107,14 @@ function ExperimentDetailPage(): React.ReactElement {
       <main className="flex-1">
         {/* Back Link */}
         <div className="mx-auto max-w-4xl px-6 pt-8 lg:px-8">
-          <a
-            href="/test-kitchen"
+          <Link
+            to="/test-kitchen"
+            search={{ status: undefined }}
             className="inline-flex items-center text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Test Kitchen
-          </a>
+          </Link>
         </div>
 
         {/* Experiment Header */}
@@ -187,10 +205,14 @@ function ExperimentDetailPage(): React.ReactElement {
                   </p>
                 </div>
                 <Button variant="outline" size="sm" asChild>
-                  <a href="/recipes" className="flex items-center gap-2">
+                  <Link
+                    to="/recipes"
+                    search={{ category: undefined }}
+                    className="flex items-center gap-2"
+                  >
                     View Recipe
                     <ArrowRight className="size-4" />
-                  </a>
+                  </Link>
                 </Button>
               </div>
             )}

@@ -3,9 +3,9 @@ import type { Recipe } from "@twt/db/schema"
 import { Button } from "@twt/ui/components/button"
 import { ArrowRight, Clock, CookingPot, Flower2, Users, Wine } from "lucide-react"
 import type React from "react"
-import { useEffect, useRef, useState } from "react"
 import { GhostCard } from "./empty-state"
 import { OptimizedImage } from "./optimized-image"
+import type { HomeContent } from "../lib/site-content"
 
 function formatTime(minutes: number | null): string {
   if (!minutes) return ""
@@ -18,44 +18,19 @@ function formatTime(minutes: number | null): string {
 interface BentoItemProps {
   children: React.ReactNode
   className?: string
-  delay?: number
 }
 
-function BentoItem({ children, className = "", delay = 0 }: BentoItemProps): React.ReactElement {
-  const [isVisible, setIsVisible] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry?.isIntersecting) {
-          setTimeout(() => setIsVisible(true), delay)
-        }
-      },
-      { threshold: 0.1 },
-    )
-    if (ref.current) observer.observe(ref.current)
-    return () => observer.disconnect()
-  }, [delay])
-
-  return (
-    <div
-      ref={ref}
-      className={`transition-all duration-700 ${
-        isVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
-      } ${className}`}
-    >
-      {children}
-    </div>
-  )
+function BentoItem({ children, className = "" }: BentoItemProps): React.ReactElement {
+  return <div className={className}>{children}</div>
 }
 
 interface BentoGridProps {
   recipes: Recipe[]
   categories: string[]
+  content: HomeContent
 }
 
-export function BentoGrid({ recipes, categories }: BentoGridProps): React.ReactElement {
+export function BentoGrid({ recipes, categories, content }: BentoGridProps): React.ReactElement {
   // Get first 3 featured recipes for display
   const featuredRecipe = recipes[0]
   const secondRecipe = recipes[1]
@@ -67,10 +42,10 @@ export function BentoGrid({ recipes, categories }: BentoGridProps): React.ReactE
         {/* Section Header */}
         <BentoItem className="mb-12 text-center">
           <p className="mb-2 text-sm font-medium uppercase tracking-widest text-muted-foreground">
-            Discover
+            {content.bentoEyebrow}
           </p>
           <h2 className="text-balance font-serif text-3xl tracking-tight text-foreground sm:text-4xl lg:text-5xl">
-            What&apos;s Cooking
+            {content.bentoTitle}
           </h2>
         </BentoItem>
 
@@ -81,7 +56,7 @@ export function BentoGrid({ recipes, categories }: BentoGridProps): React.ReactE
             <>
               {/* Large Featured Recipe */}
               {featuredRecipe && (
-                <BentoItem className="col-span-2 row-span-2" delay={100}>
+                <BentoItem className="col-span-2 row-span-2">
                   <Link
                     to="/recipes/$slug"
                     params={{ slug: featuredRecipe.slug }}
@@ -130,7 +105,7 @@ export function BentoGrid({ recipes, categories }: BentoGridProps): React.ReactE
 
               {/* Quick Recipe 2 */}
               {secondRecipe && (
-                <BentoItem delay={200}>
+                <BentoItem>
                   <Link
                     to="/recipes/$slug"
                     params={{ slug: secondRecipe.slug }}
@@ -160,7 +135,7 @@ export function BentoGrid({ recipes, categories }: BentoGridProps): React.ReactE
 
               {/* Quick Recipe 3 */}
               {thirdRecipe && (
-                <BentoItem delay={250}>
+                <BentoItem>
                   <Link
                     to="/recipes/$slug"
                     params={{ slug: thirdRecipe.slug }}
@@ -191,7 +166,7 @@ export function BentoGrid({ recipes, categories }: BentoGridProps): React.ReactE
           ) : (
             <>
               {/* Ghost placeholder for featured recipe (2x2) */}
-              <BentoItem className="col-span-2 row-span-2" delay={100}>
+              <BentoItem className="col-span-2 row-span-2">
                 <div className="relative h-full overflow-hidden rounded-2xl border border-border bg-card">
                   <div className="h-full w-full bg-muted opacity-40 blur-[2px]" />
                   <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
@@ -207,17 +182,17 @@ export function BentoGrid({ recipes, categories }: BentoGridProps): React.ReactE
               </BentoItem>
 
               {/* Ghost placeholder small cards */}
-              <BentoItem delay={200}>
+              <BentoItem>
                 <GhostCard aspectRatio="aspect-auto" className="h-full opacity-40 blur-[1px]" />
               </BentoItem>
-              <BentoItem delay={250}>
+              <BentoItem>
                 <GhostCard aspectRatio="aspect-auto" className="h-full opacity-40 blur-[1px]" />
               </BentoItem>
             </>
           )}
 
           {/* Wine Cellar Card */}
-          <BentoItem className="row-span-2" delay={300}>
+          <BentoItem className="row-span-2">
             <Link to="/wine" search={{ type: undefined }} className="group block h-full">
               <div className="relative flex h-full flex-col justify-between overflow-hidden rounded-2xl bg-gradient-to-br from-brand-burgundy to-brand-burgundy/80 p-6">
                 <div>
@@ -242,7 +217,7 @@ export function BentoGrid({ recipes, categories }: BentoGridProps): React.ReactE
           </BentoItem>
 
           {/* Meet Tay Card */}
-          <BentoItem delay={350}>
+          <BentoItem>
             <Link to="/about" className="group block h-full">
               <div className="relative flex h-full flex-col justify-between overflow-hidden rounded-2xl bg-primary/10 p-6">
                 <div>
@@ -262,7 +237,7 @@ export function BentoGrid({ recipes, categories }: BentoGridProps): React.ReactE
           </BentoItem>
 
           {/* Garden & Flock Preview */}
-          <BentoItem delay={400}>
+          <BentoItem>
             <Link
               to="/garden-and-flock"
               search={{ category: undefined }}
@@ -287,7 +262,7 @@ export function BentoGrid({ recipes, categories }: BentoGridProps): React.ReactE
           </BentoItem>
 
           {/* Categories Row */}
-          <BentoItem className="col-span-2" delay={450}>
+          <BentoItem className="col-span-2">
             <div className="h-full overflow-hidden rounded-2xl border border-border bg-card p-6">
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="font-serif text-xl text-foreground">Browse Categories</h3>
@@ -329,7 +304,7 @@ export function BentoGrid({ recipes, categories }: BentoGridProps): React.ReactE
           </BentoItem>
 
           {/* Newsletter Card */}
-          <BentoItem className="col-span-2" delay={500}>
+          <BentoItem className="col-span-2">
             <div className="flex h-full flex-col justify-center overflow-hidden rounded-2xl bg-brand-burgundy p-6 text-brand-cream">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div>

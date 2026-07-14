@@ -1,18 +1,27 @@
-import { createFileRoute } from "@tanstack/react-router"
+import { createFileRoute, Link } from "@tanstack/react-router"
 import type { Wine } from "@twt/db/schema"
 import { Button } from "@twt/ui/components/button"
 import { ChevronRight, Star, Wine as WineIcon } from "lucide-react"
+import { z } from "zod"
 import { EmptyState } from "../../components/empty-state"
 import { OptimizedImage } from "../../components/optimized-image"
 import { SiteFooter } from "../../components/site-footer"
 import { SiteHeader } from "../../components/site-header"
 
 const wineTypes = ["All", "Red", "White", "Rosé", "Sparkling", "Dessert"] as const
+const wineTypeValues = ["Red", "White", "Rosé", "Sparkling", "Dessert"] as const
 
 export const Route = createFileRoute("/wine/")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    type: (search.type as string) || undefined,
+  head: () => ({
+    meta: [
+      { title: "Wine Cellar | Tastings with Tay" },
+      {
+        name: "description",
+        content: "Explore Tay's wine notes, ratings, regions, and food pairings.",
+      },
+    ],
   }),
+  validateSearch: z.object({ type: z.enum(wineTypeValues).optional() }),
   loaderDeps: ({ search }) => ({ type: search.type }),
   loader: async ({ context, deps }) => {
     const wines = (await context.queryClient.fetchQuery(
@@ -33,7 +42,7 @@ const typeColors: Record<string, string> = {
 
 function WineCard({ wine }: { wine: Wine }): React.ReactElement {
   return (
-    <a href={`/wine/${wine.slug}`} className="group block">
+    <Link to="/wine/$slug" params={{ slug: wine.slug }} className="group block">
       <article className="overflow-hidden rounded-2xl border border-border bg-card transition-all duration-300 hover:border-primary/30 hover:shadow-lg">
         <div className="relative aspect-[4/3] overflow-hidden">
           {wine.image && (
@@ -106,7 +115,7 @@ function WineCard({ wine }: { wine: Wine }): React.ReactElement {
           )}
         </div>
       </article>
-    </a>
+    </Link>
   )
 }
 
@@ -143,9 +152,10 @@ function WineCellarPage(): React.ReactElement {
             {/* Filter Tabs */}
             <div className="mb-12 flex flex-wrap justify-center gap-3">
               {wineTypes.map((type) => (
-                <a
+                <Link
                   key={type}
-                  href={type === "All" ? "/wine" : `/wine?type=${type}`}
+                  to="/wine"
+                  search={{ type: type === "All" ? undefined : type }}
                   className={`rounded-full px-5 py-2 text-sm font-medium transition-all duration-300 ${
                     activeType === type
                       ? "bg-primary text-primary-foreground"
@@ -153,7 +163,7 @@ function WineCellarPage(): React.ReactElement {
                   }`}
                 >
                   {type}
-                </a>
+                </Link>
               ))}
             </div>
 
@@ -199,10 +209,14 @@ function WineCellarPage(): React.ReactElement {
                 className="shrink-0 bg-[#C4A77D] text-[#1A1014] hover:bg-[#B8976D]"
                 asChild
               >
-                <a href="/recipes" className="flex items-center gap-2">
+                <Link
+                  to="/recipes"
+                  search={{ category: undefined }}
+                  className="flex items-center gap-2"
+                >
                   Browse Recipes
                   <ChevronRight className="h-4 w-4" />
-                </a>
+                </Link>
               </Button>
             </div>
           </div>

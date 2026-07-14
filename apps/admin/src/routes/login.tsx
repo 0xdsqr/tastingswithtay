@@ -36,7 +36,7 @@ function AdminLoginPage(): React.ReactElement {
       })
 
       if (result.error) {
-        setError(result.error.message ?? "Sign in failed.")
+        setError("The email or password is incorrect.")
         return
       }
 
@@ -66,7 +66,10 @@ function AdminLoginPage(): React.ReactElement {
             <label className="block space-y-2">
               <span className="text-sm font-medium text-foreground">Email</span>
               <Input
+                id="admin-email"
+                name="email"
                 type="email"
+                autoComplete="email"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
                 placeholder="you@example.com"
@@ -77,11 +80,15 @@ function AdminLoginPage(): React.ReactElement {
             <label className="block space-y-2">
               <span className="text-sm font-medium text-foreground">Password</span>
               <Input
+                id="admin-password"
+                name="password"
                 type="password"
+                autoComplete="current-password"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
                 placeholder="Enter your password"
                 required
+                maxLength={128}
               />
             </label>
 

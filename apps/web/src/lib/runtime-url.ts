@@ -14,7 +14,7 @@ export function getPublicBaseUrl(): string {
   return trimTrailingSlash(baseUrl)
 }
 
-export function getInternalApiBaseUrl(): string {
+function getInternalApiBaseUrl(): string {
   const baseUrl =
     process.env.INTERNAL_API_BASE_URL || process.env.BASE_URL || getDefaultLocalBaseUrl()
 

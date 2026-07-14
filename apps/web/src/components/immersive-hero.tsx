@@ -2,7 +2,8 @@ import { Link } from "@tanstack/react-router"
 import type { Recipe } from "@twt/db/schema"
 import { Button } from "@twt/ui/components/button"
 import { ArrowDown, Clock, CookingPot, Users } from "lucide-react"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
+import type { HomeContent } from "../lib/site-content"
 import { OptimizedImage } from "./optimized-image"
 
 function formatTime(minutes: number | null): string {
@@ -15,18 +16,16 @@ function formatTime(minutes: number | null): string {
 
 interface ImmersiveHeroProps {
   recipes: Recipe[]
+  content: HomeContent
 }
 
-export function ImmersiveHero({ recipes }: ImmersiveHeroProps): React.ReactElement {
+export function ImmersiveHero({ recipes, content }: ImmersiveHeroProps): React.ReactElement {
   const [activeIndex, setActiveIndex] = useState(0)
-  const [isVisible, setIsVisible] = useState(false)
-  const heroRef = useRef<HTMLDivElement>(null)
 
   // Use first 3 recipes for hero carousel
   const heroRecipes = recipes.slice(0, 3)
 
   useEffect(() => {
-    setIsVisible(true)
     if (heroRecipes.length === 0) return
     const interval = setInterval(() => {
       setActiveIndex((prev) => (prev + 1) % heroRecipes.length)
@@ -65,22 +64,20 @@ export function ImmersiveHero({ recipes }: ImmersiveHeroProps): React.ReactEleme
           </div>
           <div>
             <p className="mb-3 text-sm font-medium uppercase tracking-widest text-primary">
-              Welcome to
+              {content.heroFallbackEyebrow}
             </p>
             <h1 className="font-serif text-5xl tracking-tight text-foreground sm:text-6xl lg:text-7xl">
-              Tastings with Tay
+              {content.heroFallbackTitle}
             </h1>
           </div>
-          <p className="max-w-md text-lg text-muted-foreground">
-            Recipes, wine tastings, and kitchen stories are on their way. Stay tuned!
-          </p>
+          <p className="max-w-md text-lg text-muted-foreground">{content.heroFallbackBody}</p>
           <Button
             variant="outline"
             size="lg"
             className="mt-2 bg-background/50 backdrop-blur-sm"
             asChild
           >
-            <Link to="/about">Learn More About Tay</Link>
+            <a href={content.primaryCtaHref}>{content.primaryCtaLabel}</a>
           </Button>
         </div>
 
@@ -93,7 +90,7 @@ export function ImmersiveHero({ recipes }: ImmersiveHeroProps): React.ReactEleme
   }
 
   return (
-    <section ref={heroRef} className="relative flex min-h-[100svh] items-center overflow-hidden">
+    <section className="relative flex min-h-[100svh] items-center overflow-hidden">
       {/* Background Images with Crossfade */}
       {heroRecipes.map((recipe, index) => (
         <div
@@ -117,30 +114,18 @@ export function ImmersiveHero({ recipes }: ImmersiveHeroProps): React.ReactEleme
       {/* Content */}
       <div className="relative z-10 mx-auto w-full max-w-7xl px-6 py-20 lg:px-8">
         <div className="max-w-2xl">
-          <p
-            className={`mb-4 text-sm font-medium uppercase tracking-widest text-primary transition-all duration-700 ${
-              isVisible ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
-            }`}
-          >
+          <p className="mb-4 text-sm font-medium uppercase tracking-widest text-primary">
             Tastings with Tay
           </p>
 
-          <h1
-            className={`mb-4 font-serif text-5xl leading-[1.1] tracking-tight text-foreground transition-all delay-100 duration-700 sm:text-6xl lg:text-7xl ${
-              isVisible ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
-            }`}
-          >
+          <h1 className="mb-4 font-serif text-5xl leading-[1.1] tracking-tight text-foreground sm:text-6xl lg:text-7xl">
             <span className="block">{activeRecipe.title}</span>
             <span className="mt-2 block font-serif text-3xl italic text-muted-foreground sm:text-4xl lg:text-5xl">
               {activeRecipe.category}
             </span>
           </h1>
 
-          <div
-            className={`mb-8 flex items-center gap-6 text-sm text-muted-foreground transition-all delay-200 duration-700 ${
-              isVisible ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
-            }`}
-          >
+          <div className="mb-8 flex items-center gap-6 text-sm text-muted-foreground">
             {totalTime > 0 && (
               <span className="flex items-center gap-2">
                 <Clock className="h-4 w-4" />
@@ -155,11 +140,7 @@ export function ImmersiveHero({ recipes }: ImmersiveHeroProps): React.ReactEleme
             )}
           </div>
 
-          <div
-            className={`mb-12 flex flex-col gap-4 transition-all delay-300 duration-700 sm:flex-row ${
-              isVisible ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
-            }`}
-          >
+          <div className="mb-12 flex flex-col gap-4 sm:flex-row">
             <Button size="lg" asChild>
               <Link to="/recipes/$slug" params={{ slug: activeRecipe.slug }}>
                 View Recipe
@@ -178,21 +159,20 @@ export function ImmersiveHero({ recipes }: ImmersiveHeroProps): React.ReactEleme
           </div>
 
           {/* Recipe Indicators */}
-          <div
-            className={`flex gap-3 transition-all delay-400 duration-700 ${
-              isVisible ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
-            }`}
-          >
+          <div className="flex gap-3">
             {heroRecipes.map((recipe, index) => (
               <button
                 key={recipe.slug}
                 type="button"
                 onClick={() => setActiveIndex(index)}
+                aria-label={`Show ${recipe.title}`}
+                aria-pressed={index === activeIndex}
                 className={`group flex items-center gap-3 transition-all duration-300 ${
                   index === activeIndex ? "opacity-100" : "opacity-50 hover:opacity-75"
                 }`}
               >
-                <div
+                <span
+                  aria-hidden="true"
                   className={`h-1 rounded-full transition-all duration-500 ${
                     index === activeIndex ? "w-12 bg-primary" : "w-6 bg-muted-foreground"
                   }`}

@@ -1,4 +1,4 @@
-import { GetObjectCommand, HeadBucketCommand, S3Client } from "@aws-sdk/client-s3"
+import { GetObjectCommand, HeadObjectCommand, S3Client } from "@aws-sdk/client-s3"
 
 const managedImageFolders = new Set([
   "about",
@@ -14,6 +14,9 @@ const managedImageFolders = new Set([
 type ManagedImageResponse = {
   body: ReadableStream
   contentType: string
+  contentLength?: number
+  etag?: string
+  lastModified?: Date
 }
 
 function getS3Endpoint(): string | undefined {
@@ -31,7 +34,10 @@ function getBucketName(): string {
   return process.env.S3_BUCKET?.trim() || "tastingswithtay"
 }
 
+let s3Client: S3Client | undefined
+
 function getS3Client(): S3Client {
+  if (s3Client) return s3Client
   const accessKeyId = process.env.S3_ACCESS_KEY?.trim()
   const secretAccessKey = process.env.S3_SECRET_KEY?.trim()
 
@@ -39,7 +45,7 @@ function getS3Client(): S3Client {
     throw new Error("Set S3_ACCESS_KEY and S3_SECRET_KEY before serving managed images.")
   }
 
-  return new S3Client({
+  s3Client = new S3Client({
     endpoint: getS3Endpoint(),
     region: process.env.S3_REGION || "us-east-1",
     credentials: {
@@ -52,6 +58,7 @@ function getS3Client(): S3Client {
       connectionTimeout: 3_000,
     },
   })
+  return s3Client
 }
 
 function keyForManagedImage(
@@ -75,7 +82,6 @@ export async function getManagedImage(
     const bucket = getBucketName()
     const client = getS3Client()
 
-    await client.send(new HeadBucketCommand({ Bucket: bucket }))
     const response = await client.send(new GetObjectCommand({ Bucket: bucket, Key: key }))
 
     if (!response.Body) return null
@@ -83,6 +89,9 @@ export async function getManagedImage(
     return {
       body: response.Body.transformToWebStream(),
       contentType: response.ContentType || "image/jpeg",
+      contentLength: response.ContentLength,
+      etag: response.ETag,
+      lastModified: response.LastModified,
     }
   } catch (error) {
     console.error("[managed-images] RustFS image fetch failed", {
@@ -91,6 +100,28 @@ export async function getManagedImage(
       errorCode: error instanceof Error ? error.name : "UnknownError",
       error: error instanceof Error ? error.message : "Unknown storage error",
     })
+    return null
+  }
+}
+
+export async function getManagedImageMetadata(
+  folder: string | undefined,
+  fileName: string | undefined,
+): Promise<Omit<ManagedImageResponse, "body"> | null> {
+  const key = keyForManagedImage(folder, fileName)
+  if (!key) return null
+
+  try {
+    const response = await getS3Client().send(
+      new HeadObjectCommand({ Bucket: getBucketName(), Key: key }),
+    )
+    return {
+      contentType: response.ContentType || "image/jpeg",
+      contentLength: response.ContentLength,
+      etag: response.ETag,
+      lastModified: response.LastModified,
+    }
+  } catch {
     return null
   }
 }

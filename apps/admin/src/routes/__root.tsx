@@ -33,8 +33,16 @@ function RootComponent(): React.ReactElement {
         <HeadContent />
       </head>
       <body className="min-h-screen bg-background font-sans text-foreground antialiased">
+        <a
+          href="#admin-main-content"
+          className="fixed left-4 top-4 z-[100] -translate-y-24 rounded-md bg-background px-4 py-2 text-foreground shadow focus:translate-y-0"
+        >
+          Skip to admin content
+        </a>
         <ErrorBoundary>
-          <Outlet />
+          <div id="admin-main-content" tabIndex={-1}>
+            <Outlet />
+          </div>
         </ErrorBoundary>
         <Scripts />
       </body>

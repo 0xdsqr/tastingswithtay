@@ -20,6 +20,8 @@ import { Route as GardenAndFlockIndexRouteImport } from './routes/garden-and-flo
 import { Route as WineSlugRouteImport } from './routes/wine/$slug'
 import { Route as TestKitchenSlugRouteImport } from './routes/test-kitchen/$slug'
 import { Route as RecipesSlugRouteImport } from './routes/recipes/$slug'
+import { Route as ApiReadyRouteImport } from './routes/api/ready'
+import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ApiTrpcSplatRouteImport } from './routes/api/trpc.$'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth.$'
 import { Route as ApiImagesFolderFileNameRouteImport } from './routes/api/images.$folder.$fileName'
@@ -79,6 +81,16 @@ const RecipesSlugRoute = RecipesSlugRouteImport.update({
   path: '/recipes/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiReadyRoute = ApiReadyRouteImport.update({
+  id: '/api/ready',
+  path: '/api/ready',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiHealthRoute = ApiHealthRouteImport.update({
+  id: '/api/health',
+  path: '/api/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiTrpcSplatRoute = ApiTrpcSplatRouteImport.update({
   id: '/api/trpc/$',
   path: '/api/trpc/$',
@@ -100,6 +112,8 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/api/health': typeof ApiHealthRoute
+  '/api/ready': typeof ApiReadyRoute
   '/recipes/$slug': typeof RecipesSlugRoute
   '/test-kitchen/$slug': typeof TestKitchenSlugRoute
   '/wine/$slug': typeof WineSlugRoute
@@ -116,6 +130,8 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/api/health': typeof ApiHealthRoute
+  '/api/ready': typeof ApiReadyRoute
   '/recipes/$slug': typeof RecipesSlugRoute
   '/test-kitchen/$slug': typeof TestKitchenSlugRoute
   '/wine/$slug': typeof WineSlugRoute
@@ -133,6 +149,8 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/api/health': typeof ApiHealthRoute
+  '/api/ready': typeof ApiReadyRoute
   '/recipes/$slug': typeof RecipesSlugRoute
   '/test-kitchen/$slug': typeof TestKitchenSlugRoute
   '/wine/$slug': typeof WineSlugRoute
@@ -151,6 +169,8 @@ export interface FileRouteTypes {
     | '/about'
     | '/login'
     | '/signup'
+    | '/api/health'
+    | '/api/ready'
     | '/recipes/$slug'
     | '/test-kitchen/$slug'
     | '/wine/$slug'
@@ -167,6 +187,8 @@ export interface FileRouteTypes {
     | '/about'
     | '/login'
     | '/signup'
+    | '/api/health'
+    | '/api/ready'
     | '/recipes/$slug'
     | '/test-kitchen/$slug'
     | '/wine/$slug'
@@ -183,6 +205,8 @@ export interface FileRouteTypes {
     | '/about'
     | '/login'
     | '/signup'
+    | '/api/health'
+    | '/api/ready'
     | '/recipes/$slug'
     | '/test-kitchen/$slug'
     | '/wine/$slug'
@@ -200,6 +224,8 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   LoginRoute: typeof LoginRoute
   SignupRoute: typeof SignupRoute
+  ApiHealthRoute: typeof ApiHealthRoute
+  ApiReadyRoute: typeof ApiReadyRoute
   RecipesSlugRoute: typeof RecipesSlugRoute
   TestKitchenSlugRoute: typeof TestKitchenSlugRoute
   WineSlugRoute: typeof WineSlugRoute
@@ -291,6 +317,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RecipesSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/ready': {
+      id: '/api/ready'
+      path: '/api/ready'
+      fullPath: '/api/ready'
+      preLoaderRoute: typeof ApiReadyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/health': {
+      id: '/api/health'
+      path: '/api/health'
+      fullPath: '/api/health'
+      preLoaderRoute: typeof ApiHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/trpc/$': {
       id: '/api/trpc/$'
       path: '/api/trpc/$'
@@ -320,6 +360,8 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   LoginRoute: LoginRoute,
   SignupRoute: SignupRoute,
+  ApiHealthRoute: ApiHealthRoute,
+  ApiReadyRoute: ApiReadyRoute,
   RecipesSlugRoute: RecipesSlugRoute,
   TestKitchenSlugRoute: TestKitchenSlugRoute,
   WineSlugRoute: WineSlugRoute,

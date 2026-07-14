@@ -1,4 +1,5 @@
 import { createFileRoute, redirect } from "@tanstack/react-router"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { Avatar, AvatarFallback } from "@twt/ui/components/avatar"
 import { Badge } from "@twt/ui/components/badge"
 import {
@@ -73,6 +74,7 @@ import {
   mapGalleryToForm,
   mapRecipeToForm,
   mapWineToForm,
+  publishSiteDraft,
   saveExperiment,
   saveGalleryImage,
   saveRecipe,
@@ -701,9 +703,22 @@ function SiteContentManager({
     startTransition(async () => {
       try {
         await saveSiteDraft({ data: { draft } })
-        setMessage("Site draft saved. The public About page now reads this content.")
+        setMessage("Site draft saved. Publish it when the changes are ready for visitors.")
       } catch (error) {
         setMessage(error instanceof Error ? error.message : "Could not save site draft.")
+      }
+    })
+  }
+
+  const publishDraft = () => {
+    setMessage(null)
+    startTransition(async () => {
+      try {
+        await saveSiteDraft({ data: { draft } })
+        await publishSiteDraft()
+        setMessage("Site changes published.")
+      } catch (error) {
+        setMessage(error instanceof Error ? error.message : "Could not publish site changes.")
       }
     })
   }
@@ -1133,6 +1148,9 @@ function SiteContentManager({
         <Button onClick={saveDraft} disabled={isPending}>
           {isPending ? "Saving..." : "Save site draft"}
         </Button>
+        <Button onClick={publishDraft} disabled={isPending} variant="secondary">
+          Publish site changes
+        </Button>
         <Button
           variant="outline"
           onClick={() => {
@@ -1161,16 +1179,11 @@ function RecipeManager({
 
   const selectedItem = items.find((item) => item.id === selectedId)
 
-  useEffect(() => {
-    setForm(selectedItem ? mapRecipeToForm(selectedItem) : createEmptyRecipe())
+  const selectRecipe = (item?: Recipe) => {
+    setSelectedId(item?.id ?? "new")
+    setForm(item ? mapRecipeToForm(item) : createEmptyRecipe())
     setMessage(null)
-  }, [selectedItem])
-
-  useEffect(() => {
-    if (selectedId !== "new" && !items.some((item) => item.id === selectedId)) {
-      setSelectedId("new")
-    }
-  }, [items, selectedId])
+  }
 
   const saveLabel = selectedItem ? "Save recipe" : "Create recipe"
 
@@ -1180,7 +1193,7 @@ function RecipeManager({
       description="Structured recipe entries with steps, timings, hero images, and publish state."
       listHeader="Recipe library"
       listAction={
-        <Button size="sm" onClick={() => setSelectedId("new")}>
+        <Button size="sm" onClick={() => selectRecipe()}>
           New recipe
         </Button>
       }
@@ -1194,7 +1207,7 @@ function RecipeManager({
               subtitle={`${item.category} • ${item.published ? "Published" : "Draft"}`}
               meta={formatAdminDate(item.updatedAt)}
               imageValue={item.image}
-              onClick={() => setSelectedId(item.id)}
+              onClick={() => selectRecipe(item)}
             />
           ))}
         </div>
@@ -1209,7 +1222,7 @@ function RecipeManager({
               try {
                 const saved = (await saveRecipe({ data: form })) as Recipe
                 onItemsChange(upsertByUpdatedAt<Recipe>(items, saved))
-                setSelectedId(saved.id)
+                selectRecipe(saved)
                 setMessage("Recipe saved.")
               } catch (error) {
                 setMessage(error instanceof Error ? error.message : "Could not save recipe.")
@@ -1390,7 +1403,7 @@ function RecipeManager({
                       try {
                         await deleteRecord({ data: { kind: "recipe", id: selectedItem.id } })
                         onItemsChange(items.filter((item) => item.id !== selectedItem.id))
-                        setSelectedId("new")
+                        selectRecipe()
                         setMessage("Recipe deleted.")
                       } catch (error) {
                         setMessage(
@@ -1423,10 +1436,11 @@ function WineManager({
 
   const selectedItem = items.find((item) => item.id === selectedId)
 
-  useEffect(() => {
-    setForm(selectedItem ? mapWineToForm(selectedItem) : createEmptyWine())
+  const selectWine = (item?: Wine) => {
+    setSelectedId(item?.id ?? "new")
+    setForm(item ? mapWineToForm(item) : createEmptyWine())
     setMessage(null)
-  }, [selectedItem])
+  }
 
   return (
     <EditorWorkspace
@@ -1434,7 +1448,7 @@ function WineManager({
       description="Personal tasting entries with aromas, pairings, occasion notes, and feature state."
       listHeader="Wine cellar"
       listAction={
-        <Button size="sm" onClick={() => setSelectedId("new")}>
+        <Button size="sm" onClick={() => selectWine()}>
           New wine
         </Button>
       }
@@ -1448,7 +1462,7 @@ function WineManager({
               subtitle={`${item.winery} • ${item.published ? "Published" : "Draft"}`}
               meta={formatAdminDate(item.updatedAt)}
               imageValue={item.image}
-              onClick={() => setSelectedId(item.id)}
+              onClick={() => selectWine(item)}
             />
           ))}
         </div>
@@ -1463,7 +1477,7 @@ function WineManager({
               try {
                 const saved = (await saveWine({ data: form })) as Wine
                 onItemsChange(upsertByUpdatedAt<Wine>(items, saved))
-                setSelectedId(saved.id)
+                selectWine(saved)
                 setMessage("Wine saved.")
               } catch (error) {
                 setMessage(error instanceof Error ? error.message : "Could not save wine.")
@@ -1676,7 +1690,7 @@ function WineManager({
                       try {
                         await deleteRecord({ data: { kind: "wine", id: selectedItem.id } })
                         onItemsChange(items.filter((item) => item.id !== selectedItem.id))
-                        setSelectedId("new")
+                        selectWine()
                         setMessage("Wine deleted.")
                       } catch (error) {
                         setMessage(
@@ -1711,10 +1725,11 @@ function ExperimentManager({
 
   const selectedItem = items.find((item) => item.id === selectedId)
 
-  useEffect(() => {
-    setForm(selectedItem ? mapExperimentToForm(selectedItem) : createEmptyExperiment())
+  const selectExperiment = (item?: ExperimentWithEntries) => {
+    setSelectedId(item?.id ?? "new")
+    setForm(item ? mapExperimentToForm(item) : createEmptyExperiment())
     setMessage(null)
-  }, [selectedItem])
+  }
 
   return (
     <EditorWorkspace
@@ -1722,7 +1737,7 @@ function ExperimentManager({
       description="Experiments have a parent entry plus a timeline of updates, notes, photos, and results."
       listHeader="Experiment log"
       listAction={
-        <Button size="sm" onClick={() => setSelectedId("new")}>
+        <Button size="sm" onClick={() => selectExperiment()}>
           New experiment
         </Button>
       }
@@ -1736,7 +1751,7 @@ function ExperimentManager({
               subtitle={`${humanizeExperimentStatus(item.status)} • ${item.published ? "Published" : "Draft"}`}
               meta={formatAdminDate(item.updatedAt)}
               imageValue={item.image}
-              onClick={() => setSelectedId(item.id)}
+              onClick={() => selectExperiment(item)}
             />
           ))}
         </div>
@@ -1751,7 +1766,7 @@ function ExperimentManager({
               try {
                 const saved = (await saveExperiment({ data: form })) as ExperimentWithEntries
                 onItemsChange(upsertByUpdatedAt<ExperimentWithEntries>(items, saved))
-                setSelectedId(saved.id)
+                selectExperiment(saved)
                 setMessage("Experiment saved.")
               } catch (error) {
                 setMessage(error instanceof Error ? error.message : "Could not save experiment.")
@@ -2031,7 +2046,7 @@ function ExperimentManager({
                       try {
                         await deleteRecord({ data: { kind: "experiment", id: selectedItem.id } })
                         onItemsChange(items.filter((item) => item.id !== selectedItem.id))
-                        setSelectedId("new")
+                        selectExperiment()
                         setMessage("Experiment deleted.")
                       } catch (error) {
                         setMessage(
@@ -2064,10 +2079,11 @@ function GalleryManager({
 
   const selectedItem = items.find((item) => item.id === selectedId)
 
-  useEffect(() => {
-    setForm(selectedItem ? mapGalleryToForm(selectedItem) : createEmptyGalleryImage())
+  const selectGalleryImage = (item?: GalleryImage) => {
+    setSelectedId(item?.id ?? "new")
+    setForm(item ? mapGalleryToForm(item) : createEmptyGalleryImage())
     setMessage(null)
-  }, [selectedItem])
+  }
 
   return (
     <EditorWorkspace
@@ -2075,7 +2091,7 @@ function GalleryManager({
       description="Gallery entries for the homestead page, including captions, categories, and sort order."
       listHeader="Image library"
       listAction={
-        <Button size="sm" onClick={() => setSelectedId("new")}>
+        <Button size="sm" onClick={() => selectGalleryImage()}>
           New image
         </Button>
       }
@@ -2089,7 +2105,7 @@ function GalleryManager({
               subtitle={`${capitalize(item.category)} • ${item.published ? "Published" : "Draft"}`}
               meta={formatAdminDate(item.updatedAt)}
               imageValue={item.image}
-              onClick={() => setSelectedId(item.id)}
+              onClick={() => selectGalleryImage(item)}
             />
           ))}
         </div>
@@ -2104,7 +2120,7 @@ function GalleryManager({
               try {
                 const saved = (await saveGalleryImage({ data: form })) as GalleryImage
                 onItemsChange(upsertByUpdatedAt<GalleryImage>(items, saved))
-                setSelectedId(saved.id)
+                selectGalleryImage(saved)
                 setMessage("Gallery image saved.")
               } catch (error) {
                 setMessage(error instanceof Error ? error.message : "Could not save image.")
@@ -2212,7 +2228,7 @@ function GalleryManager({
                       try {
                         await deleteRecord({ data: { kind: "gallery", id: selectedItem.id } })
                         onItemsChange(items.filter((item) => item.id !== selectedItem.id))
-                        setSelectedId("new")
+                        selectGalleryImage()
                         setMessage("Gallery image deleted.")
                       } catch (error) {
                         setMessage(
@@ -2234,33 +2250,27 @@ function GalleryManager({
 function ImageManager(): React.ReactElement {
   const [folder, setFolder] = useState<"all" | ManagedAssetFolder>("all")
   const [uploadFolder, setUploadFolder] = useState<ManagedAssetFolder>("about")
-  const [assets, setAssets] = useState<ManagedImageAsset[]>([])
   const [message, setMessage] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
+  const queryClient = useQueryClient()
+  const assetsQuery = useQuery({
+    queryKey: ["managed-assets", folder],
+    queryFn: () => listManagedAssets({ data: { folder, limit: 150 } }),
+    staleTime: 30_000,
+  })
+  const assets = assetsQuery.data ?? []
 
   const refreshAssets = () => {
     setMessage(null)
     startTransition(async () => {
       try {
-        const loaded = await listManagedAssets({ data: { folder, limit: 150 } })
-        setAssets(loaded)
+        const result = await assetsQuery.refetch()
+        if (result.error) throw result.error
       } catch (error) {
         setMessage(error instanceof Error ? error.message : "Could not load images.")
       }
     })
   }
-
-  useEffect(() => {
-    setMessage(null)
-    startTransition(async () => {
-      try {
-        const loaded = await listManagedAssets({ data: { folder, limit: 150 } })
-        setAssets(loaded)
-      } catch (error) {
-        setMessage(error instanceof Error ? error.message : "Could not load images.")
-      }
-    })
-  }, [folder])
 
   const uploadFile = (file: File) => {
     setMessage(null)
@@ -2268,7 +2278,10 @@ function ImageManager(): React.ReactElement {
       try {
         const uploaded = await uploadImageFile(file, uploadFolder)
         setFolder(uploadFolder)
-        setAssets((current) => [uploaded, ...current.filter((asset) => asset.key !== uploaded.key)])
+        queryClient.setQueryData<ManagedImageAsset[]>(
+          ["managed-assets", uploadFolder],
+          (current = []) => [uploaded, ...current.filter((asset) => asset.key !== uploaded.key)],
+        )
         setMessage(`Uploaded ${uploaded.key}.`)
       } catch (error) {
         setMessage(error instanceof Error ? error.message : "Could not upload image.")
@@ -2312,7 +2325,7 @@ function ImageManager(): React.ReactElement {
                 </Select>
                 <Input
                   type="file"
-                  accept="image/avif,image/gif,image/heic,image/heif,image/jpeg,image/png,image/webp"
+                  accept="image/avif,image/jpeg,image/png,image/webp"
                   disabled={isPending}
                   onChange={(event) => {
                     const file = event.currentTarget.files?.[0]
@@ -2347,7 +2360,7 @@ function ImageManager(): React.ReactElement {
                 type="button"
                 variant="outline"
                 className="sm:w-auto"
-                disabled={isPending}
+                disabled={isPending || assetsQuery.isFetching}
                 onClick={refreshAssets}
               >
                 Refresh
@@ -2357,7 +2370,9 @@ function ImageManager(): React.ReactElement {
         </CardContent>
       </Card>
 
-      <StatusBar message={message} />
+      <StatusBar
+        message={message ?? (assetsQuery.error instanceof Error ? assetsQuery.error.message : null)}
+      />
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {assets.map((asset) => (
@@ -2399,7 +2414,10 @@ function ImageManager(): React.ReactElement {
                     startTransition(async () => {
                       try {
                         await deleteManagedAsset({ data: { key: asset.key } })
-                        setAssets((current) => current.filter((item) => item.key !== asset.key))
+                        queryClient.setQueryData<ManagedImageAsset[]>(
+                          ["managed-assets", folder],
+                          (current = []) => current.filter((item) => item.key !== asset.key),
+                        )
                         setMessage("Image deleted from RustFS.")
                       } catch (error) {
                         setMessage(
@@ -3261,7 +3279,7 @@ function ImageUploadField({
           />
           <Input
             type="file"
-            accept="image/avif,image/gif,image/heic,image/heif,image/jpeg,image/png,image/webp"
+            accept="image/avif,image/jpeg,image/png,image/webp"
             disabled={isPending}
             onChange={(event) => {
               const file = event.currentTarget.files?.[0]

@@ -1,6 +1,6 @@
 import type { TRPCRouterRecord } from "@trpc/server"
-import { galleryImages } from "@twt/db/schema"
-import { and, asc, desc, eq, sql } from "drizzle-orm"
+import { galleryCategoryEnum, galleryImages } from "@twt/db/schema"
+import { and, asc, desc, eq, sql } from "@twt/db"
 import { z } from "zod"
 import { publicProcedure } from "../trpc"
 
@@ -9,9 +9,9 @@ export const galleryRouter = {
     .input(
       z
         .object({
-          category: z.string().optional(),
-          limit: z.number().min(1).max(100).default(50),
-          offset: z.number().min(0).default(0),
+          category: z.enum(galleryCategoryEnum).optional(),
+          limit: z.number().int().min(1).max(100).default(50),
+          offset: z.number().int().min(0).max(10_000).default(0),
         })
         .optional(),
     )

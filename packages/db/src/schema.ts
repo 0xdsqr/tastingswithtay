@@ -1,6 +1,8 @@
 import { relations, sql } from "drizzle-orm"
 import {
   boolean,
+  check,
+  foreignKey,
   index,
   integer,
   jsonb,
@@ -32,14 +34,20 @@ export const galleryCategoryEnum = ["garden", "flock"] as const
 // SITE SETTINGS
 // ============================================
 
-export const siteSettings = pgTable("site_settings", {
-  key: varchar("key", { length: 100 }).primaryKey(),
-  value: jsonb("value").$type<Record<string, unknown>>().notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true })
-    .defaultNow()
-    .$onUpdate(() => new Date())
-    .notNull(),
-})
+export const siteSettings = pgTable(
+  "site_settings",
+  {
+    key: varchar("key", { length: 100 }).primaryKey(),
+    value: jsonb("value").$type<Record<string, unknown>>().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    check("site_settings_value_object_check", sql`jsonb_typeof(${table.value}) = 'object'`),
+  ],
+)
 
 // ============================================
 // TAGS (shared across recipes & wines)
@@ -54,7 +62,10 @@ export const tags = pgTable(
     type: varchar("type", { length: 50 }).notNull().default("both"), // recipe | wine | both
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
-  (table) => [index("tags_slug_idx").on(table.slug), index("tags_type_idx").on(table.type)],
+  (table) => [
+    index("tags_type_idx").on(table.type),
+    check("tags_type_check", sql`${table.type} IN ('recipe', 'wine', 'experiment', 'both')`),
+  ],
 )
 
 // ============================================
@@ -80,7 +91,8 @@ export const recipes = pgTable(
     instructions: jsonb("instructions").$type<Array<{ step: number; text: string }>>().notNull(),
     tips: text("tips")
       .array()
-      .default(sql`ARRAY[]::text[]`),
+      .default(sql`ARRAY[]::text[]`)
+      .notNull(),
 
     image: varchar("image", { length: 512 }),
 
@@ -95,13 +107,19 @@ export const recipes = pgTable(
       .notNull(),
   },
   (table) => [
-    uniqueIndex("recipes_slug_idx").on(table.slug),
     index("recipes_category_idx").on(table.category),
     index("recipes_difficulty_idx").on(table.difficulty),
     index("recipes_published_idx").on(table.published),
     index("recipes_featured_idx").on(table.featured),
     index("recipes_created_at_idx").on(sql`${table.createdAt} DESC`),
     index("recipes_published_created_idx").on(table.published, sql`${table.createdAt} DESC`),
+    check("recipes_difficulty_check", sql`${table.difficulty} IN ('Easy', 'Medium', 'Hard')`),
+    check("recipes_prep_time_check", sql`${table.prepTime} IS NULL OR ${table.prepTime} > 0`),
+    check("recipes_cook_time_check", sql`${table.cookTime} IS NULL OR ${table.cookTime} > 0`),
+    check("recipes_servings_check", sql`${table.servings} IS NULL OR ${table.servings} > 0`),
+    check("recipes_view_count_check", sql`${table.viewCount} >= 0`),
+    check("recipes_ingredients_array_check", sql`jsonb_typeof(${table.ingredients}) = 'array'`),
+    check("recipes_instructions_array_check", sql`jsonb_typeof(${table.instructions}) = 'array'`),
   ],
 )
 
@@ -148,10 +166,12 @@ export const wines = pgTable(
 
     aromas: text("aromas")
       .array()
-      .default(sql`ARRAY[]::text[]`),
+      .default(sql`ARRAY[]::text[]`)
+      .notNull(),
     pairings: text("pairings")
       .array()
-      .default(sql`ARRAY[]::text[]`), // General food pairings
+      .default(sql`ARRAY[]::text[]`)
+      .notNull(), // General food pairings
 
     priceRange: varchar("price_range", { length: 20 }), // $, $$, $$$, $$$$, $$$$$
     occasion: varchar("occasion", { length: 100 }), // Special Celebration, Everyday, Date Night
@@ -168,7 +188,6 @@ export const wines = pgTable(
       .notNull(),
   },
   (table) => [
-    uniqueIndex("wines_slug_idx").on(table.slug),
     index("wines_type_idx").on(table.type),
     index("wines_country_idx").on(table.country),
     index("wines_winery_idx").on(table.winery),
@@ -176,6 +195,20 @@ export const wines = pgTable(
     index("wines_featured_idx").on(table.featured),
     index("wines_rating_idx").on(table.rating),
     index("wines_created_at_idx").on(sql`${table.createdAt} DESC`),
+    index("wines_published_created_idx").on(table.published, sql`${table.createdAt} DESC`),
+    check(
+      "wines_type_check",
+      sql`${table.type} IN ('Red', 'White', 'Rosé', 'Sparkling', 'Dessert')`,
+    ),
+    check(
+      "wines_vintage_check",
+      sql`${table.vintage} IS NULL OR ${table.vintage} BETWEEN 1800 AND 2200`,
+    ),
+    check("wines_rating_check", sql`${table.rating} IS NULL OR ${table.rating} BETWEEN 1 AND 5`),
+    check(
+      "wines_price_range_check",
+      sql`${table.priceRange} IS NULL OR ${table.priceRange} IN ('$', '$$', '$$$', '$$$$', '$$$$$')`,
+    ),
   ],
 )
 
@@ -246,7 +279,6 @@ export const collections = pgTable(
       .notNull(),
   },
   (table) => [
-    uniqueIndex("collections_slug_idx").on(table.slug),
     index("collections_published_idx").on(table.published),
     index("collections_featured_idx").on(table.featured),
   ],
@@ -272,6 +304,7 @@ export const collectionRecipes = pgTable(
     index("collection_recipes_collection_id_idx").on(table.collectionId),
     index("collection_recipes_recipe_id_idx").on(table.recipeId),
     index("collection_recipes_sort_idx").on(table.collectionId, table.sortOrder),
+    check("collection_recipes_sort_order_check", sql`${table.sortOrder} >= 0`),
   ],
 )
 
@@ -295,6 +328,7 @@ export const collectionWines = pgTable(
     index("collection_wines_collection_id_idx").on(table.collectionId),
     index("collection_wines_wine_id_idx").on(table.wineId),
     index("collection_wines_sort_idx").on(table.collectionId, table.sortOrder),
+    check("collection_wines_sort_order_check", sql`${table.sortOrder} >= 0`),
   ],
 )
 
@@ -365,6 +399,8 @@ export const recipeRatings = pgTable(
     index("recipe_ratings_user_id_idx").on(table.userId),
     index("recipe_ratings_recipe_id_idx").on(table.recipeId),
     index("recipe_ratings_rating_idx").on(table.rating),
+    index("recipe_ratings_recipe_created_idx").on(table.recipeId, sql`${table.createdAt} DESC`),
+    check("recipe_ratings_rating_check", sql`${table.rating} BETWEEN 1 AND 5`),
   ],
 )
 
@@ -396,6 +432,11 @@ export const recipeComments = pgTable(
     index("recipe_comments_user_id_idx").on(table.userId),
     index("recipe_comments_parent_id_idx").on(table.parentId),
     index("recipe_comments_created_at_idx").on(table.recipeId, sql`${table.createdAt} DESC`),
+    foreignKey({
+      name: "recipe_comments_parent_id_fk",
+      columns: [table.parentId],
+      foreignColumns: [table.id],
+    }).onDelete("cascade"),
   ],
 )
 
@@ -423,6 +464,11 @@ export const wineComments = pgTable(
     index("wine_comments_user_id_idx").on(table.userId),
     index("wine_comments_parent_id_idx").on(table.parentId),
     index("wine_comments_created_at_idx").on(table.wineId, sql`${table.createdAt} DESC`),
+    foreignKey({
+      name: "wine_comments_parent_id_fk",
+      columns: [table.parentId],
+      foreignColumns: [table.id],
+    }).onDelete("cascade"),
   ],
 )
 
@@ -444,9 +490,8 @@ export const subscribers = pgTable(
       .default(sql`gen_random_uuid()::text`),
   },
   (table) => [
-    index("subscribers_email_idx").on(table.email),
     index("subscribers_active_idx").on(table.active),
-    index("subscribers_unsubscribe_token_idx").on(table.unsubscribeToken),
+    check("subscribers_email_normalized_check", sql`${table.email} = lower(${table.email})`),
   ],
 )
 
@@ -477,12 +522,15 @@ export const experiments = pgTable(
       .notNull(),
   },
   (table) => [
-    uniqueIndex("experiments_slug_idx").on(table.slug),
     index("experiments_status_idx").on(table.status),
     index("experiments_published_idx").on(table.published),
     index("experiments_featured_idx").on(table.featured),
     index("experiments_created_at_idx").on(sql`${table.createdAt} DESC`),
     index("experiments_published_created_idx").on(table.published, sql`${table.createdAt} DESC`),
+    check(
+      "experiments_status_check",
+      sql`${table.status} IN ('in_progress', 'paused', 'completed', 'graduated')`,
+    ),
   ],
 )
 
@@ -501,7 +549,8 @@ export const experimentEntries = pgTable(
     entryType: varchar("entry_type", { length: 50 }).notNull().default("update"), // update, photo, note, result, iteration
     images: jsonb("images")
       .$type<string[]>()
-      .default(sql`'[]'::jsonb`),
+      .default(sql`'[]'::jsonb`)
+      .notNull(),
     sortOrder: integer("sort_order").default(0).notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true })
@@ -513,6 +562,12 @@ export const experimentEntries = pgTable(
     index("experiment_entries_experiment_id_idx").on(table.experimentId),
     index("experiment_entries_sort_idx").on(table.experimentId, table.sortOrder),
     index("experiment_entries_created_at_idx").on(table.experimentId, sql`${table.createdAt} DESC`),
+    check(
+      "experiment_entries_type_check",
+      sql`${table.entryType} IN ('update', 'photo', 'note', 'result', 'iteration')`,
+    ),
+    check("experiment_entries_sort_order_check", sql`${table.sortOrder} >= 0`),
+    check("experiment_entries_images_array_check", sql`jsonb_typeof(${table.images}) = 'array'`),
   ],
 )
 
@@ -568,6 +623,48 @@ export const galleryImages = pgTable(
       table.category,
       sql`${table.sortOrder} ASC`,
     ),
+    check("gallery_images_category_check", sql`${table.category} IN ('garden', 'flock')`),
+    check("gallery_images_sort_order_check", sql`${table.sortOrder} >= 0`),
+  ],
+)
+
+// ============================================
+// DISTRIBUTED RATE LIMITING & ADMIN AUDIT
+// ============================================
+
+export const rateLimitBuckets = pgTable(
+  "rate_limit_buckets",
+  {
+    key: varchar("key", { length: 64 }).primaryKey(),
+    count: integer("count").notNull(),
+    resetAt: timestamp("reset_at", { withTimezone: true }).notNull(),
+  },
+  (table) => [
+    index("rate_limit_buckets_reset_at_idx").on(table.resetAt),
+    check("rate_limit_buckets_count_check", sql`${table.count} > 0`),
+  ],
+)
+
+export const adminAuditLog = pgTable(
+  "admin_audit_log",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    actorUserId: text("actor_user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "restrict" }),
+    action: varchar("action", { length: 100 }).notNull(),
+    targetType: varchar("target_type", { length: 100 }).notNull(),
+    targetId: varchar("target_id", { length: 256 }).notNull(),
+    metadata: jsonb("metadata")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default(sql`'{}'::jsonb`),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index("admin_audit_log_actor_created_idx").on(table.actorUserId, sql`${table.createdAt} DESC`),
+    index("admin_audit_log_target_idx").on(table.targetType, table.targetId),
+    check("admin_audit_log_metadata_object_check", sql`jsonb_typeof(${table.metadata}) = 'object'`),
   ],
 )
 
@@ -784,25 +881,31 @@ export const createRecipeSchema = createInsertSchema(recipes, {
     .min(1)
     .max(256)
     .regex(/^[a-z0-9-]+$/),
-  description: z.string().min(1),
+  description: z.string().trim().min(1).max(20_000),
   category: z.string().min(1).max(100),
   difficulty: z.enum(difficultyEnum),
   prepTime: z.number().int().positive().optional(),
   cookTime: z.number().int().positive().optional(),
   servings: z.number().int().positive().optional(),
-  ingredients: z.array(
-    z.object({
-      group: z.string().optional(),
-      items: z.array(z.string()),
-    }),
-  ),
-  instructions: z.array(
-    z.object({
-      step: z.number().int().positive(),
-      text: z.string(),
-    }),
-  ),
-  tips: z.array(z.string()).optional(),
+  ingredients: z
+    .array(
+      z.object({
+        group: z.string().trim().max(256).optional(),
+        items: z.array(z.string().trim().min(1).max(2_000)).min(1).max(200),
+      }),
+    )
+    .min(1)
+    .max(50),
+  instructions: z
+    .array(
+      z.object({
+        step: z.number().int().positive(),
+        text: z.string().trim().min(1).max(5_000),
+      }),
+    )
+    .min(1)
+    .max(500),
+  tips: z.array(z.string().trim().min(1).max(2_000)).max(100).optional(),
   image: z.string().max(512).optional(),
   published: z.boolean().optional(),
   featured: z.boolean().optional(),
@@ -829,9 +932,9 @@ export const createWineSchema = createInsertSchema(wines, {
   type: z.enum(wineTypeEnum),
   grapes: z.string().max(256).optional(),
   rating: z.number().int().min(1).max(5).optional(),
-  notes: z.string().optional(),
-  aromas: z.array(z.string()).optional(),
-  pairings: z.array(z.string()).optional(),
+  notes: z.string().trim().max(20_000).optional(),
+  aromas: z.array(z.string().trim().min(1).max(256)).max(100).optional(),
+  pairings: z.array(z.string().trim().min(1).max(256)).max(100).optional(),
   priceRange: z.enum(priceRangeEnum).optional(),
   occasion: z.string().max(100).optional(),
   image: z.string().max(512).optional(),
@@ -852,7 +955,7 @@ export const createCollectionSchema = createInsertSchema(collections, {
     .min(1)
     .max(256)
     .regex(/^[a-z0-9-]+$/),
-  description: z.string().optional(),
+  description: z.string().trim().max(20_000).optional(),
   image: z.string().max(512).optional(),
   published: z.boolean().optional(),
   featured: z.boolean().optional(),
@@ -865,7 +968,7 @@ export const createCollectionSchema = createInsertSchema(collections, {
 export const updateCollectionSchema = createCollectionSchema.partial()
 
 export const createRecipeCommentSchema = createInsertSchema(recipeComments, {
-  content: z.string().min(1).max(2000),
+  content: z.string().trim().min(1).max(2000),
   recipeId: z.string().uuid(),
   parentId: z.string().uuid().optional(),
 }).omit({
@@ -877,7 +980,7 @@ export const createRecipeCommentSchema = createInsertSchema(recipeComments, {
 })
 
 export const createWineCommentSchema = createInsertSchema(wineComments, {
-  content: z.string().min(1).max(2000),
+  content: z.string().trim().min(1).max(2000),
   wineId: z.string().uuid(),
   parentId: z.string().uuid().optional(),
 }).omit({
@@ -891,7 +994,7 @@ export const createWineCommentSchema = createInsertSchema(wineComments, {
 export const createRecipeRatingSchema = createInsertSchema(recipeRatings, {
   recipeId: z.string().uuid(),
   rating: z.number().int().min(1).max(5),
-  review: z.string().max(2000).optional(),
+  review: z.string().trim().max(2000).optional(),
 }).omit({
   id: true,
   userId: true,
@@ -926,10 +1029,10 @@ export const createExperimentSchema = createInsertSchema(experiments, {
     .min(1)
     .max(256)
     .regex(/^[a-z0-9-]+$/),
-  description: z.string().min(1),
+  description: z.string().trim().min(1).max(20_000),
   status: z.enum(experimentStatusEnum).optional(),
-  hypothesis: z.string().optional(),
-  result: z.string().optional(),
+  hypothesis: z.string().trim().max(20_000).optional(),
+  result: z.string().trim().max(20_000).optional(),
   recipeId: z.string().uuid().optional().nullable(),
   image: z.string().max(512).optional(),
   published: z.boolean().optional(),

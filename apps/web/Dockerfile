@@ -1,9 +1,9 @@
 # syntax=docker/dockerfile:1.7
 
-FROM node:24-slim AS base
+FROM node:24.18.0-slim@sha256:cb4e8f7c443347358b7875e717c29e27bf9befc8f5a26cf18af3c3dec80e58c5 AS base
 WORKDIR /app
 
-COPY --from=oven/bun:1.3.11 /usr/local/bin/bun /usr/local/bin/bun
+COPY --from=oven/bun:1.3.13@sha256:87416c977a612a204eb54ab9f3927023c2a3c971f4f345a01da08ea6262ae30e /usr/local/bin/bun /usr/local/bin/bun
 RUN ln -s /usr/local/bin/bun /usr/local/bin/bunx \
   && apt-get update \
   && apt-get install -y --no-install-recommends python3 make g++ \
@@ -31,7 +31,7 @@ RUN bun run --filter '@twt/db' build
 RUN bun run --filter '@twt/core' build
 RUN bun run --filter 'web' build
 
-FROM node:24-slim AS runner
+FROM node:24.18.0-slim@sha256:cb4e8f7c443347358b7875e717c29e27bf9befc8f5a26cf18af3c3dec80e58c5 AS runner
 WORKDIR /app/apps/web
 
 ENV NODE_ENV=production
@@ -39,8 +39,8 @@ ENV HOST=0.0.0.0
 ENV NITRO_HOST=0.0.0.0
 ENV PORT=3010
 
-RUN npm init -y \
-  && npm install --omit=dev pg@8.16.3
+COPY docker/runtime/package.json docker/runtime/package-lock.json ./
+RUN npm ci --omit=dev --ignore-scripts --no-audit --no-fund
 
 COPY --from=build --chown=node:node /app/apps/web/.output ./.output
 

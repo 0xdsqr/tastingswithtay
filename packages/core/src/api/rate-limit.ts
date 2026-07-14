@@ -1,43 +1,76 @@
 import { TRPCError } from "@trpc/server"
-
-type Bucket = {
-  count: number
-  resetAt: number
-}
-
-const buckets = new Map<string, Bucket>()
+import { rateLimitBuckets } from "@twt/db/schema"
+import { createHash } from "node:crypto"
+import { isIP } from "node:net"
+import { lt, sql } from "@twt/db"
+import type { db as database } from "@twt/db/client"
+import { runPersistence } from "../effect/persistence"
 
 export function clientRateLimitKey(headers: Headers, action: string, scope?: string): string {
-  const forwardedFor = headers.get("x-forwarded-for")?.split(",")[0]?.trim()
-  const realIp = headers.get("x-real-ip")?.trim()
-  const ip = forwardedFor || realIp || "unknown"
+  const trustProxyHeaders = process.env.TRUST_PROXY_HEADERS === "true"
+  const forwardedChain = trustProxyHeaders
+    ? headers
+        .get("x-forwarded-for")
+        ?.split(",")
+        .map((value) => value.trim())
+        .filter(Boolean)
+    : undefined
+  const candidate =
+    (trustProxyHeaders ? headers.get("x-real-ip")?.trim() : undefined) ??
+    forwardedChain?.at(-1) ??
+    "unknown"
+  const ip = isIP(candidate) ? candidate : "unknown"
+  const client = scope ?? `${ip}:${headers.get("user-agent")?.slice(0, 160) ?? "unknown"}`
 
-  return [action, scope, ip].filter(Boolean).join(":")
+  return createHash("sha256").update(`${action}:${client}`).digest("hex")
 }
 
-export function assertRateLimit({
+export async function enforceRateLimit({
+  db,
   key,
   limit,
   windowMs,
 }: {
+  db: typeof database
   key: string
   limit: number
   windowMs: number
-}): void {
-  const now = Date.now()
-  const current = buckets.get(key)
+}): Promise<void> {
+  const now = new Date()
+  const resetAt = new Date(now.getTime() + windowMs)
+  const [bucket] = await runPersistence("rate-limit.upsert", () =>
+    db
+      .insert(rateLimitBuckets)
+      .values({ key, count: 1, resetAt })
+      .onConflictDoUpdate({
+        target: rateLimitBuckets.key,
+        set: {
+          count: sql<number>`CASE WHEN ${rateLimitBuckets.resetAt} <= ${now} THEN 1 ELSE ${rateLimitBuckets.count} + 1 END`,
+          resetAt: sql<Date>`CASE WHEN ${rateLimitBuckets.resetAt} <= ${now} THEN ${resetAt} ELSE ${rateLimitBuckets.resetAt} END`,
+        },
+      })
+      .returning({ count: rateLimitBuckets.count, resetAt: rateLimitBuckets.resetAt }),
+  )
 
-  if (!current || current.resetAt <= now) {
-    buckets.set(key, { count: 1, resetAt: now + windowMs })
-    return
-  }
-
-  if (current.count >= limit) {
+  if (!bucket || bucket.count > limit) {
     throw new TRPCError({
       code: "TOO_MANY_REQUESTS",
       message: "Slow down and try again in a bit.",
+      cause: bucket
+        ? { retryAfterMs: Math.max(0, bucket.resetAt.getTime() - now.getTime()) }
+        : undefined,
     })
   }
 
-  current.count += 1
+  // Amortized cleanup keeps the table bounded without adding a hot-path query every time.
+  if (Math.random() < 0.01) {
+    void db
+      .delete(rateLimitBuckets)
+      .where(lt(rateLimitBuckets.resetAt, now))
+      .catch((error) => {
+        console.error("[rate-limit] Expired bucket cleanup failed", {
+          message: error instanceof Error ? error.message : "Unknown error",
+        })
+      })
+  }
 }
