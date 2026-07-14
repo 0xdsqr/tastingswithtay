@@ -1,7 +1,7 @@
 fullnameOverride: twt-web
 image:
   repository: ghcr.io/0xdsqr/tastingswithtay-web
-  tag: sha-abeb2b254bbf6405bba7c4e940890c130e5b6eea
+  tag: sha-bad7fbecb6e841190545827250af63d7dfa5e52f
   pullPolicy: IfNotPresent
 imagePullSecrets:
   - name: ghcr-creds
