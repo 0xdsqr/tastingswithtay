@@ -2,7 +2,7 @@ import type { QueryClient } from "@tanstack/react-query"
 import { createRootRouteWithContext, HeadContent, Outlet, Scripts } from "@tanstack/react-router"
 import { ErrorBoundary } from "@twt/ui/components/error-boundary"
 import { getServerSession } from "../auth/get-session"
-import appCss from "../styles.css?url"
+import "../styles.css"
 
 export const Route = createRootRouteWithContext<{
   queryClient: QueryClient
@@ -20,7 +20,6 @@ export const Route = createRootRouteWithContext<{
         content: "Private admin workspace for Tastings with Tay.",
       },
     ],
-    links: [{ rel: "stylesheet", href: appCss }],
   }),
   notFoundComponent: AdminNotFound,
   component: RootComponent,

@@ -4,7 +4,7 @@ import type { TRPCOptionsProxy } from "@trpc/tanstack-react-query"
 import type { AppRouter } from "@twt/core/api"
 import { ErrorBoundary } from "@twt/ui/components/error-boundary"
 import { getServerSession } from "../auth/get-session"
-import appCss from "../styles.css?url"
+import "../styles.css"
 
 const faviconSvg =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23722F37'/%3E%3Ctext x='32' y='39' text-anchor='middle' font-family='Georgia,serif' font-size='20' fill='%23FAF7F2'%3ETT%3C/text%3E%3C/svg%3E"
@@ -41,10 +41,7 @@ export const Route = createRootRouteWithContext<{
       },
       { name: "twitter:card", content: "summary_large_image" },
     ],
-    links: [
-      { rel: "stylesheet", href: appCss },
-      { rel: "icon", href: faviconSvg },
-    ],
+    links: [{ rel: "icon", href: faviconSvg }],
   }),
   component: RootComponent,
 })

@@ -30,5 +30,16 @@ export async function limitRequestBody(
     offset += chunk.byteLength
   }
 
-  return new Request(request, { body: Uint8Array.from(body).buffer })
+  return rebuildRequestWithBody(request, body)
+}
+
+export function rebuildRequestWithBody(request: Request, body: Uint8Array): Request {
+  const headers = new Headers()
+  request.headers.forEach((value, name) => headers.append(name, value))
+
+  return new Request(request.url, {
+    method: request.method,
+    headers,
+    body: Uint8Array.from(body).buffer,
+  })
 }

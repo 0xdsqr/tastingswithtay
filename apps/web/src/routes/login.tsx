@@ -10,6 +10,7 @@ import {
   FieldSeparator,
 } from "@twt/ui/components/field"
 import { Input } from "@twt/ui/components/input"
+import { PasswordInput } from "@twt/ui/components/password-input"
 import { useState } from "react"
 import { authClient } from "../auth/client"
 import { getServerSession } from "../auth/get-session"
@@ -127,10 +128,9 @@ function LoginPage(): React.ReactElement {
 
                   <Field>
                     <FieldLabel htmlFor="password">Password</FieldLabel>
-                    <Input
+                    <PasswordInput
                       id="password"
                       name="password"
-                      type="password"
                       autoComplete="current-password"
                       placeholder="Enter your password"
                       value={password}
@@ -190,10 +190,6 @@ function LoginPage(): React.ReactElement {
               </div>
             </CardContent>
           </Card>
-
-          <FieldDescription className="px-6 text-center">
-            Authentication is protected by secure, HTTP-only session cookies.
-          </FieldDescription>
         </div>
       </main>
       <SiteFooter />

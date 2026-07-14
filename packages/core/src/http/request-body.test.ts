@@ -10,6 +10,27 @@ describe("limitRequestBody", () => {
     expect(await (result as Request).text()).toBe("hello")
   })
 
+  it("rebuilds request-like objects without relying on private runtime state", async () => {
+    const nativeRequest = new Request("https://example.invalid/api/auth/sign-in/email", {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-request-id": "request-1" },
+      body: '{"email":"test@example.com"}',
+    })
+    const runtimeRequest = {
+      url: nativeRequest.url,
+      method: nativeRequest.method,
+      headers: nativeRequest.headers,
+      body: nativeRequest.body,
+    } as Request
+
+    const result = await limitRequestBody(runtimeRequest, 1_024)
+
+    expect(result).toBeInstanceOf(Request)
+    expect((result as Request).url).toBe(nativeRequest.url)
+    expect((result as Request).headers.get("x-request-id")).toBe("request-1")
+    expect(await (result as Request).json()).toEqual({ email: "test@example.com" })
+  })
+
   it("rejects a declared oversized body without reading it", async () => {
     const request = new Request("https://example.invalid", {
       method: "POST",

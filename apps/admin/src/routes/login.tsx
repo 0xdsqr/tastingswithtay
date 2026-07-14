@@ -2,6 +2,7 @@ import { createFileRoute, redirect } from "@tanstack/react-router"
 import { Button } from "@twt/ui/components/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@twt/ui/components/card"
 import { Input } from "@twt/ui/components/input"
+import { PasswordInput } from "@twt/ui/components/password-input"
 import { Spinner } from "@twt/ui/components/spinner"
 import { useState } from "react"
 import { authClient } from "../auth/client"
@@ -77,12 +78,13 @@ function AdminLoginPage(): React.ReactElement {
               />
             </label>
 
-            <label className="block space-y-2">
-              <span className="text-sm font-medium text-foreground">Password</span>
-              <Input
+            <div className="space-y-2">
+              <label htmlFor="admin-password" className="text-sm font-medium text-foreground">
+                Password
+              </label>
+              <PasswordInput
                 id="admin-password"
                 name="password"
-                type="password"
                 autoComplete="current-password"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
@@ -90,7 +92,7 @@ function AdminLoginPage(): React.ReactElement {
                 required
                 maxLength={128}
               />
-            </label>
+            </div>
 
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
 

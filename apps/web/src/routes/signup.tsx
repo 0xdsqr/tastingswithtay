@@ -10,6 +10,7 @@ import {
   FieldSeparator,
 } from "@twt/ui/components/field"
 import { Input } from "@twt/ui/components/input"
+import { PasswordInput } from "@twt/ui/components/password-input"
 import { useState } from "react"
 import { authClient } from "../auth/client"
 import { getServerSession } from "../auth/get-session"
@@ -146,10 +147,9 @@ function SignupPage(): React.ReactElement {
 
                   <Field>
                     <FieldLabel htmlFor="password">Password</FieldLabel>
-                    <Input
+                    <PasswordInput
                       id="password"
                       name="password"
-                      type="password"
                       autoComplete="new-password"
                       placeholder="At least 12 characters"
                       value={password}
@@ -211,10 +211,6 @@ function SignupPage(): React.ReactElement {
               </div>
             </CardContent>
           </Card>
-
-          <FieldDescription className="px-6 text-center">
-            Use a unique password that you do not use on another site.
-          </FieldDescription>
         </div>
       </main>
       <SiteFooter />

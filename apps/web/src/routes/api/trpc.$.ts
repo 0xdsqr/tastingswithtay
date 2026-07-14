@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch"
 import { appRouter, createTRPCContext } from "@twt/core/api"
+import { rebuildRequestWithBody } from "@twt/core/http/request-body"
 
 import { auth } from "../../auth/server"
 import { getTrustedOrigins } from "../../lib/runtime-url"
@@ -64,7 +65,7 @@ const handler = async (request: Request): Promise<Response> => {
     }
     const body = await readLimitedBody(request)
     if (body instanceof Response) return body
-    req = new Request(request, { body: Uint8Array.from(body).buffer })
+    req = rebuildRequestWithBody(request, body)
   }
 
   return fetchRequestHandler({
