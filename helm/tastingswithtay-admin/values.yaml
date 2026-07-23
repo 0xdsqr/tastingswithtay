@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: ghcr.io/0xdsqr/tastingswithtay-admin
-  tag: sha-8048e9bf27952050ff7fd6f3c97782e5ef33f95d
+  tag: sha-bad7fbecb6e841190545827250af63d7dfa5e52f
   pullPolicy: IfNotPresent
 
 imagePullSecrets:
@@ -30,6 +30,12 @@ securityContext:
   readOnlyRootFilesystem: true
   runAsGroup: 1000
   runAsUser: 1000
+
+additionalTrustedCa:
+  enabled: false
+  configMapName: ""
+  key: ca.crt
+  mountPath: /etc/dsqr/pki/dsqr-home-root-ca.pem
 
 service:
   type: ClusterIP

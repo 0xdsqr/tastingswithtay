@@ -45,6 +45,11 @@ spec:
             - name: http
               containerPort: {{ .Values.service.containerPort }}
               protocol: TCP
+          {{- if .Values.additionalTrustedCa.enabled }}
+          env:
+            - name: NODE_EXTRA_CA_CERTS
+              value: {{ .Values.additionalTrustedCa.mountPath | quote }}
+          {{- end }}
           envFrom:
             - configMapRef:
                 name: {{ include "tastingswithtay-web.fullname" . }}-config
@@ -65,10 +70,25 @@ spec:
           volumeMounts:
             - name: tmp
               mountPath: /tmp
+            {{- if .Values.additionalTrustedCa.enabled }}
+            - name: additional-trusted-ca
+              mountPath: {{ .Values.additionalTrustedCa.mountPath | quote }}
+              subPath: {{ .Values.additionalTrustedCa.key | quote }}
+              readOnly: true
+            {{- end }}
       volumes:
         - name: tmp
           emptyDir:
             sizeLimit: 128Mi
+        {{- if .Values.additionalTrustedCa.enabled }}
+        - name: additional-trusted-ca
+          configMap:
+            name: {{ required "additionalTrustedCa.configMapName is required when additionalTrustedCa.enabled is true" .Values.additionalTrustedCa.configMapName }}
+            defaultMode: 0444
+            items:
+              - key: {{ .Values.additionalTrustedCa.key | quote }}
+                path: {{ .Values.additionalTrustedCa.key | quote }}
+        {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
