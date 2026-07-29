@@ -4,7 +4,6 @@ import { getBucketName, publicUrlForKey, putManagedObject } from "@twt/core/stor
 import { db } from "@twt/database/client"
 import { adminAuditLog } from "@twt/database/schema"
 import { setSpanAttributes, withSpan } from "@twt/core/telemetry/tracing"
-import sharp from "sharp"
 import type { SessionUser } from "./admin-access"
 import type { ManagedImageAsset } from "./admin-assets"
 
@@ -17,6 +16,18 @@ export const maxUploadBytes = 10 * 1024 * 1024
 const maxDecodedPixels = 24_000_000
 
 export class UnsupportedImageError extends Error {}
+export class ImageProcessingUnavailableError extends Error {}
+
+async function loadImageProcessor(): Promise<typeof import("sharp").default> {
+  try {
+    return (await import("sharp")).default
+  } catch (cause) {
+    throw new ImageProcessingUnavailableError(
+      "Image processing is temporarily unavailable. Try again later.",
+      { cause },
+    )
+  }
+}
 
 function sanitizeFileName(fileName: string): string {
   const [rawName = "image"] = fileName.trim().split(".")
@@ -79,6 +90,7 @@ async function storeImage(options: {
     throw new UnsupportedImageError("Image uploads must be 10 MB or smaller.")
   }
 
+  const sharp = await loadImageProcessor()
   const image = sharp(options.bytes, { limitInputPixels: maxDecodedPixels, animated: false })
   const metadata = await image.metadata()
 
