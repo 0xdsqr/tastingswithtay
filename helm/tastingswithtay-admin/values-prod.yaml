@@ -1,7 +1,7 @@
 fullnameOverride: twt-admin
 image:
   repository: ghcr.io/0xdsqr/tastingswithtay-admin
-  tag: sha-bad7fbecb6e841190545827250af63d7dfa5e52f
+  tag: sha-a368ce3f7f38306ee6fbd1ba69f6df3ba17ddcae
   pullPolicy: IfNotPresent
 imagePullSecrets:
   - name: ghcr-creds
