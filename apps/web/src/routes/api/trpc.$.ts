@@ -4,7 +4,7 @@ import { appRouter, createTRPCContext } from "@twt/core/api"
 import { rebuildRequestWithBody } from "@twt/core/http/request-body"
 
 import { auth } from "../../auth/server"
-import { getTrustedOrigins } from "../../lib/runtime-url"
+import { getTrustedOrigins } from "@twt/core/http/runtime-url"
 
 const maxBodyBytes = 1_048_576
 const maxGetUrlLength = 16_384

@@ -25,8 +25,10 @@
     "typecheck:ts6": "tsc6 --noEmit"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "3.1086.0",
+    "@opentelemetry/api": "1.9.1",
     "@trpc/server": "11.18.0",
-    "@twt/db": "workspace:*",
+    "@twt/database": "workspace:*",
     "better-auth": "1.6.23",
     "effect": "3.22.0",
     "superjson": "2.2.6",

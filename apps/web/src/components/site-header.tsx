@@ -1,6 +1,6 @@
 import { getRouteApi, Link, useNavigate } from "@tanstack/react-router"
-import { Avatar, AvatarFallback, AvatarImage } from "@twt/ui/components/avatar"
-import { Button } from "@twt/ui/components/button"
+import { Avatar, AvatarFallback, AvatarImage } from "@twt/react/components/avatar"
+import { Button } from "@twt/react/components/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,8 +8,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@twt/ui/components/dropdown-menu"
-import { Skeleton } from "@twt/ui/components/skeleton"
+} from "@twt/react/components/dropdown-menu"
+import { Skeleton } from "@twt/react/components/skeleton"
 import { LogOut, Menu, X } from "lucide-react"
 import { useState } from "react"
 import { authClient } from "../auth/client"
@@ -145,11 +145,7 @@ export function SiteHeader(): React.ReactElement {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          ) : (
-            <Button variant="outline" size="sm" asChild>
-              <Link to="/login">Sign In</Link>
-            </Button>
-          )}
+          ) : null}
         </div>
       </nav>
 
@@ -167,51 +163,47 @@ export function SiteHeader(): React.ReactElement {
                 {item.name}
               </Link>
             ))}
-            <div className="border-t border-border pt-4">
-              {showSessionSkeleton ? (
-                <Skeleton className="h-10 w-full rounded-md" />
-              ) : resolvedSession ? (
-                <div className="flex flex-col gap-3">
-                  <div className="flex items-center gap-3 px-1">
-                    <Avatar className="size-8">
-                      <AvatarImage
-                        src={resolvedSession.user.image ?? undefined}
-                        alt={resolvedSession.user.name ?? "User avatar"}
-                      />
-                      <AvatarFallback className="text-xs">
-                        {getInitials(resolvedSession.user.name, resolvedSession.user.email)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex flex-col">
-                      {resolvedSession.user.name && (
-                        <span className="text-sm font-medium">{resolvedSession.user.name}</span>
-                      )}
-                      <span className="text-xs text-muted-foreground">
-                        {resolvedSession.user.email}
-                      </span>
+            {showSessionSkeleton || resolvedSession ? (
+              <div className="border-t border-border pt-4">
+                {showSessionSkeleton ? (
+                  <Skeleton className="h-10 w-full rounded-md" />
+                ) : resolvedSession ? (
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-center gap-3 px-1">
+                      <Avatar className="size-8">
+                        <AvatarImage
+                          src={resolvedSession.user.image ?? undefined}
+                          alt={resolvedSession.user.name ?? "User avatar"}
+                        />
+                        <AvatarFallback className="text-xs">
+                          {getInitials(resolvedSession.user.name, resolvedSession.user.email)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-col">
+                        {resolvedSession.user.name && (
+                          <span className="text-sm font-medium">{resolvedSession.user.name}</span>
+                        )}
+                        <span className="text-xs text-muted-foreground">
+                          {resolvedSession.user.email}
+                        </span>
+                      </div>
                     </div>
+                    <Button
+                      variant="outline"
+                      className="w-full bg-transparent"
+                      onClick={async () => {
+                        await authClient.signOut()
+                        setMobileMenuOpen(false)
+                        navigate({ to: "/" })
+                      }}
+                    >
+                      <LogOut className="mr-2 size-4" />
+                      Sign out
+                    </Button>
                   </div>
-                  <Button
-                    variant="outline"
-                    className="w-full bg-transparent"
-                    onClick={async () => {
-                      await authClient.signOut()
-                      setMobileMenuOpen(false)
-                      navigate({ to: "/" })
-                    }}
-                  >
-                    <LogOut className="mr-2 size-4" />
-                    Sign out
-                  </Button>
-                </div>
-              ) : (
-                <Button variant="outline" className="w-full bg-transparent" asChild>
-                  <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
-                    Sign In
-                  </Link>
-                </Button>
-              )}
-            </div>
+                ) : null}
+              </div>
+            ) : null}
           </div>
         </div>
       )}

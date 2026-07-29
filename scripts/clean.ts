@@ -13,8 +13,8 @@ const scopedOutputs: Record<string, readonly string[]> = {
   ],
   "apps/web": ["apps/web/dist", "apps/web/node_modules", "apps/web/.vinxi", "apps/web/.output"],
   "packages/core": ["packages/core/dist", "packages/core/node_modules"],
-  "packages/db": ["packages/db/dist", "packages/db/node_modules"],
-  "packages/ui": ["packages/ui/node_modules"],
+  "packages/database": ["packages/database/dist", "packages/database/node_modules"],
+  "packages/react": ["packages/react/node_modules"],
   "tooling/typescript": ["tooling/typescript/node_modules"],
 }
 

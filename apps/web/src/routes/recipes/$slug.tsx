@@ -1,5 +1,5 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router"
-import { Button } from "@twt/ui/components/button"
+import { Button } from "@twt/react/components/button"
 import { ArrowLeft, ChefHat, Clock, Heart, Printer, Share2, Users } from "lucide-react"
 import { OptimizedImage } from "../../components/optimized-image"
 import { SiteFooter } from "../../components/site-footer"

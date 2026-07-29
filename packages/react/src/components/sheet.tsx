@@ -1,5 +1,5 @@
 import * as SheetPrimitive from "@radix-ui/react-dialog"
-import { cn } from "@twt/ui/lib/utils"
+import { cn } from "@twt/react/lib/utils"
 import { XIcon } from "lucide-react"
 import type * as React from "react"
 

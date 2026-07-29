@@ -1,5 +1,5 @@
 {
-  "name": "@twt/db",
+  "name": "@twt/database",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -15,7 +15,7 @@
   },
   "scripts": {
     "build": "bun run scripts/build.ts",
-    "clean": "bun ../../scripts/clean.ts packages/db",
+    "clean": "bun ../../scripts/clean.ts packages/database",
     "studio": "drizzle-kit studio",
     "generate": "drizzle-kit generate",
     "migrate": "drizzle-kit migrate",

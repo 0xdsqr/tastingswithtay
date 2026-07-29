@@ -1,9 +1,15 @@
 import { createFileRoute, redirect } from "@tanstack/react-router"
-import { Button } from "@twt/ui/components/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@twt/ui/components/card"
-import { Input } from "@twt/ui/components/input"
-import { PasswordInput } from "@twt/ui/components/password-input"
-import { Spinner } from "@twt/ui/components/spinner"
+import { Button } from "@twt/react/components/button"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@twt/react/components/card"
+import { Input } from "@twt/react/components/input"
+import { PasswordInput } from "@twt/react/components/password-input"
+import { Spinner } from "@twt/react/components/spinner"
 import { useState } from "react"
 import { authClient } from "../auth/client"
 import { getAdminSessionUser } from "../lib/admin-access"

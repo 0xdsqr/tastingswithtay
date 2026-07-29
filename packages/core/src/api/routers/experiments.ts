@@ -5,8 +5,8 @@ import {
   experimentStatusEnum,
   experimentTags,
   tags,
-} from "@twt/db/schema"
-import { and, desc, eq, sql } from "@twt/db"
+} from "@twt/database/schema"
+import { and, desc, eq, sql } from "@twt/database"
 import { z } from "zod"
 import { publicProcedure } from "../trpc"
 

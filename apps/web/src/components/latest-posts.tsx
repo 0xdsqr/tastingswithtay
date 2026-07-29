@@ -1,3 +1,4 @@
+import { SectionHeader } from "@twt/react/components/section-header"
 import { BookOpen } from "lucide-react"
 import { EmptyState } from "./empty-state"
 import type { HomeContent } from "../lib/site-content"
@@ -8,17 +9,11 @@ export function LatestPosts({ content }: { content: HomeContent }): React.ReactE
   return (
     <section className="py-16 lg:py-24">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        {/* Section Header */}
-        <div className="mb-12">
-          <div>
-            <p className="mb-2 text-sm font-medium uppercase tracking-widest text-muted-foreground">
-              {content.storiesEyebrow}
-            </p>
-            <h2 className="font-serif text-3xl tracking-tight text-foreground sm:text-4xl">
-              {content.storiesTitle}
-            </h2>
-          </div>
-        </div>
+        <SectionHeader
+          className="mb-12"
+          eyebrow={content.storiesEyebrow}
+          title={content.storiesTitle}
+        />
 
         {/* Posts Grid or Empty State */}
         <div>

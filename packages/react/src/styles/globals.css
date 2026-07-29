@@ -1,6 +1,5 @@
 @import "@fontsource-variable/inter/wght.css";
 @import "@fontsource-variable/playfair-display/wght.css";
-@import "@fontsource-variable/cormorant-garamond/wght.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -25,11 +24,6 @@
   --border: oklch(0.9 0.01 85);
   --input: oklch(0.92 0.01 85);
   --ring: oklch(0.5 0.08 25);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
   --radius: 0.5rem;
   --sidebar: oklch(0.98 0.005 85);
   --sidebar-foreground: oklch(0.2 0.02 30);
@@ -41,45 +35,20 @@
   --sidebar-ring: oklch(0.5 0.08 25);
 }
 
-.dark {
-  --background: oklch(0.15 0.01 30);
-  --foreground: oklch(0.95 0.005 85);
-  --card: oklch(0.18 0.01 30);
-  --card-foreground: oklch(0.95 0.005 85);
-  --popover: oklch(0.18 0.01 30);
-  --popover-foreground: oklch(0.95 0.005 85);
-  --primary: oklch(0.95 0.005 85);
-  --primary-foreground: oklch(0.2 0.02 30);
-  --secondary: oklch(0.25 0.01 30);
-  --secondary-foreground: oklch(0.95 0.005 85);
-  --muted: oklch(0.25 0.01 30);
-  --muted-foreground: oklch(0.7 0.01 85);
-  --accent: oklch(0.65 0.12 25);
-  --accent-foreground: oklch(1 0 0);
-  --destructive: oklch(0.396 0.141 25.723);
-  --destructive-foreground: oklch(0.637 0.237 25.331);
-  --border: oklch(0.28 0.01 30);
-  --input: oklch(0.28 0.01 30);
-  --ring: oklch(0.5 0.08 25);
-  --sidebar: oklch(0.18 0.01 30);
-  --sidebar-foreground: oklch(0.95 0.005 85);
-  --sidebar-primary: oklch(0.65 0.12 25);
-  --sidebar-primary-foreground: oklch(0.95 0.005 85);
-  --sidebar-accent: oklch(0.25 0.01 30);
-  --sidebar-accent-foreground: oklch(0.95 0.005 85);
-  --sidebar-border: oklch(0.28 0.01 30);
-  --sidebar-ring: oklch(0.5 0.08 25);
-}
-
 @theme inline {
   --font-sans:
     "Inter Variable", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
     "Segoe UI Symbol", "Noto Color Emoji";
   --font-serif:
     "Playfair Display Variable", ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
-  --font-display: "Cormorant Garamond Variable", Garamond, Georgia, serif;
   --font-mono:
     ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+
+  /* Brand palette — "Texas Sunset Wine Country" */
+  --color-brand-burgundy: #722f37;
+  --color-brand-gold: #d4a76a;
+  --color-brand-cream: #faf5ef;
+  --color-brand-charcoal: #2c2c2c;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -100,11 +69,6 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);

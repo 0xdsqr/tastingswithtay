@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start"
-import { desc, eq, sql } from "@twt/db"
-import { session as authSessions, user as authUsers } from "@twt/db/auth-schema"
-import { db } from "@twt/db/client"
+import { desc, eq, sql } from "@twt/database"
+import { session as authSessions, user as authUsers } from "@twt/database/auth-schema"
+import { db } from "@twt/database/client"
 import {
   type Experiment,
   type ExperimentEntry,
@@ -21,7 +21,9 @@ import {
   siteSettings,
   wineTypeEnum,
   wines,
-} from "@twt/db/schema"
+} from "@twt/database/schema"
+import { isManagedImageValue, managedImagePathFor } from "@twt/core/images/policy"
+import { withSpan } from "@twt/core/telemetry/tracing"
 import { z } from "zod"
 import { getAdminSessionUser } from "./admin-access"
 
@@ -151,57 +153,6 @@ function toNullableNumber(value: number | null | undefined): number | null {
 function toNullableString(value: string | null | undefined): string | null {
   const trimmed = value?.trim()
   return trimmed ? trimmed : null
-}
-
-const managedImagePrefixes = [
-  "/about/",
-  "/recipes/",
-  "/wines/",
-  "/experiments/",
-  "/gallery/",
-  "/brand/",
-  "/system/",
-  "/uploads/",
-] as const
-
-const managedImageProxyPrefix = "/api/images/"
-const managedImageHosts = new Set([
-  "admin.tastingswithtay.com",
-  "cdn.dsqr.dev",
-  "s3.dsqr.dev",
-  "tastingswithtay.com",
-])
-
-function isManagedImageValue(value: string): boolean {
-  return Boolean(managedImagePathFor(value))
-}
-
-function managedImagePathFor(value: string): string | null {
-  if (value.startsWith("http://") || value.startsWith("https://")) {
-    let url: URL
-    try {
-      url = new URL(value)
-    } catch {
-      return null
-    }
-
-    if (!managedImageHosts.has(url.hostname)) return null
-    return managedImagePathFor(url.pathname)
-  }
-
-  let pathname = value
-  if (pathname.startsWith(managedImageProxyPrefix)) {
-    pathname = `/${pathname.slice(managedImageProxyPrefix.length)}`
-  }
-
-  if (pathname.startsWith("/tastingswithtay/")) {
-    pathname = pathname.slice("/tastingswithtay".length)
-  }
-
-  if (!managedImagePrefixes.some((prefix) => pathname.startsWith(prefix))) return null
-  if (pathname.includes("..") || pathname.includes("//")) return null
-
-  return pathname
 }
 
 function normalizeManagedImage(
@@ -454,65 +405,8 @@ const siteDraftSchema = z
 
 const siteDraftInputSchema = z.object({ draft: siteDraftSchema }).strict()
 
-const taxonomyDraftSchema = z
-  .object({
-    tags: z
-      .array(
-        z
-          .object({
-            id: z
-              .string()
-              .min(1)
-              .max(100)
-              .regex(/^[a-zA-Z0-9_-]+$/),
-            name: siteHeadingText,
-            type: z.enum(["recipe", "wine", "experiment", "both"]),
-          })
-          .strict(),
-      )
-      .max(200),
-    collections: z
-      .array(
-        z
-          .object({
-            id: z
-              .string()
-              .min(1)
-              .max(100)
-              .regex(/^[a-zA-Z0-9_-]+$/),
-            name: siteHeadingText,
-            description: siteContentText,
-            featured: z.boolean(),
-          })
-          .strict(),
-      )
-      .max(100),
-    pairings: z
-      .array(
-        z
-          .object({
-            id: z
-              .string()
-              .min(1)
-              .max(100)
-              .regex(/^[a-zA-Z0-9_-]+$/),
-            recipeId: z.union([z.literal(""), z.string().uuid()]),
-            wineId: z.union([z.literal(""), z.string().uuid()]),
-            note: siteContentText,
-            isPrimary: z.boolean(),
-          })
-          .strict(),
-      )
-      .max(200),
-    notes: siteContentText,
-  })
-  .strict()
-
-const taxonomyDraftInputSchema = z.object({ draft: taxonomyDraftSchema }).strict()
-
 const siteDraftSettingKey = "site-draft"
 const sitePublicationSettingKey = "site-publication"
-const taxonomyDraftSettingKey = "taxonomy-draft"
 
 function asJsonObject(value: JsonValue | undefined): JsonObject {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
@@ -552,27 +446,22 @@ function actorId(user: SessionUser): string {
   return user.id
 }
 
-export const getAdminBootstrap = createServerFn({ method: "GET" }).handler(async () => {
-  const user = await requireAdminUser()
+export const listRecipes = createServerFn({ method: "GET" }).handler(async () => {
+  await requireAdminUser()
+  return db.select().from(recipes).orderBy(desc(recipes.updatedAt))
+})
 
-  const [
-    recipeRows,
-    wineRows,
-    experimentRows,
-    entryRows,
-    galleryRows,
-    userRows,
-    siteDraftRows,
-    taxonomyDraftRows,
-  ] = await Promise.all([
-    db.select().from(recipes).orderBy(desc(recipes.updatedAt)),
-    db.select().from(wines).orderBy(desc(wines.updatedAt)),
+export const listWines = createServerFn({ method: "GET" }).handler(async () => {
+  await requireAdminUser()
+  return db.select().from(wines).orderBy(desc(wines.updatedAt))
+})
+
+export const listExperiments = createServerFn({ method: "GET" }).handler(async () => {
+  await requireAdminUser()
+
+  const [experimentRows, entryRows] = await Promise.all([
     db.select().from(experiments).orderBy(desc(experiments.updatedAt)),
     db.select().from(experimentEntries).orderBy(desc(experimentEntries.createdAt)),
-    db.select().from(galleryImages).orderBy(desc(galleryImages.updatedAt)),
-    db.select().from(authUsers).orderBy(desc(authUsers.createdAt)),
-    db.select().from(siteSettings).where(eq(siteSettings.key, siteDraftSettingKey)).limit(1),
-    db.select().from(siteSettings).where(eq(siteSettings.key, taxonomyDraftSettingKey)).limit(1),
   ])
 
   const entriesByExperimentId = new Map<string, typeof entryRows>()
@@ -582,7 +471,22 @@ export const getAdminBootstrap = createServerFn({ method: "GET" }).handler(async
     entriesByExperimentId.set(entry.experimentId, existing)
   }
 
-  const users = userRows.map((entry) =>
+  return experimentRows.map((experiment) => ({
+    ...experiment,
+    entries: entriesByExperimentId.get(experiment.id) ?? [],
+  }))
+})
+
+export const listGalleryImages = createServerFn({ method: "GET" }).handler(async () => {
+  await requireAdminUser()
+  return db.select().from(galleryImages).orderBy(desc(galleryImages.updatedAt))
+})
+
+export const listAdminUsers = createServerFn({ method: "GET" }).handler(async () => {
+  await requireAdminUser()
+
+  const rows = await db.select().from(authUsers).orderBy(desc(authUsers.createdAt))
+  return rows.map((entry) =>
     mapAdminUserRecord({
       id: entry.id,
       name: entry.name,
@@ -594,19 +498,88 @@ export const getAdminBootstrap = createServerFn({ method: "GET" }).handler(async
       updatedAt: entry.updatedAt,
     }),
   )
+})
+
+export const getSiteDraft = createServerFn({ method: "GET" }).handler(async () => {
+  await requireAdminUser()
+
+  const [row] = await db
+    .select()
+    .from(siteSettings)
+    .where(eq(siteSettings.key, siteDraftSettingKey))
+    .limit(1)
+
+  return (row?.value as JsonObject | undefined) ?? null
+})
+
+export type DashboardActivityEntry = {
+  id: string
+  action: string
+  targetType: string
+  targetId: string
+  actorName: string
+  createdAt: Date
+}
+
+export const getDashboardData = createServerFn({ method: "GET" }).handler(async () => {
+  await requireAdminUser()
+
+  const [counts, activityRows] = await Promise.all([
+    db.execute<{
+      recipes: number
+      published_recipes: number
+      wines: number
+      published_wines: number
+      experiments: number
+      published_experiments: number
+      gallery: number
+      published_gallery: number
+      users: number
+      admins: number
+    }>(sql`
+      SELECT
+        (SELECT count(*) FROM recipes)::int AS recipes,
+        (SELECT count(*) FROM recipes WHERE published)::int AS published_recipes,
+        (SELECT count(*) FROM wines)::int AS wines,
+        (SELECT count(*) FROM wines WHERE published)::int AS published_wines,
+        (SELECT count(*) FROM experiments)::int AS experiments,
+        (SELECT count(*) FROM experiments WHERE published)::int AS published_experiments,
+        (SELECT count(*) FROM gallery_images)::int AS gallery,
+        (SELECT count(*) FROM gallery_images WHERE published)::int AS published_gallery,
+        (SELECT count(*) FROM "user")::int AS users,
+        (SELECT count(*) FROM "user" WHERE role = 'admin')::int AS admins
+    `),
+    db
+      .select({
+        id: adminAuditLog.id,
+        action: adminAuditLog.action,
+        targetType: adminAuditLog.targetType,
+        targetId: adminAuditLog.targetId,
+        actorName: authUsers.name,
+        createdAt: adminAuditLog.createdAt,
+      })
+      .from(adminAuditLog)
+      .innerJoin(authUsers, eq(adminAuditLog.actorUserId, authUsers.id))
+      .orderBy(desc(adminAuditLog.createdAt))
+      .limit(12),
+  ])
+
+  const stats = counts.rows[0]
 
   return {
-    user,
-    users,
-    recipes: recipeRows,
-    wines: wineRows,
-    experiments: experimentRows.map((experiment) => ({
-      ...experiment,
-      entries: entriesByExperimentId.get(experiment.id) ?? [],
-    })),
-    gallery: galleryRows,
-    siteDraft: (siteDraftRows[0]?.value as JsonObject | undefined) ?? null,
-    taxonomyDraft: (taxonomyDraftRows[0]?.value as JsonObject | undefined) ?? null,
+    stats: {
+      recipes: stats?.recipes ?? 0,
+      publishedRecipes: stats?.published_recipes ?? 0,
+      wines: stats?.wines ?? 0,
+      publishedWines: stats?.published_wines ?? 0,
+      experiments: stats?.experiments ?? 0,
+      publishedExperiments: stats?.published_experiments ?? 0,
+      gallery: stats?.gallery ?? 0,
+      publishedGallery: stats?.published_gallery ?? 0,
+      users: stats?.users ?? 0,
+      admins: stats?.admins ?? 0,
+    },
+    activity: activityRows satisfies DashboardActivityEntry[],
   }
 })
 
@@ -647,63 +620,38 @@ export const saveSiteDraft = createServerFn({ method: "POST" })
 export const publishSiteDraft = createServerFn({ method: "POST" }).handler(async () => {
   const actor = await requireAdminUser()
 
-  return db.transaction(async (tx) => {
-    const [draft] = await tx
-      .select({ value: siteSettings.value })
-      .from(siteSettings)
-      .where(eq(siteSettings.key, siteDraftSettingKey))
-      .limit(1)
+  return withSpan("admin.site.publish", { "twt.actor": actor.id ?? "unknown" }, () =>
+    db.transaction(async (tx) => {
+      const [draft] = await tx
+        .select({ value: siteSettings.value })
+        .from(siteSettings)
+        .where(eq(siteSettings.key, siteDraftSettingKey))
+        .limit(1)
 
-    if (!draft) throw new Error("Save the site draft before publishing it.")
-    validateSiteDraftImages(draft.value as JsonObject)
+      if (!draft) throw new Error("Save the site draft before publishing it.")
+      validateSiteDraftImages(draft.value as JsonObject)
 
-    const [publication] = await tx
-      .insert(siteSettings)
-      .values({ key: sitePublicationSettingKey, value: draft.value })
-      .onConflictDoUpdate({
-        target: siteSettings.key,
-        set: { value: draft.value, updatedAt: new Date() },
-      })
-      .returning()
-
-    await tx.insert(adminAuditLog).values({
-      actorUserId: actorId(actor),
-      action: "site.publish",
-      targetType: "site",
-      targetId: sitePublicationSettingKey,
-      metadata: {},
-    })
-
-    return (publication?.value as JsonObject | undefined) ?? (draft.value as JsonObject)
-  })
-})
-
-export const saveTaxonomyDraft = createServerFn({ method: "POST" })
-  .validator(taxonomyDraftInputSchema)
-  .handler(async ({ data }) => {
-    const actor = await requireAdminUser()
-
-    return db.transaction(async (tx) => {
-      const [saved] = await tx
+      const [publication] = await tx
         .insert(siteSettings)
-        .values({ key: taxonomyDraftSettingKey, value: data.draft })
+        .values({ key: sitePublicationSettingKey, value: draft.value })
         .onConflictDoUpdate({
           target: siteSettings.key,
-          set: { value: data.draft, updatedAt: new Date() },
+          set: { value: draft.value, updatedAt: new Date() },
         })
         .returning()
 
       await tx.insert(adminAuditLog).values({
         actorUserId: actorId(actor),
-        action: "taxonomy.draft.save",
+        action: "site.publish",
         targetType: "site",
-        targetId: taxonomyDraftSettingKey,
+        targetId: sitePublicationSettingKey,
         metadata: {},
       })
 
-      return (saved?.value as JsonObject | undefined) ?? data.draft
-    })
-  })
+      return (publication?.value as JsonObject | undefined) ?? (draft.value as JsonObject)
+    }),
+  )
+})
 
 export const updateAdminUserRole = createServerFn({ method: "POST" })
   .validator(updateUserRoleSchema)

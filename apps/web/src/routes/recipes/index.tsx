@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router"
+import { Eyebrow } from "@twt/react/components/section-header"
 import { CookingPot } from "lucide-react"
 import { z } from "zod"
 import { EmptyState } from "../../components/empty-state"
@@ -50,9 +51,7 @@ function RecipesPage(): React.ReactElement {
         <section className="border-b border-border py-16 lg:py-24">
           <div className="mx-auto max-w-7xl px-6 lg:px-8">
             <div className="max-w-2xl">
-              <p className="mb-4 text-sm font-medium uppercase tracking-widest text-muted-foreground">
-                From the Kitchen
-              </p>
+              <Eyebrow className="mb-4">From the Kitchen</Eyebrow>
               <h1 className="mb-6 font-serif text-4xl tracking-tight text-foreground sm:text-5xl lg:text-6xl">
                 Recipes
               </h1>

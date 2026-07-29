@@ -11,10 +11,10 @@
   },
   "iconLibrary": "lucide",
   "aliases": {
-    "components": "@twt/ui/components",
-    "utils": "@twt/ui/lib/utils",
-    "hooks": "@twt/ui/hooks",
-    "lib": "@twt/ui/lib",
-    "ui": "@twt/ui/components"
+    "components": "@twt/react/components",
+    "utils": "@twt/react/lib/utils",
+    "hooks": "@twt/react/hooks",
+    "lib": "@twt/react/lib",
+    "ui": "@twt/react/components"
   }
 }

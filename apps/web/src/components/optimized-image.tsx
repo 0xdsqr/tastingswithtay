@@ -1,5 +1,5 @@
 import { ImageIcon } from "lucide-react"
-import { normalizeManagedImageUrl } from "../lib/image-policy"
+import { managedImageProxySrc } from "@twt/core/images/policy"
 
 interface OptimizedImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   /** Skip lazy loading for above-the-fold / LCP images */
@@ -19,7 +19,7 @@ export function OptimizedImage({
   src,
   ...props
 }: OptimizedImageProps): React.ReactElement {
-  const imageSrc = normalizeManagedImageUrl(src)
+  const imageSrc = managedImageProxySrc(src)
 
   if (!imageSrc) {
     return (

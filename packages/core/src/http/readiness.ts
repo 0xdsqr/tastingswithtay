@@ -1,5 +1,5 @@
-import { sql } from "@twt/db"
-import { db } from "@twt/db/client"
+import { sql } from "@twt/database"
+import { db } from "@twt/database/client"
 import { runPersistence } from "../effect/persistence"
 
 export async function checkDatabaseReadiness(): Promise<void> {

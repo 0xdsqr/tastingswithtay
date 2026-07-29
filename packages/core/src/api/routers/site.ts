@@ -1,6 +1,6 @@
 import type { TRPCRouterRecord } from "@trpc/server"
-import { siteSettings } from "@twt/db/schema"
-import { eq } from "@twt/db"
+import { siteSettings } from "@twt/database/schema"
+import { eq } from "@twt/database"
 import { publicProcedure } from "../trpc"
 
 const sitePublicationSettingKey = "site-publication"

@@ -1,18 +1,12 @@
 import { Link } from "@tanstack/react-router"
-import type { Recipe } from "@twt/db/schema"
-import { Button } from "@twt/ui/components/button"
+import type { Recipe } from "@twt/database/schema"
+import { Button } from "@twt/react/components/button"
+import { Eyebrow } from "@twt/react/components/section-header"
 import { ArrowDown, Clock, CookingPot, Users } from "lucide-react"
 import { useEffect, useState } from "react"
+import { formatTime } from "../lib/format"
 import type { HomeContent } from "../lib/site-content"
 import { OptimizedImage } from "./optimized-image"
-
-function formatTime(minutes: number | null): string {
-  if (!minutes) return ""
-  if (minutes < 60) return `${minutes} min`
-  const hours = Math.floor(minutes / 60)
-  const mins = minutes % 60
-  return mins > 0 ? `${hours} hr ${mins} min` : `${hours} hr`
-}
 
 interface ImmersiveHeroProps {
   recipes: Recipe[]
@@ -21,17 +15,20 @@ interface ImmersiveHeroProps {
 
 export function ImmersiveHero({ recipes, content }: ImmersiveHeroProps): React.ReactElement {
   const [activeIndex, setActiveIndex] = useState(0)
+  const [isPaused, setIsPaused] = useState(false)
 
   // Use first 3 recipes for hero carousel
   const heroRecipes = recipes.slice(0, 3)
 
   useEffect(() => {
-    if (heroRecipes.length === 0) return
+    if (heroRecipes.length < 2 || isPaused) return
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return
+
     const interval = setInterval(() => {
       setActiveIndex((prev) => (prev + 1) % heroRecipes.length)
     }, 5000)
     return () => clearInterval(interval)
-  }, [heroRecipes.length])
+  }, [heroRecipes.length, isPaused])
 
   const activeRecipe = heroRecipes[activeIndex] ?? heroRecipes[0]
   const totalTime = activeRecipe ? (activeRecipe.prepTime ?? 0) + (activeRecipe.cookTime ?? 0) : 0
@@ -39,33 +36,13 @@ export function ImmersiveHero({ recipes, content }: ImmersiveHeroProps): React.R
   // Fallback if no recipes
   if (!activeRecipe) {
     return (
-      <section className="relative flex min-h-[100svh] items-center justify-center overflow-hidden">
-        {/* Soft gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-muted via-background to-muted/50" />
-        <div className="absolute inset-0 opacity-[0.03]">
-          <div className="absolute left-1/4 top-1/3 h-96 w-96 rounded-full bg-primary blur-3xl" />
-          <div className="absolute bottom-1/3 right-1/4 h-64 w-64 rounded-full bg-primary blur-3xl" />
-        </div>
-
-        {/* Ghost placeholder cards in background */}
-        <div
-          className="absolute inset-0 flex items-center justify-center gap-6 px-12 opacity-[0.06]"
-          aria-hidden="true"
-        >
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="h-72 w-64 flex-shrink-0 rounded-2xl bg-foreground blur-[2px]" />
-          ))}
-        </div>
-
-        {/* Centered content */}
-        <div className="relative z-10 flex flex-col items-center gap-6 text-center">
+      <section className="relative flex min-h-[100svh] items-center justify-center overflow-hidden bg-gradient-to-br from-muted via-background to-muted/50">
+        <div className="relative z-10 flex flex-col items-center gap-6 px-6 text-center">
           <div className="flex size-20 items-center justify-center rounded-full bg-muted">
             <CookingPot className="size-10 text-muted-foreground" />
           </div>
           <div>
-            <p className="mb-3 text-sm font-medium uppercase tracking-widest text-primary">
-              {content.heroFallbackEyebrow}
-            </p>
+            <Eyebrow className="mb-3 text-primary">{content.heroFallbackEyebrow}</Eyebrow>
             <h1 className="font-serif text-5xl tracking-tight text-foreground sm:text-6xl lg:text-7xl">
               {content.heroFallbackTitle}
             </h1>
@@ -82,7 +59,7 @@ export function ImmersiveHero({ recipes, content }: ImmersiveHeroProps): React.R
         </div>
 
         {/* Scroll Indicator */}
-        <div className="absolute bottom-8 left-1/2 z-10 -translate-x-1/2 animate-bounce">
+        <div className="absolute bottom-8 left-1/2 z-10 -translate-x-1/2 motion-safe:animate-bounce">
           <ArrowDown className="h-6 w-6 text-muted-foreground" />
         </div>
       </section>
@@ -90,7 +67,13 @@ export function ImmersiveHero({ recipes, content }: ImmersiveHeroProps): React.R
   }
 
   return (
-    <section className="relative flex min-h-[100svh] items-center overflow-hidden">
+    <section
+      className="relative flex min-h-[100svh] items-center overflow-hidden"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+      onFocus={() => setIsPaused(true)}
+      onBlur={() => setIsPaused(false)}
+    >
       {/* Background Images with Crossfade */}
       {heroRecipes.map((recipe, index) => (
         <div
@@ -114,9 +97,7 @@ export function ImmersiveHero({ recipes, content }: ImmersiveHeroProps): React.R
       {/* Content */}
       <div className="relative z-10 mx-auto w-full max-w-7xl px-6 py-20 lg:px-8">
         <div className="max-w-2xl">
-          <p className="mb-4 text-sm font-medium uppercase tracking-widest text-primary">
-            Tastings with Tay
-          </p>
+          <Eyebrow className="mb-4 text-primary">Tastings with Tay</Eyebrow>
 
           <h1 className="mb-4 font-serif text-5xl leading-[1.1] tracking-tight text-foreground sm:text-6xl lg:text-7xl">
             <span className="block">{activeRecipe.title}</span>
@@ -184,7 +165,7 @@ export function ImmersiveHero({ recipes, content }: ImmersiveHeroProps): React.R
       </div>
 
       {/* Scroll Indicator */}
-      <div className="absolute bottom-8 left-1/2 z-10 -translate-x-1/2 animate-bounce">
+      <div className="absolute bottom-8 left-1/2 z-10 -translate-x-1/2 motion-safe:animate-bounce">
         <ArrowDown className="h-6 w-6 text-muted-foreground" />
       </div>
     </section>

@@ -1,19 +1,13 @@
 import { Link } from "@tanstack/react-router"
-import type { Recipe } from "@twt/db/schema"
+import type { Recipe } from "@twt/database/schema"
+import { Eyebrow, SectionHeader } from "@twt/react/components/section-header"
 import { ArrowRight, Clock, CookingPot, Flower2, Users, Wine } from "lucide-react"
 import type React from "react"
 import type { HomeContent } from "../lib/site-content"
+import { formatTime } from "../lib/format"
 import { GhostCard } from "./empty-state"
 import { NewsletterSignupForm } from "./newsletter-signup-form"
 import { OptimizedImage } from "./optimized-image"
-
-function formatTime(minutes: number | null): string {
-  if (!minutes) return ""
-  if (minutes < 60) return `${minutes} min`
-  const hours = Math.floor(minutes / 60)
-  const mins = minutes % 60
-  return mins > 0 ? `${hours} hr ${mins} min` : `${hours} hr`
-}
 
 interface BentoItemProps {
   children: React.ReactNode
@@ -40,13 +34,13 @@ export function BentoGrid({ recipes, categories, content }: BentoGridProps): Rea
     <section className="bg-muted/30 py-16 lg:py-24">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         {/* Section Header */}
-        <BentoItem className="mb-12 text-center">
-          <p className="mb-2 text-sm font-medium uppercase tracking-widest text-muted-foreground">
-            {content.bentoEyebrow}
-          </p>
-          <h2 className="text-balance font-serif text-3xl tracking-tight text-foreground sm:text-4xl lg:text-5xl">
-            {content.bentoTitle}
-          </h2>
+        <BentoItem className="mb-12">
+          <SectionHeader
+            align="center"
+            eyebrow={content.bentoEyebrow}
+            title={content.bentoTitle}
+            titleClassName="lg:text-5xl"
+          />
         </BentoItem>
 
         {/* Bento Grid */}
@@ -168,7 +162,7 @@ export function BentoGrid({ recipes, categories, content }: BentoGridProps): Rea
               {/* Ghost placeholder for featured recipe (2x2) */}
               <BentoItem className="col-span-2 row-span-2">
                 <div className="relative h-full overflow-hidden rounded-2xl border border-border bg-card">
-                  <div className="h-full w-full bg-muted opacity-40 blur-[2px]" />
+                  <div className="h-full w-full bg-muted opacity-40" />
                   <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
                     <div className="flex size-12 items-center justify-center rounded-full bg-muted">
                       <CookingPot className="size-6 text-muted-foreground" />
@@ -183,10 +177,10 @@ export function BentoGrid({ recipes, categories, content }: BentoGridProps): Rea
 
               {/* Ghost placeholder small cards */}
               <BentoItem>
-                <GhostCard aspectRatio="aspect-auto" className="h-full opacity-40 blur-[1px]" />
+                <GhostCard aspectRatio="aspect-auto" className="h-full opacity-60" />
               </BentoItem>
               <BentoItem>
-                <GhostCard aspectRatio="aspect-auto" className="h-full opacity-40 blur-[1px]" />
+                <GhostCard aspectRatio="aspect-auto" className="h-full opacity-60" />
               </BentoItem>
             </>
           )}
@@ -197,9 +191,7 @@ export function BentoGrid({ recipes, categories, content }: BentoGridProps): Rea
               <div className="relative flex h-full flex-col justify-between overflow-hidden rounded-2xl bg-gradient-to-br from-brand-burgundy to-brand-burgundy/80 p-6">
                 <div>
                   <Wine className="mb-3 h-8 w-8 text-brand-gold" />
-                  <p className="mb-2 text-xs font-medium uppercase tracking-widest text-brand-gold/80">
-                    Tastings
-                  </p>
+                  <Eyebrow className="mb-2 text-xs text-brand-gold/80">Tastings</Eyebrow>
                   <h3 className="font-serif text-2xl text-brand-cream transition-colors group-hover:text-brand-gold">
                     Wine Cellar
                   </h3>
@@ -221,9 +213,7 @@ export function BentoGrid({ recipes, categories, content }: BentoGridProps): Rea
             <Link to="/about" className="group block h-full">
               <div className="relative flex h-full flex-col justify-between overflow-hidden rounded-2xl bg-primary/10 p-6">
                 <div>
-                  <p className="mb-2 text-xs font-medium uppercase tracking-widest text-primary">
-                    The Chef
-                  </p>
+                  <Eyebrow className="mb-2 text-xs text-primary">The Chef</Eyebrow>
                   <h3 className="font-serif text-xl text-foreground transition-colors group-hover:text-primary">
                     Meet Tay
                   </h3>
@@ -288,7 +278,7 @@ export function BentoGrid({ recipes, categories, content }: BentoGridProps): Rea
                     </Link>
                   ))
                 ) : (
-                  <div className="flex gap-3 opacity-40 blur-[1px]">
+                  <div className="flex gap-3 opacity-60">
                     {["Dinner", "Dessert", "Brunch", "Salads"].map((cat) => (
                       <span
                         key={cat}

@@ -1,9 +1,9 @@
 import { TRPCError } from "@trpc/server"
-import { rateLimitBuckets } from "@twt/db/schema"
+import { rateLimitBuckets } from "@twt/database/schema"
 import { createHash } from "node:crypto"
 import { isIP } from "node:net"
-import { lt, sql } from "@twt/db"
-import type { db as database } from "@twt/db/client"
+import { lt, sql } from "@twt/database"
+import type { db as database } from "@twt/database/client"
 import { runPersistence } from "../effect/persistence"
 
 export function clientRateLimitKey(headers: Headers, action: string, scope?: string): string {

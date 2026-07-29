@@ -2,7 +2,7 @@ import type { QueryClient } from "@tanstack/react-query"
 import { createRootRouteWithContext, HeadContent, Outlet, Scripts } from "@tanstack/react-router"
 import type { TRPCOptionsProxy } from "@trpc/tanstack-react-query"
 import type { AppRouter } from "@twt/core/api"
-import { ErrorBoundary } from "@twt/ui/components/error-boundary"
+import { ErrorBoundary } from "@twt/react/components/error-boundary"
 import { getServerSession } from "../auth/get-session"
 import "../styles.css"
 

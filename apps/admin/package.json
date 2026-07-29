@@ -12,20 +12,21 @@
     "typecheck:ts6": "tsc6 --noEmit"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "3.1086.0",
     "@img/sharp-wasm32": "0.35.3",
     "@tanstack/react-query": "5.101.2",
     "@tanstack/react-router": "1.170.18",
     "@tanstack/react-router-ssr-query": "1.167.1",
     "@tanstack/react-start": "1.168.28",
     "@twt/core": "workspace:*",
-    "@twt/db": "workspace:*",
-    "@twt/ui": "workspace:*",
+    "@twt/database": "workspace:*",
+    "@twt/react": "workspace:*",
     "better-auth": "1.6.23",
+    "lucide-react": "0.562.0",
     "pg": "8.22.0",
     "react": "19.2.7",
     "react-dom": "19.2.7",
     "sharp": "0.35.3",
+    "sonner": "2.0.7",
     "zod": "4.4.3"
   },
   "devDependencies": {

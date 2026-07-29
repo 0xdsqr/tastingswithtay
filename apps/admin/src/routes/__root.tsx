@@ -1,6 +1,7 @@
 import type { QueryClient } from "@tanstack/react-query"
 import { createRootRouteWithContext, HeadContent, Outlet, Scripts } from "@tanstack/react-router"
-import { ErrorBoundary } from "@twt/ui/components/error-boundary"
+import { ErrorBoundary } from "@twt/react/components/error-boundary"
+import { Toaster } from "@twt/react/components/sonner"
 import { getServerSession } from "../auth/get-session"
 import "../styles.css"
 
@@ -43,6 +44,7 @@ function RootComponent(): React.ReactElement {
             <Outlet />
           </div>
         </ErrorBoundary>
+        <Toaster position="top-center" />
         <Scripts />
       </body>
     </html>

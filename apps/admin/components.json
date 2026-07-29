@@ -5,16 +5,16 @@
   "tsx": true,
   "tailwind": {
     "config": "",
-    "css": "../../packages/ui/src/styles/globals.css",
+    "css": "../../packages/react/src/styles/globals.css",
     "baseColor": "zinc",
     "cssVariables": true
   },
   "iconLibrary": "lucide",
   "aliases": {
     "components": "@/components",
-    "hooks": "@twt/ui/hooks",
-    "lib": "@twt/ui/lib",
-    "utils": "@twt/ui/lib/utils",
-    "ui": "@twt/ui/components"
+    "hooks": "@twt/react/hooks",
+    "lib": "@twt/react/lib",
+    "utils": "@twt/react/lib/utils",
+    "ui": "@twt/react/components"
   }
 }

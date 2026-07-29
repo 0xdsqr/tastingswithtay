@@ -1,6 +1,6 @@
 import type { TRPCRouterRecord } from "@trpc/server"
-import { tags, wines, wineTags, wineTypeEnum } from "@twt/db/schema"
-import { and, desc, eq } from "@twt/db"
+import { tags, wines, wineTags, wineTypeEnum } from "@twt/database/schema"
+import { and, desc, eq } from "@twt/database"
 import { z } from "zod"
 import { publicProcedure } from "../trpc"
 

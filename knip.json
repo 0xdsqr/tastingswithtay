@@ -14,15 +14,19 @@
         "src/auth/index.ts",
         "src/http/readiness.ts",
         "src/http/request-body.ts",
+        "src/http/runtime-url.ts",
         "src/http/security.ts",
+        "src/images/policy.ts",
+        "src/storage/s3.ts",
+        "src/telemetry/tracing.ts",
         "scripts/auth-cli.ts"
       ]
     },
-    "packages/db": {
+    "packages/database": {
       "entry": ["src/index.ts", "src/client.ts"]
     },
-    "packages/ui": {
-      "entry": ["src/components/*.tsx", "src/hooks/*.ts", "src/styles/*.css"]
+    "packages/react": {
+      "entry": ["src/styles/*.css"]
     },
     "docker/runtime": {
       "entry": ["*.mjs"],

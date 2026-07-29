@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { getManagedImage, getManagedImageMetadata } from "../../lib/managed-images-server"
+import { getManagedImage, getManagedImageMetadata } from "@twt/core/storage/s3"
 
 export const Route = createFileRoute("/api/images/$folder/$fileName")({
   server: {

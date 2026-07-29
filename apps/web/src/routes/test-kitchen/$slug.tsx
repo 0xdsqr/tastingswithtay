@@ -1,6 +1,6 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router"
-import { Badge } from "@twt/ui/components/badge"
-import { Button } from "@twt/ui/components/button"
+import { Badge } from "@twt/react/components/badge"
+import { Button } from "@twt/react/components/button"
 import {
   ArrowLeft,
   ArrowRight,

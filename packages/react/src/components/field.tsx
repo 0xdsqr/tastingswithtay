@@ -1,7 +1,7 @@
-import { Label } from "@twt/ui/components/label"
-import { Separator } from "@twt/ui/components/separator"
+import { Label } from "@twt/react/components/label"
+import { Separator } from "@twt/react/components/separator"
 
-import { cn } from "@twt/ui/lib/utils"
+import { cn } from "@twt/react/lib/utils"
 import { cva, type VariantProps } from "class-variance-authority"
 import { useMemo } from "react"
 

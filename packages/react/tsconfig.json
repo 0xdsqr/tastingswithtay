@@ -4,7 +4,7 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "types": ["node"],
     "paths": {
-      "@twt/ui/*": ["./src/*"]
+      "@twt/react/*": ["./src/*"]
     }
   },
   "include": ["src"],

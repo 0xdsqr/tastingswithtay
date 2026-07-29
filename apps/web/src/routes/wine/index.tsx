@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
-import type { Wine } from "@twt/db/schema"
-import { Button } from "@twt/ui/components/button"
+import type { Wine } from "@twt/database/schema"
+import { Button } from "@twt/react/components/button"
 import { ChevronRight, Star, Wine as WineIcon } from "lucide-react"
 import { z } from "zod"
 import { EmptyState } from "../../components/empty-state"

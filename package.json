@@ -8,10 +8,10 @@
   ],
   "type": "module",
   "scripts": {
-    "build": "bun run --filter '@twt/db' build && bun run --filter '@twt/core' build && bun run --filter './apps/*' build",
+    "build": "bun run --filter '@twt/database' build && bun run --filter '@twt/core' build && bun run --filter './apps/*' build",
     "check": "bun run format:check && bun run lint && bun run typecheck && bun run test && bun run build",
-    "db:studio": "bun run --filter '@twt/db' studio",
-    "db:generate": "bun run --filter '@twt/db' generate",
+    "db:studio": "bun run --filter '@twt/database' studio",
+    "db:generate": "bun run --filter '@twt/database' generate",
     "dev:admin": "bun run --filter 'admin' dev",
     "dev:web": "bun run --filter 'web' dev",
     "format": "oxfmt .",

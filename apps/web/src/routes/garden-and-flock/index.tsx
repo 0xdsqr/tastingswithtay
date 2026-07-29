@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
-import type { GalleryImage } from "@twt/db/schema"
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@twt/ui/components/dialog"
+import type { GalleryImage } from "@twt/database/schema"
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@twt/react/components/dialog"
 import { ChevronLeft, ChevronRight, Egg, Flower2, X } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
 import { z } from "zod"

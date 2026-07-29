@@ -39,7 +39,7 @@ jobs:
 
       - name: Build workspace packages
         run: |
-          nix develop -c bun run --filter '@twt/db' build
+          nix develop -c bun run --filter '@twt/database' build
           nix develop -c bun run --filter '@twt/core' build
 
       - name: Typecheck

@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
-import { Button } from "@twt/ui/components/button"
+import { Button } from "@twt/react/components/button"
+import { Eyebrow } from "@twt/react/components/section-header"
 import { Instagram, Mail } from "lucide-react"
 import { z } from "zod"
 import { NewsletterSection } from "../components/newsletter-section"
@@ -146,9 +147,7 @@ function AboutPage(): React.ReactElement {
 
               {/* Content */}
               <div>
-                <p className="mb-4 text-sm font-medium uppercase tracking-widest text-muted-foreground">
-                  {about.heroEyebrow}
-                </p>
+                <Eyebrow className="mb-4">{about.heroEyebrow}</Eyebrow>
                 <h1 className="mb-6 font-serif text-4xl leading-tight tracking-tight text-foreground sm:text-5xl lg:text-6xl">
                   {about.heroTitle}
                 </h1>
@@ -164,9 +163,7 @@ function AboutPage(): React.ReactElement {
         <section className="bg-secondary py-16 lg:py-24">
           <div className="mx-auto max-w-7xl px-6 lg:px-8">
             <div className="mx-auto max-w-3xl text-center">
-              <p className="mb-4 text-sm font-medium uppercase tracking-widest text-muted-foreground">
-                {about.philosophyEyebrow}
-              </p>
+              <Eyebrow className="mb-4">{about.philosophyEyebrow}</Eyebrow>
               <h2 className="mb-8 font-serif text-3xl tracking-tight text-foreground sm:text-4xl">
                 {about.philosophyTitle}
               </h2>
@@ -181,9 +178,7 @@ function AboutPage(): React.ReactElement {
         <section className="py-16 lg:py-24">
           <div className="mx-auto max-w-7xl px-6 lg:px-8">
             <div className="mb-12 text-center">
-              <p className="mb-2 text-sm font-medium uppercase tracking-widest text-muted-foreground">
-                {about.valuesEyebrow}
-              </p>
+              <Eyebrow className="mb-2">{about.valuesEyebrow}</Eyebrow>
               <h2 className="font-serif text-3xl tracking-tight text-foreground sm:text-4xl">
                 {about.valuesTitle}
               </h2>
@@ -230,9 +225,7 @@ function AboutPage(): React.ReactElement {
           <div className="mx-auto max-w-7xl px-6 lg:px-8">
             <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-20">
               <div>
-                <p className="mb-4 text-sm font-medium uppercase tracking-widest text-muted-foreground">
-                  {about.whatsIncludedEyebrow}
-                </p>
+                <Eyebrow className="mb-4">{about.whatsIncludedEyebrow}</Eyebrow>
                 <h2 className="mb-6 font-serif text-3xl tracking-tight text-foreground sm:text-4xl">
                   {about.whatsIncludedTitle}
                 </h2>
@@ -265,9 +258,7 @@ function AboutPage(): React.ReactElement {
         <section className="bg-secondary py-16 lg:py-24">
           <div className="mx-auto max-w-7xl px-6 lg:px-8">
             <div className="mx-auto max-w-2xl text-center">
-              <p className="mb-4 text-sm font-medium uppercase tracking-widest text-muted-foreground">
-                {about.connectEyebrow}
-              </p>
+              <Eyebrow className="mb-4">{about.connectEyebrow}</Eyebrow>
               <h2 className="mb-6 font-serif text-3xl tracking-tight text-foreground sm:text-4xl">
                 {about.connectTitle}
               </h2>

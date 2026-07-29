@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
-import type { Experiment } from "@twt/db/schema"
+import type { Experiment } from "@twt/database/schema"
 import {
   ArrowRight,
   Beaker,

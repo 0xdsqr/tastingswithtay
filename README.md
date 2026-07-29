@@ -20,7 +20,7 @@ migration window so package consumers can be moved deliberately.
 ## Database
 
 Generate and review migrations with `bun run db:generate`; apply them in a controlled deployment
-with `bun run --filter @twt/db migrate`. See `packages/db/MIGRATIONS.md` before migrating an
+with `bun run --filter @twt/database migrate`. See `packages/database/MIGRATIONS.md` before migrating an
 existing database. Production schema changes must use migrations, never `drizzle-kit push`.
 
 ## Runtime manifests

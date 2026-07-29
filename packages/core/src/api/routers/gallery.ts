@@ -1,6 +1,6 @@
 import type { TRPCRouterRecord } from "@trpc/server"
-import { galleryCategoryEnum, galleryImages } from "@twt/db/schema"
-import { and, asc, desc, eq, sql } from "@twt/db"
+import { galleryCategoryEnum, galleryImages } from "@twt/database/schema"
+import { and, asc, desc, eq, sql } from "@twt/database"
 import { z } from "zod"
 import { publicProcedure } from "../trpc"
 

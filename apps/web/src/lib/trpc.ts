@@ -2,7 +2,7 @@ import { createTRPCClient, httpBatchLink } from "@trpc/client"
 import { createTRPCContext } from "@trpc/tanstack-react-query"
 import type { AppRouter } from "@twt/core/api"
 import superjson from "superjson"
-import { getTrpcBaseUrl } from "./runtime-url"
+import { getTrpcBaseUrl } from "@twt/core/http/runtime-url"
 
 // Vanilla client for server-side usage (in loaders)
 export const trpc = createTRPCClient<AppRouter>({

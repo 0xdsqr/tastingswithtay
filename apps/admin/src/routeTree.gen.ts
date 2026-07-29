@@ -10,9 +10,18 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as DashboardRouteImport } from './routes/_dashboard'
+import { Route as DashboardIndexRouteImport } from './routes/_dashboard.index'
 import { Route as ApiReadyRouteImport } from './routes/api/ready'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
+import { Route as DashboardWinesRouteImport } from './routes/_dashboard.wines'
+import { Route as DashboardUsersRouteImport } from './routes/_dashboard.users'
+import { Route as DashboardRecipesRouteImport } from './routes/_dashboard.recipes'
+import { Route as DashboardPagesRouteImport } from './routes/_dashboard.pages'
+import { Route as DashboardMediaRouteImport } from './routes/_dashboard.media'
+import { Route as DashboardGalleryRouteImport } from './routes/_dashboard.gallery'
+import { Route as DashboardExperimentsRouteImport } from './routes/_dashboard.experiments'
+import { Route as ApiImagesUploadRouteImport } from './routes/api/images.upload'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth.$'
 import { Route as ApiImagesFolderFileNameRouteImport } from './routes/api/images.$folder.$fileName'
 
@@ -21,10 +30,14 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/_dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardIndexRoute = DashboardIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => DashboardRoute,
 } as any)
 const ApiReadyRoute = ApiReadyRouteImport.update({
   id: '/api/ready',
@@ -34,6 +47,46 @@ const ApiReadyRoute = ApiReadyRouteImport.update({
 const ApiHealthRoute = ApiHealthRouteImport.update({
   id: '/api/health',
   path: '/api/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardWinesRoute = DashboardWinesRouteImport.update({
+  id: '/wines',
+  path: '/wines',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardUsersRoute = DashboardUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardRecipesRoute = DashboardRecipesRouteImport.update({
+  id: '/recipes',
+  path: '/recipes',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardPagesRoute = DashboardPagesRouteImport.update({
+  id: '/pages',
+  path: '/pages',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardMediaRoute = DashboardMediaRouteImport.update({
+  id: '/media',
+  path: '/media',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardGalleryRoute = DashboardGalleryRouteImport.update({
+  id: '/gallery',
+  path: '/gallery',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardExperimentsRoute = DashboardExperimentsRouteImport.update({
+  id: '/experiments',
+  path: '/experiments',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const ApiImagesUploadRoute = ApiImagesUploadRouteImport.update({
+  id: '/api/images/upload',
+  path: '/api/images/upload',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
@@ -48,28 +101,53 @@ const ApiImagesFolderFileNameRoute = ApiImagesFolderFileNameRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
+  '/': typeof DashboardIndexRoute
   '/login': typeof LoginRoute
+  '/experiments': typeof DashboardExperimentsRoute
+  '/gallery': typeof DashboardGalleryRoute
+  '/media': typeof DashboardMediaRoute
+  '/pages': typeof DashboardPagesRoute
+  '/recipes': typeof DashboardRecipesRoute
+  '/users': typeof DashboardUsersRoute
+  '/wines': typeof DashboardWinesRoute
   '/api/health': typeof ApiHealthRoute
   '/api/ready': typeof ApiReadyRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/images/upload': typeof ApiImagesUploadRoute
   '/api/images/$folder/$fileName': typeof ApiImagesFolderFileNameRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/experiments': typeof DashboardExperimentsRoute
+  '/gallery': typeof DashboardGalleryRoute
+  '/media': typeof DashboardMediaRoute
+  '/pages': typeof DashboardPagesRoute
+  '/recipes': typeof DashboardRecipesRoute
+  '/users': typeof DashboardUsersRoute
+  '/wines': typeof DashboardWinesRoute
   '/api/health': typeof ApiHealthRoute
   '/api/ready': typeof ApiReadyRoute
+  '/': typeof DashboardIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/images/upload': typeof ApiImagesUploadRoute
   '/api/images/$folder/$fileName': typeof ApiImagesFolderFileNameRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
+  '/_dashboard': typeof DashboardRouteWithChildren
   '/login': typeof LoginRoute
+  '/_dashboard/experiments': typeof DashboardExperimentsRoute
+  '/_dashboard/gallery': typeof DashboardGalleryRoute
+  '/_dashboard/media': typeof DashboardMediaRoute
+  '/_dashboard/pages': typeof DashboardPagesRoute
+  '/_dashboard/recipes': typeof DashboardRecipesRoute
+  '/_dashboard/users': typeof DashboardUsersRoute
+  '/_dashboard/wines': typeof DashboardWinesRoute
   '/api/health': typeof ApiHealthRoute
   '/api/ready': typeof ApiReadyRoute
+  '/_dashboard/': typeof DashboardIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/images/upload': typeof ApiImagesUploadRoute
   '/api/images/$folder/$fileName': typeof ApiImagesFolderFileNameRoute
 }
 export interface FileRouteTypes {
@@ -77,34 +155,60 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
+    | '/experiments'
+    | '/gallery'
+    | '/media'
+    | '/pages'
+    | '/recipes'
+    | '/users'
+    | '/wines'
     | '/api/health'
     | '/api/ready'
     | '/api/auth/$'
+    | '/api/images/upload'
     | '/api/images/$folder/$fileName'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/'
     | '/login'
+    | '/experiments'
+    | '/gallery'
+    | '/media'
+    | '/pages'
+    | '/recipes'
+    | '/users'
+    | '/wines'
     | '/api/health'
     | '/api/ready'
+    | '/'
     | '/api/auth/$'
+    | '/api/images/upload'
     | '/api/images/$folder/$fileName'
   id:
     | '__root__'
-    | '/'
+    | '/_dashboard'
     | '/login'
+    | '/_dashboard/experiments'
+    | '/_dashboard/gallery'
+    | '/_dashboard/media'
+    | '/_dashboard/pages'
+    | '/_dashboard/recipes'
+    | '/_dashboard/users'
+    | '/_dashboard/wines'
     | '/api/health'
     | '/api/ready'
+    | '/_dashboard/'
     | '/api/auth/$'
+    | '/api/images/upload'
     | '/api/images/$folder/$fileName'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
+  DashboardRoute: typeof DashboardRouteWithChildren
   LoginRoute: typeof LoginRoute
   ApiHealthRoute: typeof ApiHealthRoute
   ApiReadyRoute: typeof ApiReadyRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ApiImagesUploadRoute: typeof ApiImagesUploadRoute
   ApiImagesFolderFileNameRoute: typeof ApiImagesFolderFileNameRoute
 }
 
@@ -117,12 +221,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
+    '/_dashboard': {
+      id: '/_dashboard'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_dashboard/': {
+      id: '/_dashboard/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof DashboardIndexRouteImport
+      parentRoute: typeof DashboardRoute
     }
     '/api/ready': {
       id: '/api/ready'
@@ -136,6 +247,62 @@ declare module '@tanstack/react-router' {
       path: '/api/health'
       fullPath: '/api/health'
       preLoaderRoute: typeof ApiHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_dashboard/wines': {
+      id: '/_dashboard/wines'
+      path: '/wines'
+      fullPath: '/wines'
+      preLoaderRoute: typeof DashboardWinesRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/users': {
+      id: '/_dashboard/users'
+      path: '/users'
+      fullPath: '/users'
+      preLoaderRoute: typeof DashboardUsersRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/recipes': {
+      id: '/_dashboard/recipes'
+      path: '/recipes'
+      fullPath: '/recipes'
+      preLoaderRoute: typeof DashboardRecipesRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/pages': {
+      id: '/_dashboard/pages'
+      path: '/pages'
+      fullPath: '/pages'
+      preLoaderRoute: typeof DashboardPagesRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/media': {
+      id: '/_dashboard/media'
+      path: '/media'
+      fullPath: '/media'
+      preLoaderRoute: typeof DashboardMediaRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/gallery': {
+      id: '/_dashboard/gallery'
+      path: '/gallery'
+      fullPath: '/gallery'
+      preLoaderRoute: typeof DashboardGalleryRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/experiments': {
+      id: '/_dashboard/experiments'
+      path: '/experiments'
+      fullPath: '/experiments'
+      preLoaderRoute: typeof DashboardExperimentsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/api/images/upload': {
+      id: '/api/images/upload'
+      path: '/api/images/upload'
+      fullPath: '/api/images/upload'
+      preLoaderRoute: typeof ApiImagesUploadRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/auth/$': {
@@ -155,12 +322,39 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface DashboardRouteChildren {
+  DashboardExperimentsRoute: typeof DashboardExperimentsRoute
+  DashboardGalleryRoute: typeof DashboardGalleryRoute
+  DashboardMediaRoute: typeof DashboardMediaRoute
+  DashboardPagesRoute: typeof DashboardPagesRoute
+  DashboardRecipesRoute: typeof DashboardRecipesRoute
+  DashboardUsersRoute: typeof DashboardUsersRoute
+  DashboardWinesRoute: typeof DashboardWinesRoute
+  DashboardIndexRoute: typeof DashboardIndexRoute
+}
+
+const DashboardRouteChildren: DashboardRouteChildren = {
+  DashboardExperimentsRoute: DashboardExperimentsRoute,
+  DashboardGalleryRoute: DashboardGalleryRoute,
+  DashboardMediaRoute: DashboardMediaRoute,
+  DashboardPagesRoute: DashboardPagesRoute,
+  DashboardRecipesRoute: DashboardRecipesRoute,
+  DashboardUsersRoute: DashboardUsersRoute,
+  DashboardWinesRoute: DashboardWinesRoute,
+  DashboardIndexRoute: DashboardIndexRoute,
+}
+
+const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
+  DashboardRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+  DashboardRoute: DashboardRouteWithChildren,
   LoginRoute: LoginRoute,
   ApiHealthRoute: ApiHealthRoute,
   ApiReadyRoute: ApiReadyRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ApiImagesUploadRoute: ApiImagesUploadRoute,
   ApiImagesFolderFileNameRoute: ApiImagesFolderFileNameRoute,
 }
 export const routeTree = rootRouteImport

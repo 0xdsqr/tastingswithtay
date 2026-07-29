@@ -1,6 +1,6 @@
 import type { TRPCRouterRecord } from "@trpc/server"
-import { recipes, recipeTags, tags } from "@twt/db/schema"
-import { and, desc, eq, sql } from "@twt/db"
+import { recipes, recipeTags, tags } from "@twt/database/schema"
+import { and, desc, eq, sql } from "@twt/database"
 import { z } from "zod"
 import { clientRateLimitKey, enforceRateLimit } from "../rate-limit"
 import { publicProcedure } from "../trpc"

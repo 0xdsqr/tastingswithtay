@@ -1,6 +1,6 @@
 import type { TRPCRouterRecord } from "@trpc/server"
-import { createSubscriberSchema, subscribers } from "@twt/db/schema"
-import { eq } from "@twt/db"
+import { createSubscriberSchema, subscribers } from "@twt/database/schema"
+import { eq } from "@twt/database"
 import { z } from "zod"
 import { clientRateLimitKey, enforceRateLimit } from "../rate-limit"
 import { publicProcedure } from "../trpc"

@@ -1,4 +1,4 @@
-import type { Recipe } from "@twt/db/schema"
+import type { Recipe } from "@twt/database/schema"
 import { Clock, Users } from "lucide-react"
 import { OptimizedImage } from "./optimized-image"
 

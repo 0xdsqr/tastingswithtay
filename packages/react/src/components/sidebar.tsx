@@ -1,25 +1,25 @@
 "use client"
 
 import { Slot } from "@radix-ui/react-slot"
-import { Button } from "@twt/ui/components/button"
-import { Input } from "@twt/ui/components/input"
-import { Separator } from "@twt/ui/components/separator"
+import { Button } from "@twt/react/components/button"
+import { Input } from "@twt/react/components/input"
+import { Separator } from "@twt/react/components/separator"
 import {
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
-} from "@twt/ui/components/sheet"
-import { Skeleton } from "@twt/ui/components/skeleton"
+} from "@twt/react/components/sheet"
+import { Skeleton } from "@twt/react/components/skeleton"
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@twt/ui/components/tooltip"
-import { useIsMobile } from "@twt/ui/hooks/use-mobile"
-import { cn } from "@twt/ui/lib/utils"
+} from "@twt/react/components/tooltip"
+import { useIsMobile } from "@twt/react/hooks/use-mobile"
+import { cn } from "@twt/react/lib/utils"
 import { cva, type VariantProps } from "class-variance-authority"
 import { PanelLeftIcon } from "lucide-react"
 import * as React from "react"

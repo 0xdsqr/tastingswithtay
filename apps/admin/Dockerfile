@@ -16,8 +16,8 @@ COPY package.json bun.lock ./
 COPY apps/web/package.json apps/web/package.json
 COPY apps/admin/package.json apps/admin/package.json
 COPY packages/core/package.json packages/core/package.json
-COPY packages/db/package.json packages/db/package.json
-COPY packages/ui/package.json packages/ui/package.json
+COPY packages/database/package.json packages/database/package.json
+COPY packages/react/package.json packages/react/package.json
 COPY tooling/typescript/package.json tooling/typescript/package.json
 
 RUN bun install --frozen-lockfile --ignore-scripts
@@ -27,7 +27,7 @@ WORKDIR /app
 
 COPY . .
 
-RUN bun run --filter '@twt/db' build
+RUN bun run --filter '@twt/database' build
 RUN bun run --filter '@twt/core' build
 RUN bun run --filter 'admin' build
 

@@ -1,5 +1,5 @@
-import { Button } from "@twt/ui/components/button"
-import { Input } from "@twt/ui/components/input"
+import { Button } from "@twt/react/components/button"
+import { Input } from "@twt/react/components/input"
 import { type FormEvent, type ReactElement, useId, useState } from "react"
 import { useTRPCClient } from "../lib/trpc"
 
