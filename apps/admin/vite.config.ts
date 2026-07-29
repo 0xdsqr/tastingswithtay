@@ -23,6 +23,7 @@ export default defineConfig({
     rollupConfig: {
       external: ["pg", "pg-native"],
     },
+    traceDeps: ["@img/sharp-wasm32*"],
   },
   ssr: {
     external: ["pg", "pg-native"],
