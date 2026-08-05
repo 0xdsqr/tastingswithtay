@@ -3,4 +3,4 @@ name: tastingswithtay-admin
 description: Helm chart for deploying the Tastings with Tay admin application.
 type: application
 version: 0.1.1
-appVersion: "sha-9b036a4f1317c3b7a990c3b1cd98e24258f1a5b9"
+appVersion: "sha-3154b87abf9a3134dd6e8047bbc4568a83fe0042"
