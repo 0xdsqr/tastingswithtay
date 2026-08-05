@@ -12,7 +12,7 @@ const mainNavigation = [
 
 const socialLinks = [
   { name: "Instagram", href: "https://instagram.com/tastingswithtay", icon: Instagram },
-  { name: "Email", href: "mailto:hello@tastingswithtay.com", icon: Mail },
+  { name: "Email", href: "mailto:tmcgowen28@gmail.com", icon: Mail },
 ] as const
 
 export function SiteFooter(): React.ReactElement {

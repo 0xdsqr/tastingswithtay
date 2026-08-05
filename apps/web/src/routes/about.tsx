@@ -265,7 +265,7 @@ function AboutPage(): React.ReactElement {
               <p className="mb-8 leading-relaxed text-muted-foreground">{about.connectBody}</p>
               <div className="flex flex-col justify-center gap-4 sm:flex-row">
                 <Button variant="outline" size="lg" asChild>
-                  <a href="mailto:hello@tastingswithtay.com">
+                  <a href="mailto:tmcgowen28@gmail.com">
                     <Mail className="mr-2 h-4 w-4" />
                     Email Me
                   </a>
