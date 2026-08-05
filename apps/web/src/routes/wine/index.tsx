@@ -7,7 +7,7 @@ import { EmptyState } from "../../components/empty-state"
 import { OptimizedImage } from "../../components/optimized-image"
 import { SiteFooter } from "../../components/site-footer"
 import { SiteHeader } from "../../components/site-header"
-import { SocialSommCallout } from "../../components/social-somm-callout"
+import { SocialSommHeroLink } from "../../components/social-somm-callout"
 
 const wineTypes = ["All", "Red", "White", "Rosé", "Sparkling", "Dessert"] as const
 const wineTypeValues = ["Red", "White", "Rosé", "Sparkling", "Dessert"] as const
@@ -144,15 +144,12 @@ function WineCellarPage(): React.ReactElement {
               My personal collection of tasting notes, favorite discoveries, and perfect pairings.
               Because great food deserves great wine.
             </p>
+            <SocialSommHeroLink />
           </div>
         </section>
 
-        <div className="relative z-10 mx-auto -mt-10 max-w-5xl px-6 lg:px-8">
-          <SocialSommCallout compact />
-        </div>
-
         {/* Filter & Wine Grid */}
-        <section className="pb-16 pt-20 lg:pb-24 lg:pt-24">
+        <section className="py-16 lg:py-24">
           <div className="mx-auto max-w-7xl px-6 lg:px-8">
             {/* Filter Tabs */}
             <div className="mb-12 flex flex-wrap justify-center gap-3">

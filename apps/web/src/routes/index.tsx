@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { BentoGrid } from "../components/bento-grid"
 import { ImmersiveHero } from "../components/immersive-hero"
-import { LatestPosts } from "../components/latest-posts"
 import { SiteFooter } from "../components/site-footer"
 import { SiteHeader } from "../components/site-header"
 import { getHomeContent } from "../lib/site-content"
@@ -27,7 +26,6 @@ function Home(): React.ReactElement {
       <main className="flex-1">
         <ImmersiveHero recipes={featuredRecipes} content={homeContent} />
         <BentoGrid recipes={featuredRecipes} categories={categories} content={homeContent} />
-        <LatestPosts />
       </main>
       <SiteFooter />
     </div>

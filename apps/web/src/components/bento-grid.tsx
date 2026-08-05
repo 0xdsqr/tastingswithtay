@@ -8,6 +8,7 @@ import { formatTime } from "../lib/format"
 import { GhostCard } from "./empty-state"
 import { NewsletterSignupForm } from "./newsletter-signup-form"
 import { OptimizedImage } from "./optimized-image"
+import { SocialSommBentoCard } from "./social-somm-callout"
 
 interface BentoItemProps {
   children: React.ReactNode
@@ -25,10 +26,8 @@ interface BentoGridProps {
 }
 
 export function BentoGrid({ recipes, categories, content }: BentoGridProps): React.ReactElement {
-  // Get first 3 featured recipes for display
+  // Lead with a single featured recipe so the supporting cards stay calm and intentional.
   const featuredRecipe = recipes[0]
-  const secondRecipe = recipes[1]
-  const thirdRecipe = recipes[2]
   const hasRecipes = recipes.length > 0
   return (
     <section className="bg-muted/30 py-16 lg:py-24">
@@ -96,66 +95,6 @@ export function BentoGrid({ recipes, categories, content }: BentoGridProps): Rea
                   </Link>
                 </BentoItem>
               )}
-
-              {/* Quick Recipe 2 */}
-              {secondRecipe && (
-                <BentoItem>
-                  <Link
-                    to="/recipes/$slug"
-                    params={{ slug: secondRecipe.slug }}
-                    className="group block h-full"
-                  >
-                    <div className="relative h-full overflow-hidden rounded-2xl bg-card">
-                      {secondRecipe.image && (
-                        <OptimizedImage
-                          src={secondRecipe.image}
-                          alt={secondRecipe.title}
-                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                        />
-                      )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
-                      <div className="absolute bottom-0 left-0 right-0 p-4">
-                        <h3 className="line-clamp-1 font-serif text-lg text-foreground transition-colors group-hover:text-primary">
-                          {secondRecipe.title}
-                        </h3>
-                        <p className="text-xs text-muted-foreground">
-                          {formatTime((secondRecipe.prepTime ?? 0) + (secondRecipe.cookTime ?? 0))}
-                        </p>
-                      </div>
-                    </div>
-                  </Link>
-                </BentoItem>
-              )}
-
-              {/* Quick Recipe 3 */}
-              {thirdRecipe && (
-                <BentoItem>
-                  <Link
-                    to="/recipes/$slug"
-                    params={{ slug: thirdRecipe.slug }}
-                    className="group block h-full"
-                  >
-                    <div className="relative h-full overflow-hidden rounded-2xl bg-card">
-                      {thirdRecipe.image && (
-                        <OptimizedImage
-                          src={thirdRecipe.image}
-                          alt={thirdRecipe.title}
-                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                        />
-                      )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
-                      <div className="absolute bottom-0 left-0 right-0 p-4">
-                        <h3 className="line-clamp-1 font-serif text-lg text-foreground transition-colors group-hover:text-primary">
-                          {thirdRecipe.title}
-                        </h3>
-                        <p className="text-xs text-muted-foreground">
-                          {formatTime((thirdRecipe.prepTime ?? 0) + (thirdRecipe.cookTime ?? 0))}
-                        </p>
-                      </div>
-                    </div>
-                  </Link>
-                </BentoItem>
-              )}
             </>
           ) : (
             <>
@@ -185,19 +124,23 @@ export function BentoGrid({ recipes, categories, content }: BentoGridProps): Rea
             </>
           )}
 
+          {/* Wine Club Highlight */}
+          <BentoItem className="col-span-2">
+            <SocialSommBentoCard />
+          </BentoItem>
+
           {/* Wine Cellar Card */}
-          <BentoItem className="row-span-2">
+          <BentoItem>
             <Link to="/wine" search={{ type: undefined }} className="group block h-full">
-              <div className="relative flex h-full flex-col justify-between overflow-hidden rounded-2xl bg-gradient-to-br from-brand-burgundy to-brand-burgundy/80 p-6">
+              <div className="relative flex h-full flex-col justify-between overflow-hidden rounded-2xl bg-brand-burgundy p-6">
                 <div>
                   <Wine className="mb-3 h-8 w-8 text-brand-gold" />
                   <Eyebrow className="mb-2 text-xs text-brand-gold/80">Tastings</Eyebrow>
                   <h3 className="font-serif text-2xl text-brand-cream transition-colors group-hover:text-brand-gold">
                     Wine Cellar
                   </h3>
-                  <p className="mt-2 text-sm leading-relaxed text-brand-cream/70">
-                    Tasting notes, pairings, and my favorite discoveries from vineyards near and
-                    far.
+                  <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-brand-cream/70">
+                    Tasting notes, pairings, and favorite discoveries.
                   </p>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-brand-gold transition-colors group-hover:text-brand-cream">
@@ -227,7 +170,7 @@ export function BentoGrid({ recipes, categories, content }: BentoGridProps): Rea
           </BentoItem>
 
           {/* Garden & Flock Preview */}
-          <BentoItem>
+          <BentoItem className="col-span-2 lg:col-span-1">
             <Link
               to="/garden-and-flock"
               search={{ category: undefined }}
@@ -252,7 +195,7 @@ export function BentoGrid({ recipes, categories, content }: BentoGridProps): Rea
           </BentoItem>
 
           {/* Categories Row */}
-          <BentoItem className="col-span-2">
+          <BentoItem className="col-span-2 lg:col-span-3">
             <div className="h-full overflow-hidden rounded-2xl border border-border bg-card p-6">
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="font-serif text-xl text-foreground">Browse Categories</h3>
@@ -294,7 +237,7 @@ export function BentoGrid({ recipes, categories, content }: BentoGridProps): Rea
           </BentoItem>
 
           {/* Newsletter Card */}
-          <BentoItem className="col-span-2">
+          <BentoItem className="col-span-2 lg:col-span-4">
             <div className="flex h-full flex-col justify-center overflow-hidden rounded-2xl bg-brand-burgundy p-6 text-brand-cream">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div>
