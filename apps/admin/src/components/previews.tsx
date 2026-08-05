@@ -1,5 +1,12 @@
 import { Badge } from "@twt/react/components/badge"
-import { capitalize, humanizeExperimentStatus, splitPreviewLines } from "../lib/format"
+import {
+  type IngredientGroup,
+  capitalize,
+  humanizeExperimentStatus,
+  parseIngredientGroups,
+  parseInstructionLines,
+  splitPreviewLines,
+} from "../lib/format"
 import { imageHealthClassName, imageHealthFor, imagePreviewSrcFor } from "../lib/image-health"
 
 function PreviewSurface({
@@ -17,18 +24,20 @@ function PreviewSurface({
   return (
     <div className="space-y-5">
       <div className="overflow-hidden rounded-md border bg-background">
-        <div className={`aspect-[16/9] ${imageHealthClassName(imageHealth.status)}`}>
-          {previewSrc ? (
+        {previewSrc ? (
+          <div className="h-56 bg-muted sm:h-72">
             <img src={previewSrc} alt="" className="h-full w-full object-cover" />
-          ) : (
-            <div className="flex h-full flex-col items-center justify-center gap-2 px-4 text-center text-sm">
-              <span className="font-semibold">{imageHealth.label}</span>
-              <span>{imageHealth.description}</span>
-            </div>
-          )}
-        </div>
+          </div>
+        ) : (
+          <div
+            className={`flex flex-col gap-1 border-b px-5 py-4 text-sm sm:flex-row sm:items-center sm:gap-3 ${imageHealthClassName(imageHealth.status)}`}
+          >
+            <span className="font-semibold">{imageHealth.label}</span>
+            <span>{imageHealth.description}</span>
+          </div>
+        )}
         <div className="space-y-4 p-5">
-          <h2 className="font-serif text-2xl font-semibold">{title}</h2>
+          <h2 className="font-serif text-2xl font-semibold tracking-tight sm:text-3xl">{title}</h2>
           {children}
         </div>
       </div>
@@ -85,18 +94,65 @@ type RecipePreviewForm = {
   difficulty: string
   prepTime: number | null
   cookTime: number | null
+  servings: number | null
   image: string
   ingredientsText: string
   instructionsText: string
   tipsText: string
 }
 
-export function RecipePreview({ form }: { form: RecipePreviewForm }): React.ReactElement {
-  const ingredients = splitPreviewLines(form.ingredientsText)
-  const instructions = splitPreviewLines(form.instructionsText).map((line) =>
-    line.replace(/^\d+[.)]\s*/, ""),
+function RecipeIngredients({ groups }: { groups: IngredientGroup[] }): React.ReactElement {
+  if (groups.length === 0) {
+    return <p className="text-sm text-muted-foreground">Add ingredients to preview them.</p>
+  }
+
+  return (
+    <div className="space-y-5">
+      {groups.map((group, groupIndex) => (
+        <section key={`${group.group ?? "ingredients"}-${groupIndex}`} className="space-y-2">
+          {group.group ? (
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              {group.group}
+            </h4>
+          ) : null}
+          <ul className="space-y-2">
+            {group.items.map((item, itemIndex) => (
+              <li key={`${item}-${itemIndex}`} className="flex items-start gap-2 text-sm">
+                <span className="mt-2 size-1.5 shrink-0 rounded-full bg-accent" />
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+    </div>
   )
+}
+
+function RecipeInstructions({ items }: { items: string[] }): React.ReactElement {
+  if (items.length === 0) {
+    return <p className="text-sm text-muted-foreground">Add steps to preview them.</p>
+  }
+
+  return (
+    <ol className="space-y-4">
+      {items.map((item, index) => (
+        <li key={`${item}-${index}`} className="flex items-start gap-3">
+          <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
+            {index + 1}
+          </span>
+          <p className="pt-0.5 text-sm leading-relaxed">{item}</p>
+        </li>
+      ))}
+    </ol>
+  )
+}
+
+export function RecipePreview({ form }: { form: RecipePreviewForm }): React.ReactElement {
+  const ingredientGroups = parseIngredientGroups(form.ingredientsText)
+  const instructions = parseInstructionLines(form.instructionsText)
   const tips = splitPreviewLines(form.tipsText)
+  const totalTime = (form.prepTime ?? 0) + (form.cookTime ?? 0)
 
   return (
     <PreviewSurface image={form.image} title={form.title || "Untitled recipe"}>
@@ -104,21 +160,34 @@ export function RecipePreview({ form }: { form: RecipePreviewForm }): React.Reac
       <div className="flex flex-wrap gap-2">
         <Badge variant="secondary">{form.category || "No category"}</Badge>
         <Badge variant="outline">{form.difficulty}</Badge>
+        {totalTime > 0 ? <Badge variant="outline">{totalTime} min total</Badge> : null}
         {form.prepTime ? <Badge variant="outline">{form.prepTime} min prep</Badge> : null}
         {form.cookTime ? <Badge variant="outline">{form.cookTime} min cook</Badge> : null}
+        {form.servings ? <Badge variant="outline">Serves {form.servings}</Badge> : null}
       </div>
-      <PreviewList
-        title="Ingredients"
-        items={ingredients}
-        empty="Add ingredients to preview them."
-      />
-      <PreviewList
-        title="Instructions"
-        items={instructions}
-        ordered
-        empty="Add steps to preview them."
-      />
-      <PreviewList title="Tips" items={tips} empty="Tips are optional." />
+      <div className="grid gap-8 border-t pt-5 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.4fr)]">
+        <section className="space-y-4">
+          <h3 className="font-serif text-xl font-semibold">Ingredients</h3>
+          <RecipeIngredients groups={ingredientGroups} />
+        </section>
+        <section className="space-y-4">
+          <h3 className="font-serif text-xl font-semibold">Instructions</h3>
+          <RecipeInstructions items={instructions} />
+          {tips.length > 0 ? (
+            <aside className="space-y-3 rounded-lg bg-muted p-4">
+              <h3 className="font-serif text-lg font-semibold">Tips & notes</h3>
+              <ul className="space-y-2">
+                {tips.map((tip, index) => (
+                  <li key={`${tip}-${index}`} className="flex items-start gap-2 text-sm">
+                    <span className="text-accent">•</span>
+                    <span className="text-muted-foreground">{tip}</span>
+                  </li>
+                ))}
+              </ul>
+            </aside>
+          ) : null}
+        </section>
+      </div>
     </PreviewSurface>
   )
 }

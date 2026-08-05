@@ -31,6 +31,50 @@ export function splitPreviewLines(value: string | null | undefined): string[] {
     .filter(Boolean)
 }
 
+export type IngredientGroup = {
+  group?: string
+  items: string[]
+}
+
+export function parseIngredientGroups(value: string | null | undefined): IngredientGroup[] {
+  const groups: IngredientGroup[] = []
+  let currentGroup: IngredientGroup = { items: [] }
+
+  const flushGroup = () => {
+    if (currentGroup.items.length > 0) {
+      groups.push(currentGroup)
+    }
+  }
+
+  for (const rawLine of (value ?? "").split("\n")) {
+    const line = rawLine.trim()
+
+    if (!line) {
+      flushGroup()
+      currentGroup = { items: [] }
+      continue
+    }
+
+    if (line.endsWith(":")) {
+      flushGroup()
+      currentGroup = {
+        group: line.slice(0, -1).trim(),
+        items: [],
+      }
+      continue
+    }
+
+    currentGroup.items.push(line.replace(/^[-*]\s*/, ""))
+  }
+
+  flushGroup()
+  return groups
+}
+
+export function parseInstructionLines(value: string | null | undefined): string[] {
+  return splitPreviewLines(value).map((line) => line.replace(/^\d+[.)]\s*/, ""))
+}
+
 export function formatBytes(value: number): string {
   if (value < 1024) return `${value} B`
   if (value < 1024 * 1024) return `${(value / 1024).toFixed(1)} KB`

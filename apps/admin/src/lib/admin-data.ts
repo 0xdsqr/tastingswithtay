@@ -26,6 +26,7 @@ import { isManagedImageValue, managedImagePathFor } from "@twt/core/images/polic
 import { withSpan } from "@twt/core/telemetry/tracing"
 import { z } from "zod"
 import { getAdminSessionUser } from "./admin-access"
+import { parseIngredientGroups, parseInstructionLines } from "./format"
 
 type SessionUser = {
   id?: string | null
@@ -71,38 +72,7 @@ function parseStringList(value: string): string[] {
 }
 
 function parseIngredients(value: string): Array<{ group?: string; items: string[] }> {
-  const lines = value.split("\n")
-  const groups: Array<{ group?: string; items: string[] }> = []
-  let currentGroup: { group?: string; items: string[] } = { items: [] }
-
-  for (const rawLine of lines) {
-    const line = rawLine.trim()
-
-    if (!line) {
-      if (currentGroup.items.length > 0) {
-        groups.push(currentGroup)
-        currentGroup = { items: [] }
-      }
-      continue
-    }
-
-    if (line.endsWith(":")) {
-      if (currentGroup.items.length > 0) {
-        groups.push(currentGroup)
-      }
-      currentGroup = {
-        group: line.slice(0, -1).trim(),
-        items: [],
-      }
-      continue
-    }
-
-    currentGroup.items.push(line.replace(/^[-*]\s*/, ""))
-  }
-
-  if (currentGroup.items.length > 0) {
-    groups.push(currentGroup)
-  }
+  const groups = parseIngredientGroups(value)
 
   if (groups.length === 0) {
     throw new Error("Add at least one ingredient.")
@@ -126,11 +96,7 @@ function formatIngredients(value: Array<{ group?: string; items: string[] }>): s
 }
 
 function parseInstructions(value: string): Array<{ step: number; text: string }> {
-  const lines = value
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .map((line) => line.replace(/^\d+[.)]\s*/, ""))
+  const lines = parseInstructionLines(value)
 
   if (lines.length === 0) {
     throw new Error("Add at least one instruction.")

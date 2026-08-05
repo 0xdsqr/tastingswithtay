@@ -232,6 +232,7 @@ function RecipesPage(): React.ReactElement {
               >
                 <Textarea
                   rows={10}
+                  className="h-80 field-sizing-fixed resize-y overflow-y-auto"
                   value={form.ingredientsText}
                   onChange={(event) =>
                     setForm((current) => ({ ...current, ingredientsText: event.target.value }))
@@ -245,6 +246,7 @@ function RecipesPage(): React.ReactElement {
               >
                 <Textarea
                   rows={10}
+                  className="h-80 field-sizing-fixed resize-y overflow-y-auto"
                   value={form.instructionsText}
                   onChange={(event) =>
                     setForm((current) => ({ ...current, instructionsText: event.target.value }))
@@ -259,6 +261,7 @@ function RecipesPage(): React.ReactElement {
             >
               <Textarea
                 rows={4}
+                className="h-32 field-sizing-fixed resize-y overflow-y-auto"
                 value={form.tipsText}
                 onChange={(event) =>
                   setForm((current) => ({ ...current, tipsText: event.target.value }))
