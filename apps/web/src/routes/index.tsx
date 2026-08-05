@@ -23,11 +23,11 @@ function Home(): React.ReactElement {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <SiteHeader />
+      <SiteHeader overlay />
       <main className="flex-1">
         <ImmersiveHero recipes={featuredRecipes} content={homeContent} />
         <BentoGrid recipes={featuredRecipes} categories={categories} content={homeContent} />
-        <LatestPosts content={homeContent} />
+        <LatestPosts />
       </main>
       <SiteFooter />
     </div>

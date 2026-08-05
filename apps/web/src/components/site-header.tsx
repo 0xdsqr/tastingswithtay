@@ -11,7 +11,7 @@ import {
 } from "@twt/react/components/dropdown-menu"
 import { Skeleton } from "@twt/react/components/skeleton"
 import { LogOut, Menu, X } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { authClient } from "../auth/client"
 import { BrandLogo } from "./brand-logo"
 
@@ -40,16 +40,35 @@ function getInitials(name?: string | null, email?: string | null): string {
   return "?"
 }
 
-export function SiteHeader(): React.ReactElement {
+export function SiteHeader({ overlay = false }: { overlay?: boolean }): React.ReactElement {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [isScrolled, setIsScrolled] = useState(false)
   const { session: initialSession } = rootRoute.useLoaderData()
   const { data: session, isPending } = authClient.useSession()
   const navigate = useNavigate()
   const resolvedSession = session ?? (isPending ? initialSession : null)
   const showSessionSkeleton = isPending && !initialSession
+  const transparent = overlay && !isScrolled && !mobileMenuOpen
+
+  useEffect(() => {
+    if (!overlay) return
+
+    const updateHeader = (): void => setIsScrolled(window.scrollY > 24)
+    updateHeader()
+    window.addEventListener("scroll", updateHeader, { passive: true })
+    return () => window.removeEventListener("scroll", updateHeader)
+  }, [overlay])
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-md">
+    <header
+      className={`top-0 z-50 w-full border-b transition-[background-color,border-color,box-shadow] duration-300 ${
+        overlay ? "fixed" : "sticky"
+      } ${
+        transparent
+          ? "border-transparent bg-transparent"
+          : "border-border bg-background/90 shadow-sm backdrop-blur-md"
+      }`}
+    >
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 lg:px-8">
         {/* Left nav - desktop */}
         <div className="hidden lg:flex lg:gap-x-8">
