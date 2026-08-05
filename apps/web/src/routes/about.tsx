@@ -3,6 +3,7 @@ import { Button } from "@twt/react/components/button"
 import { Eyebrow } from "@twt/react/components/section-header"
 import { Instagram, Mail } from "lucide-react"
 import { z } from "zod"
+import { BrandLogo } from "../components/brand-logo"
 import { NewsletterSection } from "../components/newsletter-section"
 import { OptimizedImage } from "../components/optimized-image"
 import { SiteFooter } from "../components/site-footer"
@@ -263,6 +264,11 @@ function AboutPage(): React.ReactElement {
                 {about.connectTitle}
               </h2>
               <p className="mb-8 leading-relaxed text-muted-foreground">{about.connectBody}</p>
+              <BrandLogo
+                variant="script"
+                sizes="(min-width: 640px) 384px, 288px"
+                className="mx-auto mb-8 w-72 sm:w-96"
+              />
               <div className="flex flex-col justify-center gap-4 sm:flex-row">
                 <Button variant="outline" size="lg" asChild>
                   <a href="mailto:tmcgowen28@gmail.com">

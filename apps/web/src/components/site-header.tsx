@@ -69,9 +69,9 @@ export function SiteHeader({ overlay = false }: { overlay?: boolean }): React.Re
           : "border-border bg-background/90 shadow-sm backdrop-blur-md"
       }`}
     >
-      <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 lg:px-8">
+      <nav className="mx-auto grid max-w-7xl grid-cols-[1fr_auto_1fr] items-center px-4 py-2 sm:px-6 sm:py-3 lg:px-8">
         {/* Left nav - desktop */}
-        <div className="hidden lg:flex lg:gap-x-8">
+        <div className="hidden justify-self-start lg:flex lg:gap-x-8">
           {navigation.slice(0, 3).map((item) => (
             <Link
               key={item.name}
@@ -84,7 +84,7 @@ export function SiteHeader({ overlay = false }: { overlay?: boolean }): React.Re
         </div>
 
         {/* Mobile menu button */}
-        <div className="flex lg:hidden">
+        <div className="flex justify-self-start lg:hidden">
           <button
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -102,14 +102,21 @@ export function SiteHeader({ overlay = false }: { overlay?: boolean }): React.Re
         </div>
 
         {/* Logo - center */}
-        <div className="flex flex-1 justify-center lg:flex-none">
-          <Link to="/" className="flex items-center">
-            <BrandLogo className="h-10 w-auto sm:h-12 lg:h-16" />
+        <div className="flex justify-self-center">
+          <Link to="/" aria-label="Tastings with Tay home" className="flex items-center">
+            <BrandLogo
+              variant="editorial"
+              loading="eager"
+              sizes="(min-width: 1280px) 224px, (min-width: 1024px) 208px, (min-width: 640px) 192px, 160px"
+              className={`w-40 sm:w-48 lg:w-52 xl:w-56 ${
+                transparent ? "drop-shadow-[0_1px_7px_rgba(255,255,255,0.72)]" : ""
+              }`}
+            />
           </Link>
         </div>
 
         {/* Right nav - desktop */}
-        <div className="hidden lg:flex lg:items-center lg:gap-x-6">
+        <div className="hidden justify-self-end lg:flex lg:items-center lg:gap-x-6">
           {navigation.slice(3).map((item) => (
             <Link
               key={item.name}

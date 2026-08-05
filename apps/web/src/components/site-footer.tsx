@@ -21,8 +21,12 @@ export function SiteFooter(): React.ReactElement {
       <div className="mx-auto max-w-7xl px-6 py-16 lg:px-8">
         <div className="flex flex-col items-center">
           {/* Logo */}
-          <Link to="/" className="mb-8">
-            <BrandLogo className="h-16 w-auto sm:h-20" />
+          <Link to="/" aria-label="Tastings with Tay home" className="mb-8">
+            <BrandLogo
+              variant="seal"
+              sizes="(min-width: 640px) 208px, 176px"
+              className="w-44 sm:w-52"
+            />
           </Link>
 
           {/* Navigation */}
