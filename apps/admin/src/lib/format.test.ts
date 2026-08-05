@@ -27,10 +27,31 @@ Dipping sauce:
   it("supports an unnamed ingredient section", () => {
     expect(parseIngredientGroups("Salt\nPepper")).toEqual([{ items: ["Salt", "Pepper"] }])
   })
+
+  it("preserves callout markers, including callouts that end in a colon", () => {
+    expect(
+      parseIngredientGroups(
+        "Wine:\n1 bottle Burgundy\n> Kitchen note:\n> Save a small glass for the cook.",
+      ),
+    ).toEqual([
+      {
+        group: "Wine",
+        items: ["1 bottle Burgundy", "> Kitchen note:", "> Save a small glass for the cook."],
+      },
+    ])
+  })
 })
 
 describe("parseInstructionLines", () => {
   it("normalizes optional numbering and removes blank steps", () => {
     expect(parseInstructionLines("1. Prep\n\n2) Cook\nServe")).toEqual(["Prep", "Cook", "Serve"])
+  })
+
+  it("preserves callout markers while normalizing numbered steps", () => {
+    expect(parseInstructionLines("1. Prep\n> Keep the pan hot.\n2. Cook")).toEqual([
+      "Prep",
+      "> Keep the pan hot.",
+      "Cook",
+    ])
   })
 })

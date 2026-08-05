@@ -228,7 +228,7 @@ function RecipesPage(): React.ReactElement {
             <div className="grid gap-4 lg:grid-cols-2">
               <Field
                 label="Ingredients"
-                description="Put each ingredient on its own line. Group headings end with a colon, with a blank line between groups. Check the Preview tab to see the result."
+                description="Put each ingredient on its own line. Group headings end with a colon. Start a line with > for a Kitchen note; consecutive > lines become one callout."
               >
                 <Textarea
                   rows={10}
@@ -237,12 +237,14 @@ function RecipesPage(): React.ReactElement {
                   onChange={(event) =>
                     setForm((current) => ({ ...current, ingredientsText: event.target.value }))
                   }
-                  placeholder={"Main:\n2 eggs\n1 cup flour\n\nSauce:\n1 tbsp butter"}
+                  placeholder={
+                    "Main:\n2 eggs\n1 cup flour\n> A room-temperature egg blends more evenly.\n\nSauce:\n1 tbsp butter"
+                  }
                 />
               </Field>
               <Field
                 label="Instructions"
-                description="Put one step on each line. Numbering is optional; the app will clean it up and renumber."
+                description="Put one step on each line. Numbering is optional. Start a line with > for a Kitchen note; notes do not receive a step number."
               >
                 <Textarea
                   rows={10}
@@ -251,13 +253,15 @@ function RecipesPage(): React.ReactElement {
                   onChange={(event) =>
                     setForm((current) => ({ ...current, instructionsText: event.target.value }))
                   }
-                  placeholder={"1. Prep the ingredients\n2. Cook\n3. Serve"}
+                  placeholder={
+                    "1. Prep the ingredients\n> Give the pan time to get properly hot.\n2. Cook\n3. Serve"
+                  }
                 />
               </Field>
             </div>
             <Field
               label="Tips"
-              description="One tip per line keeps the public recipe formatting clean."
+              description="Use one tip per line, or start one or more consecutive lines with > for a highlighted Kitchen note."
             >
               <Textarea
                 rows={4}
@@ -266,7 +270,9 @@ function RecipesPage(): React.ReactElement {
                 onChange={(event) =>
                   setForm((current) => ({ ...current, tipsText: event.target.value }))
                 }
-                placeholder="One tip per line"
+                placeholder={
+                  "> This can be made a day ahead and reheated gently.\nFreeze leftovers for up to 3 months."
+                }
               />
             </Field>
             <div className="grid gap-4 md:grid-cols-2">

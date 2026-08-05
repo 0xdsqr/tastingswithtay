@@ -1,3 +1,5 @@
+import { isCalloutLine } from "@twt/react/lib/callout"
+
 export function toNumberOrNull(value: string): number | null {
   if (!value) return null
   const parsed = Number(value)
@@ -55,7 +57,7 @@ export function parseIngredientGroups(value: string | null | undefined): Ingredi
       continue
     }
 
-    if (line.endsWith(":")) {
+    if (!isCalloutLine(line) && line.endsWith(":")) {
       flushGroup()
       currentGroup = {
         group: line.slice(0, -1).trim(),

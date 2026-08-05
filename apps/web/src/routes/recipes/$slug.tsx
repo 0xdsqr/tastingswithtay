@@ -1,5 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router"
 import { Button } from "@twt/react/components/button"
+import { ContentCallout } from "@twt/react/components/content-callout"
+import { parseCalloutBlocks } from "@twt/react/lib/callout"
 import { ArrowLeft, ChefHat, Clock, Heart, Printer, Share2, Users } from "lucide-react"
 import { OptimizedImage } from "../../components/optimized-image"
 import { SiteFooter } from "../../components/site-footer"
@@ -13,6 +15,89 @@ interface IngredientGroup {
 interface Instruction {
   step: number
   text: string
+}
+
+function IngredientItems({ items }: { items: string[] }): React.ReactElement {
+  const blocks = parseCalloutBlocks(items, (item) => item)
+
+  return (
+    <div className="space-y-3">
+      {blocks.map((block, blockIndex) =>
+        block.type === "callout" ? (
+          <ContentCallout key={`callout-${blockIndex}-${block.text}`}>{block.text}</ContentCallout>
+        ) : (
+          <ul key={`items-${blockIndex}`} className="space-y-2">
+            {block.items.map((item, itemIndex) => (
+              <li key={`${item}-${itemIndex}`} className="flex items-start gap-3 text-foreground">
+                <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        ),
+      )}
+    </div>
+  )
+}
+
+function RecipeInstructions({ instructions }: { instructions: Instruction[] }): React.ReactElement {
+  const blocks = parseCalloutBlocks(instructions, (instruction) => instruction.text)
+  let displayedStep = 0
+
+  return (
+    <div className="space-y-8">
+      {blocks.map((block, blockIndex) =>
+        block.type === "callout" ? (
+          <ContentCallout key={`callout-${blockIndex}-${block.text}`}>{block.text}</ContentCallout>
+        ) : (
+          <ol key={`steps-${blockIndex}`} className="space-y-8">
+            {block.items.map((instruction) => {
+              displayedStep += 1
+              return (
+                <li key={instruction.step} className="flex gap-4">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground">
+                    {displayedStep}
+                  </span>
+                  <p className="pt-1 leading-relaxed text-foreground">{instruction.text}</p>
+                </li>
+              )
+            })}
+          </ol>
+        ),
+      )}
+    </div>
+  )
+}
+
+function RecipeTips({ tips }: { tips: string[] }): React.ReactElement {
+  const blocks = parseCalloutBlocks(tips, (tip) => tip)
+
+  return (
+    <div className="mt-12 rounded-lg bg-secondary p-6">
+      <h3 className="mb-4 font-serif text-xl text-foreground">Tips & Notes</h3>
+      <div className="space-y-3">
+        {blocks.map((block, blockIndex) =>
+          block.type === "callout" ? (
+            <ContentCallout key={`callout-${blockIndex}-${block.text}`}>
+              {block.text}
+            </ContentCallout>
+          ) : (
+            <ul key={`tips-${blockIndex}`} className="space-y-2">
+              {block.items.map((tip, tipIndex) => (
+                <li
+                  key={`${tip}-${tipIndex}`}
+                  className="flex items-start gap-3 text-muted-foreground"
+                >
+                  <span className="text-accent">•</span>
+                  <span>{tip}</span>
+                </li>
+              ))}
+            </ul>
+          ),
+        )}
+      </div>
+    </div>
+  )
 }
 
 function formatTime(minutes: number | null): string {
@@ -185,14 +270,7 @@ function RecipeDetailPage(): React.ReactElement {
                             {group.group}
                           </h3>
                         )}
-                        <ul className="space-y-2">
-                          {group.items.map((item: string, itemIdx: number) => (
-                            <li key={itemIdx} className="flex items-start gap-3 text-foreground">
-                              <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
-                              {item}
-                            </li>
-                          ))}
-                        </ul>
+                        <IngredientItems items={group.items} />
                       </div>
                     ))}
                   </div>
@@ -202,31 +280,10 @@ function RecipeDetailPage(): React.ReactElement {
               {/* Instructions */}
               <div className="lg:col-span-2">
                 <h2 className="mb-6 font-serif text-2xl text-foreground">Instructions</h2>
-                <ol className="space-y-8">
-                  {recipe.instructions.map((instruction: Instruction) => (
-                    <li key={instruction.step} className="flex gap-4">
-                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground">
-                        {instruction.step}
-                      </span>
-                      <p className="pt-1 leading-relaxed text-foreground">{instruction.text}</p>
-                    </li>
-                  ))}
-                </ol>
+                <RecipeInstructions instructions={recipe.instructions} />
 
                 {/* Tips */}
-                {recipe.tips && recipe.tips.length > 0 && (
-                  <div className="mt-12 rounded-lg bg-secondary p-6">
-                    <h3 className="mb-4 font-serif text-xl text-foreground">Tips & Notes</h3>
-                    <ul className="space-y-2">
-                      {recipe.tips.map((tip, idx) => (
-                        <li key={idx} className="flex items-start gap-3 text-muted-foreground">
-                          <span className="text-accent">•</span>
-                          {tip}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+                {recipe.tips && recipe.tips.length > 0 && <RecipeTips tips={recipe.tips} />}
               </div>
             </div>
           </div>

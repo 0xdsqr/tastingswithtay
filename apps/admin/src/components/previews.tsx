@@ -1,4 +1,6 @@
 import { Badge } from "@twt/react/components/badge"
+import { ContentCallout } from "@twt/react/components/content-callout"
+import { parseCalloutBlocks } from "@twt/react/lib/callout"
 import {
   type IngredientGroup,
   capitalize,
@@ -101,6 +103,29 @@ type RecipePreviewForm = {
   tipsText: string
 }
 
+function RecipeIngredientItems({ items }: { items: string[] }): React.ReactElement {
+  const blocks = parseCalloutBlocks(items, (item) => item)
+
+  return (
+    <div className="space-y-3">
+      {blocks.map((block, blockIndex) =>
+        block.type === "callout" ? (
+          <ContentCallout key={`callout-${blockIndex}-${block.text}`}>{block.text}</ContentCallout>
+        ) : (
+          <ul key={`items-${blockIndex}`} className="space-y-2">
+            {block.items.map((item, itemIndex) => (
+              <li key={`${item}-${itemIndex}`} className="flex items-start gap-2 text-sm">
+                <span className="mt-2 size-1.5 shrink-0 rounded-full bg-accent" />
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        ),
+      )}
+    </div>
+  )
+}
+
 function RecipeIngredients({ groups }: { groups: IngredientGroup[] }): React.ReactElement {
   if (groups.length === 0) {
     return <p className="text-sm text-muted-foreground">Add ingredients to preview them.</p>
@@ -115,14 +140,7 @@ function RecipeIngredients({ groups }: { groups: IngredientGroup[] }): React.Rea
               {group.group}
             </h4>
           ) : null}
-          <ul className="space-y-2">
-            {group.items.map((item, itemIndex) => (
-              <li key={`${item}-${itemIndex}`} className="flex items-start gap-2 text-sm">
-                <span className="mt-2 size-1.5 shrink-0 rounded-full bg-accent" />
-                <span>{item}</span>
-              </li>
-            ))}
-          </ul>
+          <RecipeIngredientItems items={group.items} />
         </section>
       ))}
     </div>
@@ -134,17 +152,54 @@ function RecipeInstructions({ items }: { items: string[] }): React.ReactElement 
     return <p className="text-sm text-muted-foreground">Add steps to preview them.</p>
   }
 
+  const blocks = parseCalloutBlocks(items, (item) => item)
+  let displayedStep = 0
+
   return (
-    <ol className="space-y-4">
-      {items.map((item, index) => (
-        <li key={`${item}-${index}`} className="flex items-start gap-3">
-          <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
-            {index + 1}
-          </span>
-          <p className="pt-0.5 text-sm leading-relaxed">{item}</p>
-        </li>
-      ))}
-    </ol>
+    <div className="space-y-4">
+      {blocks.map((block, blockIndex) =>
+        block.type === "callout" ? (
+          <ContentCallout key={`callout-${blockIndex}-${block.text}`}>{block.text}</ContentCallout>
+        ) : (
+          <ol key={`steps-${blockIndex}`} className="space-y-4">
+            {block.items.map((item) => {
+              displayedStep += 1
+              return (
+                <li key={`${item}-${displayedStep}`} className="flex items-start gap-3">
+                  <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
+                    {displayedStep}
+                  </span>
+                  <p className="pt-0.5 text-sm leading-relaxed">{item}</p>
+                </li>
+              )
+            })}
+          </ol>
+        ),
+      )}
+    </div>
+  )
+}
+
+function RecipeTips({ items }: { items: string[] }): React.ReactElement {
+  const blocks = parseCalloutBlocks(items, (item) => item)
+
+  return (
+    <div className="space-y-3">
+      {blocks.map((block, blockIndex) =>
+        block.type === "callout" ? (
+          <ContentCallout key={`callout-${blockIndex}-${block.text}`}>{block.text}</ContentCallout>
+        ) : (
+          <ul key={`tips-${blockIndex}`} className="space-y-2">
+            {block.items.map((tip, tipIndex) => (
+              <li key={`${tip}-${tipIndex}`} className="flex items-start gap-2 text-sm">
+                <span className="text-accent">•</span>
+                <span className="text-muted-foreground">{tip}</span>
+              </li>
+            ))}
+          </ul>
+        ),
+      )}
+    </div>
   )
 }
 
@@ -176,14 +231,7 @@ export function RecipePreview({ form }: { form: RecipePreviewForm }): React.Reac
           {tips.length > 0 ? (
             <aside className="space-y-3 rounded-lg bg-muted p-4">
               <h3 className="font-serif text-lg font-semibold">Tips & notes</h3>
-              <ul className="space-y-2">
-                {tips.map((tip, index) => (
-                  <li key={`${tip}-${index}`} className="flex items-start gap-2 text-sm">
-                    <span className="text-accent">•</span>
-                    <span className="text-muted-foreground">{tip}</span>
-                  </li>
-                ))}
-              </ul>
+              <RecipeTips items={tips} />
             </aside>
           ) : null}
         </section>
