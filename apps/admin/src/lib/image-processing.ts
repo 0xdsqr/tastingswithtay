@@ -6,11 +6,10 @@ import { adminAuditLog } from "@twt/database/schema"
 import { setSpanAttributes, withSpan } from "@twt/core/telemetry/tracing"
 import type { SessionUser } from "./admin-access"
 import type { ManagedImageAsset } from "./admin-assets"
+import { detectSupportedImageType } from "./image-file"
 
 // Server-only module: sharp must never reach the client bundle, so this lives
 // apart from the server-fn module the UI imports.
-
-const allowedImageTypes = new Set(["image/avif", "image/jpeg", "image/png", "image/webp"])
 
 export const maxUploadBytes = 10 * 1024 * 1024
 const maxDecodedPixels = 24_000_000
@@ -40,8 +39,12 @@ function sanitizeFileName(fileName: string): string {
   return name || "image"
 }
 
-function keyForUpload(folder: ManagedAssetFolder, fileName: string): string {
-  return `${folder}/${sanitizeFileName(fileName)}-${randomUUID()}.webp`
+function keyForUpload(
+  folder: ManagedAssetFolder,
+  fileName: string,
+  extension: "avif" | "jpg" | "png" | "webp",
+): string {
+  return `${folder}/${sanitizeFileName(fileName)}-${randomUUID()}.${extension}`
 }
 
 function requireActorId(user: SessionUser): string {
@@ -78,38 +81,65 @@ async function storeImage(options: {
   contentType: string
   bytes: Uint8Array
 }): Promise<ManagedImageAsset> {
-  if (options.contentType === "image/heic" || options.contentType === "image/heif") {
-    throw new UnsupportedImageError(
-      "HEIC photos are not supported yet. On iPhone, share or export the photo as JPEG (Settings → Camera → Formats → Most Compatible), then upload again.",
-    )
-  }
-  if (!allowedImageTypes.has(options.contentType)) {
-    throw new UnsupportedImageError("Upload a JPG, PNG, WebP, or AVIF image.")
-  }
   if (options.bytes.byteLength > maxUploadBytes) {
     throw new UnsupportedImageError("Image uploads must be 10 MB or smaller.")
   }
 
-  const sharp = await loadImageProcessor()
-  const image = sharp(options.bytes, { limitInputPixels: maxDecodedPixels, animated: false })
-  const metadata = await image.metadata()
-
-  if (!metadata.format || !["avif", "jpeg", "png", "webp"].includes(metadata.format)) {
+  const detectedType = detectSupportedImageType(options.bytes)
+  if (!detectedType) {
+    if (options.contentType === "image/heic" || options.contentType === "image/heif") {
+      throw new UnsupportedImageError(
+        "HEIC photos are not supported yet. On iPhone, share or export the photo as JPEG (Settings → Camera → Formats → Most Compatible), then upload again.",
+      )
+    }
     throw new UnsupportedImageError("The file contents are not a supported image.")
   }
-  if ((metadata.pages ?? 1) !== 1) {
-    throw new UnsupportedImageError("Animated or multi-page images are not supported.")
+
+  let storedBytes: Uint8Array
+  let storedContentType: string
+  let storedExtension: "avif" | "jpg" | "png" | "webp"
+  let imageWasProcessed = true
+
+  try {
+    const sharp = await loadImageProcessor()
+    const image = sharp(options.bytes, { limitInputPixels: maxDecodedPixels, animated: false })
+    const metadata = await image.metadata()
+
+    if (!metadata.format || !["avif", "jpeg", "png", "webp"].includes(metadata.format)) {
+      throw new UnsupportedImageError("The file contents are not a supported image.")
+    }
+    if ((metadata.pages ?? 1) !== 1) {
+      throw new UnsupportedImageError("Animated or multi-page images are not supported.")
+    }
+
+    storedBytes = await image
+      .rotate()
+      .resize({ width: 3200, height: 3200, fit: "inside", withoutEnlargement: true })
+      .webp({ quality: 84, effort: 5 })
+      .toBuffer()
+    storedContentType = "image/webp"
+    storedExtension = "webp"
+  } catch (error) {
+    if (!(error instanceof ImageProcessingUnavailableError)) throw error
+
+    imageWasProcessed = false
+    storedBytes = options.bytes
+    storedContentType = detectedType.contentType
+    storedExtension = detectedType.extension
+    console.error("[admin-assets] Image processor unavailable; storing validated original", {
+      folder: options.folder,
+      contentType: detectedType.contentType,
+      cause: error.cause,
+    })
   }
 
-  const processed = await image
-    .rotate()
-    .resize({ width: 3200, height: 3200, fit: "inside", withoutEnlargement: true })
-    .webp({ quality: 84, effort: 5 })
-    .toBuffer()
-
-  const key = keyForUpload(options.folder, options.fileName)
-  setSpanAttributes({ "twt.image.stored_bytes": processed.byteLength, "twt.image.key": key })
-  await putManagedObject({ key, body: processed, contentType: "image/webp" })
+  const key = keyForUpload(options.folder, options.fileName, storedExtension)
+  setSpanAttributes({
+    "twt.image.stored_bytes": storedBytes.byteLength,
+    "twt.image.key": key,
+    "twt.image.processed": imageWasProcessed,
+  })
+  await putManagedObject({ key, body: storedBytes, contentType: storedContentType })
 
   await db.insert(adminAuditLog).values({
     actorUserId: requireActorId(options.actor),
@@ -119,7 +149,9 @@ async function storeImage(options: {
     metadata: {
       sourceType: options.contentType,
       sourceBytes: options.bytes.byteLength,
-      storedBytes: processed.byteLength,
+      storedType: storedContentType,
+      storedBytes: storedBytes.byteLength,
+      processed: imageWasProcessed,
     },
   })
 
@@ -127,7 +159,7 @@ async function storeImage(options: {
     key,
     url: publicUrlForKey(key),
     bucket: getBucketName(),
-    size: processed.byteLength,
+    size: storedBytes.byteLength,
     lastModified: new Date().toISOString(),
   }
 }

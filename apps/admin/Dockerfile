@@ -30,6 +30,7 @@ COPY . .
 RUN bun run --filter '@twt/database' build
 RUN bun run --filter '@twt/core' build
 RUN bun run --filter 'admin' build
+RUN node -e "import('./apps/admin/.output/server/node_modules/sharp/dist/index.mjs').then(async ({ default: sharp }) => { await sharp({ create: { width: 1, height: 1, channels: 3, background: 'white' } }).webp().toBuffer() })"
 
 FROM node:24.18.0-slim@sha256:cb4e8f7c443347358b7875e717c29e27bf9befc8f5a26cf18af3c3dec80e58c5 AS runner
 WORKDIR /app/apps/admin

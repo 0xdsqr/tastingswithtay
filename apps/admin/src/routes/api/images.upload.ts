@@ -3,7 +3,6 @@ import { isManagedAssetFolder } from "@twt/core/images/policy"
 import { limitRequestBody } from "@twt/core/http/request-body"
 import { getAdminUserFromHeaders } from "../../lib/admin-access-server"
 import {
-  ImageProcessingUnavailableError,
   UnsupportedImageError,
   maxUploadBytes,
   processAndStoreImage,
@@ -58,11 +57,6 @@ export const Route = createFileRoute("/api/images/upload")({
           if (error instanceof UnsupportedImageError) {
             return Response.json({ error: error.message }, { status: 422 })
           }
-          if (error instanceof ImageProcessingUnavailableError) {
-            console.error("[admin-assets] Image processing unavailable", { cause: error.cause })
-            return Response.json({ error: error.message }, { status: 503 })
-          }
-
           console.error("[admin-assets] RustFS upload failed", {
             folder,
             fileName: file.name,
