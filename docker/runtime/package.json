@@ -3,7 +3,6 @@
   "version": "0.0.0",
   "private": true,
   "dependencies": {
-    "@opentelemetry/api": "1.10.0",
     "@opentelemetry/exporter-trace-otlp-proto": "0.301.2",
     "@opentelemetry/instrumentation": "0.301.2",
     "@opentelemetry/instrumentation-aws-sdk": "0.80.0",
