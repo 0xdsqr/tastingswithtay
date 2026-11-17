@@ -22,17 +22,9 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  charts:
-    name: Publish ${{ matrix.chart.name }}
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        chart:
-          - name: tastingswithtay-web
-            namespace: twt
-          - name: tastingswithtay-admin
-            namespace: twt
+  chart:
+    name: Publish twt-app
+    runs-on: ubuntu-24.04
     env:
       CHART_VERSION: 0.1.${{ github.run_number }}-r${{ github.run_attempt }}
 
@@ -49,20 +41,39 @@ jobs:
             --username "${{ github.repository_owner }}" \
             --password-stdin
 
-      - name: Verify chart
-        run: helm lint ./helm/${{ matrix.chart.name }}
-
-      - name: Render chart
+      - name: Verify web release
         run: |
-          helm template "${{ matrix.chart.name }}" ./helm/${{ matrix.chart.name }} \
-            --namespace "${{ matrix.chart.namespace }}" \
-            -f ./helm/${{ matrix.chart.name }}/values-prod.yaml
+          helm lint --strict ./helm/twt-app \
+            -f ./helm/twt-app/values-web.yaml \
+            -f ./helm/twt-app/ci/values-web.yaml
+
+      - name: Render web release
+        run: |
+          helm template twt-web ./helm/twt-app \
+            --namespace twt \
+            --kube-version 1.36.0 \
+            -f ./helm/twt-app/values-web.yaml \
+            -f ./helm/twt-app/ci/values-web.yaml >/dev/null
+
+      - name: Verify admin release
+        run: |
+          helm lint --strict ./helm/twt-app \
+            -f ./helm/twt-app/values-admin.yaml \
+            -f ./helm/twt-app/ci/values-admin.yaml
+
+      - name: Render admin release
+        run: |
+          helm template twt-admin ./helm/twt-app \
+            --namespace twt \
+            --kube-version 1.36.0 \
+            -f ./helm/twt-app/values-admin.yaml \
+            -f ./helm/twt-app/ci/values-admin.yaml >/dev/null
 
       - name: Publish chart
         run: |
           package_dir="$(mktemp -d)"
-          helm package ./helm/${{ matrix.chart.name }} \
+          helm package ./helm/twt-app \
             --version "${CHART_VERSION}" \
             --destination "${package_dir}"
-          helm push "${package_dir}/${{ matrix.chart.name }}-${CHART_VERSION}.tgz" \
+          helm push "${package_dir}/twt-app-${CHART_VERSION}.tgz" \
             "${HELM_REGISTRY_REPOSITORY}"

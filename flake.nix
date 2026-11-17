@@ -17,32 +17,6 @@
       forAllSystems = nixpkgs.lib.genAttrs systems;
     in
     {
-      packages = forAllSystems (
-        system:
-        let
-          pkgs = nixpkgs.legacyPackages.${system};
-          stampChartTags = pkgs.callPackage ./nix/packages/stamp-chart-tags.nix { };
-        in
-        {
-          inherit stampChartTags;
-          default = stampChartTags;
-        }
-      );
-
-      apps = forAllSystems (
-        system:
-        let
-          inherit (self.packages.${system}) stampChartTags;
-        in
-        {
-          stampChartTags = {
-            type = "app";
-            program = "${stampChartTags}/bin/twt-stamp-chart-tags";
-            meta.description = "Stamp Tastings with Tay Helm chart image tags";
-          };
-        }
-      );
-
       checks = forAllSystems (
         system:
         let

@@ -1,0 +1,49 @@
+application: ""
+
+image:
+  repository: ""
+  digest: ""
+
+imagePullSecrets: []
+
+replicaCount: 2
+containerPort: 0
+existingSecret: ""
+
+env: {}
+
+additionalTrustedCa:
+  enabled: false
+  configMapName: ""
+  key: ca.crt
+  mountPath: /etc/dsqr/pki/dsqr-home-root-ca.pem
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 512Mi
+  limits:
+    cpu: "1"
+    memory: 2Gi
+
+database:
+  address: ""
+  port: 5432
+
+telemetry:
+  enabled: true
+  namespace: observability
+  podSelector:
+    app.kubernetes.io/instance: k8s-monitoring-alloy-receiver
+    app.kubernetes.io/name: alloy-receiver
+  port: 4318
+
+externalFQDNs: []
+
+route:
+  enabled: false
+  parentRef:
+    name: shared
+    namespace: gateway-system
+    sectionName: https
+  hostnames: []

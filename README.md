@@ -25,5 +25,7 @@ existing database. Production schema changes must use migrations, never `drizzle
 
 ## Runtime manifests
 
-The charts in `helm/` are the application-owned runtime manifests. Render checks run through
-`nix flake check`. Deployment orchestration remains outside this repository.
+`helm/twt-app` is the hardened shared workload chart for the separately deployed web and admin
+applications on Indigo. The two legacy charts remain frozen while Hub-A serves production. Render
+checks run through `nix flake check`; immutable release selection and deployment orchestration remain
+outside this repository.

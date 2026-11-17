@@ -1,0 +1,265 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "application",
+    "image",
+    "imagePullSecrets",
+    "replicaCount",
+    "containerPort",
+    "existingSecret",
+    "env",
+    "additionalTrustedCa",
+    "resources",
+    "database",
+    "telemetry",
+    "externalFQDNs",
+    "route"
+  ],
+  "properties": {
+    "application": {
+      "enum": ["web", "admin"]
+    },
+    "image": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "digest"],
+      "properties": {
+        "repository": {
+          "type": "string",
+          "pattern": "^[a-z0-9.-]+(:[0-9]+)?/[a-z0-9._/-]+$"
+        },
+        "digest": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        }
+      }
+    },
+    "imagePullSecrets": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name"],
+        "properties": {
+          "name": { "$ref": "#/definitions/name" }
+        }
+      }
+    },
+    "replicaCount": {
+      "type": "integer",
+      "minimum": 2,
+      "maximum": 6
+    },
+    "containerPort": {
+      "type": "integer",
+      "minimum": 1024,
+      "maximum": 65535
+    },
+    "existingSecret": {
+      "$ref": "#/definitions/name"
+    },
+    "env": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[A-Z][A-Z0-9_]*$"
+      },
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "additionalTrustedCa": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled", "configMapName", "key", "mountPath"],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "configMapName": {
+          "anyOf": [
+            { "const": "" },
+            { "$ref": "#/definitions/name" }
+          ]
+        },
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 253,
+          "pattern": "^[A-Za-z0-9._-]+$"
+        },
+        "mountPath": {
+          "type": "string",
+          "pattern": "^/[A-Za-z0-9._/-]+$"
+        }
+      },
+      "if": {
+        "properties": {
+          "enabled": { "const": true }
+        }
+      },
+      "then": {
+        "properties": {
+          "configMapName": { "$ref": "#/definitions/name" }
+        }
+      }
+    },
+    "resources": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["requests", "limits"],
+      "properties": {
+        "requests": { "$ref": "#/definitions/resources" },
+        "limits": { "$ref": "#/definitions/resources" }
+      }
+    },
+    "database": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["address", "port"],
+      "properties": {
+        "address": {
+          "type": "string",
+          "format": "ipv4"
+        },
+        "port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535
+        }
+      }
+    },
+    "telemetry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled", "namespace", "podSelector", "port"],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "namespace": { "$ref": "#/definitions/name" },
+        "podSelector": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 63
+          }
+        },
+        "port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535
+        }
+      }
+    },
+    "externalFQDNs": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 16,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9]([a-z0-9.-]*[a-z0-9])$"
+      }
+    },
+    "route": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled", "parentRef", "hostnames"],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "parentRef": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["name", "namespace", "sectionName"],
+          "properties": {
+            "name": { "$ref": "#/definitions/name" },
+            "namespace": { "$ref": "#/definitions/name" },
+            "sectionName": { "$ref": "#/definitions/name" }
+          }
+        },
+        "hostnames": {
+          "type": "array",
+          "uniqueItems": true,
+          "maxItems": 16,
+          "items": { "$ref": "#/definitions/hostname" }
+        }
+      },
+      "if": {
+        "properties": {
+          "enabled": { "const": true }
+        }
+      },
+      "then": {
+        "properties": {
+          "hostnames": { "minItems": 1 }
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "application": { "const": "web" }
+        }
+      },
+      "then": {
+        "properties": {
+          "containerPort": { "const": 3010 },
+          "image": {
+            "properties": {
+              "repository": { "const": "ghcr.io/0xdsqr/tastingswithtay-web" }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "application": { "const": "admin" }
+        }
+      },
+      "then": {
+        "properties": {
+          "containerPort": { "const": 3011 },
+          "image": {
+            "properties": {
+              "repository": { "const": "ghcr.io/0xdsqr/tastingswithtay-admin" }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "definitions": {
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 63,
+      "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
+    },
+    "hostname": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 253,
+      "pattern": "^[a-z0-9]([a-z0-9.-]*[a-z0-9])$"
+    },
+    "resources": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cpu", "memory"],
+      "properties": {
+        "cpu": {
+          "type": "string",
+          "pattern": "^([1-9][0-9]*m|[1-9][0-9]*)$"
+        },
+        "memory": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]*(Mi|Gi)$"
+        }
+      }
+    }
+  }
+}

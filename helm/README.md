@@ -1,42 +1,44 @@
-# Tastings With Tay Helm Charts
+# Tastings With Tay Helm
 
-These charts are rendered by Argo CD from this repository.
+Application source owns the reusable workload contract. Private deployment state owns exact source
+commits, image digests, and environment-specific non-secret values. Vault and External Secrets own
+credentials.
 
-## Charts
+## Indigo chart
 
-- `helm/tastingswithtay-web`: public site at `tastingswithtay.com`
-- `helm/tastingswithtay-admin`: admin site at `admin.tastingswithtay.com`
+`helm/twt-app` is the shared chart for the separately deployed `twt-web` and `twt-admin` releases.
+Use `values-web.yaml` or `values-admin.yaml` for the application contract, then layer the private
+environment values from `dsqr-labs/deployments` on top. Images must be selected by OCI digest; tags
+are rejected by the chart schema.
 
-## Required Namespace Secrets
+The chart enforces:
 
-Create these in namespace `twt` before syncing:
+- two or more replicas with zero-unavailable rolling updates;
+- application-pool node placement and its matching dedicated taint toleration;
+- non-root, read-only containers without service-account token mounts or Linux capabilities;
+- health and database-readiness probes, a disruption budget, and topology spreading;
+- Gateway API routing through the shared Indigo gateway;
+- default-deny application ingress and egress, exact database egress, and Cilium FQDN egress; and
+- an existing Secret projected from Vault by External Secrets.
 
-```sh
-kubectl -n twt create secret generic twt-secrets \
-  --from-literal=DATABASE_URL='postgres://...' \
-  --from-literal=AUTH_SECRET='...' \
-  --from-literal=DISCORD_CLIENT_SECRET='...' \
-  --from-literal=S3_ACCESS_KEY='...' \
-  --from-literal=S3_SECRET_KEY='...' \
-  --dry-run=client -o yaml | kubectl apply -f -
-```
+The source repository never creates runtime credentials. Before Argo syncs a release, infrastructure
+must provide its referenced Secret, trusted database CA ConfigMap, gateway, and reciprocal
+gateway-side Cilium policy.
 
-The namespace also needs `ghcr-creds` for private GHCR pulls if the images are private.
+## Hub-A compatibility
 
-## Render
+`helm/tastingswithtay-web` and `helm/tastingswithtay-admin` are frozen compatibility charts still
+consumed by the live Hub-A Argo applications. Do not update or remove them until Indigo is healthy,
+data restore and backup checks pass, traffic has been cut over, and the rollback window closes.
+
+## Validate
 
 ```sh
 nix build .#checks.x86_64-linux.helm
-helm lint helm/tastingswithtay-web
-helm template twt-web helm/tastingswithtay-web -n twt -f helm/tastingswithtay-web/values-prod.yaml
-helm lint helm/tastingswithtay-admin
-helm template twt-admin helm/tastingswithtay-admin -n twt -f helm/tastingswithtay-admin/values-prod.yaml
-```
-
-## Stamp Image Tags
-
-After image CI publishes `sha-<commit>` tags:
-
-```sh
-nix run .#stampChartTags -- --tag sha-<commit> all
+helm lint --strict helm/twt-app \
+  -f helm/twt-app/values-web.yaml \
+  -f helm/twt-app/ci/values-web.yaml
+helm template twt-web helm/twt-app -n twt --kube-version 1.36.0 \
+  -f helm/twt-app/values-web.yaml \
+  -f helm/twt-app/ci/values-web.yaml
 ```

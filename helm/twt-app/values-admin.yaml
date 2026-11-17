@@ -1,0 +1,33 @@
+application: admin
+image:
+  repository: ghcr.io/0xdsqr/tastingswithtay-admin
+containerPort: 3011
+env:
+  BASE_URL: https://admin.tastingswithtay.com
+  BETTER_AUTH_URL: https://admin.tastingswithtay.com
+  CDN_BASE: https://cdn.dsqr.dev
+  DISCORD_CLIENT_ID: "1465977766485688370"
+  S3_BUCKET: tastingswithtay
+  S3_ENDPOINT: s3.dsqr.dev
+  S3_FORCE_PATH_STYLE: "true"
+  S3_REGION: us-east-1
+  S3_USE_SSL: "true"
+  TRUSTED_ORIGINS: https://admin.tastingswithtay.com,https://tastingswithtay.com
+  TRUST_PROXY_HEADERS: "true"
+  DATABASE_APPLICATION_NAME: twt-admin
+  DATABASE_CONNECTION_TIMEOUT_MS: "5000"
+  DATABASE_QUERY_TIMEOUT_MS: "15000"
+  DATABASE_STATEMENT_TIMEOUT_MS: "15000"
+  DATABASE_SSL: require
+  DATABASE_SSL_REJECT_UNAUTHORIZED: "true"
+  OTEL_SERVICE_NAME: twt-admin
+  OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector.observability.svc.cluster.local:4318
+  OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://otel-collector.observability.svc.cluster.local:4318/v1/traces
+  OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+  OTEL_RESOURCE_ATTRIBUTES: deployment.environment=production,k8s.namespace.name=twt
+externalFQDNs:
+  - discord.com
+  - s3.dsqr.dev
+route:
+  hostnames:
+    - admin.tastingswithtay.com
