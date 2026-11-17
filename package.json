@@ -8,8 +8,10 @@
   ],
   "type": "module",
   "scripts": {
-    "build": "bun run --filter '@twt/database' build && bun run --filter '@twt/core' build && bun run --filter './apps/*' build",
-    "check": "bun run format:check && bun run lint && bun run typecheck && bun run typecheck:ts6 && bun run test && bun run deps:check && bun run audit && bun run build",
+    "build": "bun run build:packages && bun run build:apps",
+    "build:apps": "bun run --filter './apps/*' build",
+    "build:packages": "bun run --filter '@twt/database' build && bun run --filter '@twt/core' build",
+    "check": "bun run format:check && bun run lint && bun run build:packages && bun run typecheck && bun run typecheck:ts6 && bun run test && bun run deps:check && bun run audit && bun run build:apps",
     "db:studio": "bun run --filter '@twt/database' studio",
     "db:generate": "bun run --filter '@twt/database' generate",
     "dev:admin": "bun run --filter 'admin' dev",
