@@ -7,6 +7,7 @@ on:
     paths:
       - ".github/workflows/publish-web-image.yml"
       - "apps/**"
+      - "docker/runtime/**"
       - "packages/**"
       - "tooling/**"
       - "bun.lock"
