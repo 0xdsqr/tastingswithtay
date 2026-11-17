@@ -1,6 +1,6 @@
 import { Badge } from "@twt/react/components/badge"
 import { ContentCallout } from "@twt/react/components/content-callout"
-import { parseCalloutBlocks } from "@twt/react/lib/callout"
+import { itemCountBefore, parseCalloutBlocks } from "@twt/react/lib/callout"
 import {
   type IngredientGroup,
   capitalize,
@@ -153,8 +153,6 @@ function RecipeInstructions({ items }: { items: string[] }): React.ReactElement 
   }
 
   const blocks = parseCalloutBlocks(items, (item) => item)
-  let displayedStep = 0
-
   return (
     <div className="space-y-4">
       {blocks.map((block, blockIndex) =>
@@ -162,8 +160,8 @@ function RecipeInstructions({ items }: { items: string[] }): React.ReactElement 
           <ContentCallout key={`callout-${blockIndex}-${block.text}`}>{block.text}</ContentCallout>
         ) : (
           <ol key={`steps-${blockIndex}`} className="space-y-4">
-            {block.items.map((item) => {
-              displayedStep += 1
+            {block.items.map((item, itemIndex) => {
+              const displayedStep = itemCountBefore(blocks, blockIndex) + itemIndex + 1
               return (
                 <li key={`${item}-${displayedStep}`} className="flex items-start gap-3">
                   <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">

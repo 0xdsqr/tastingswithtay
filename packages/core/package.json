@@ -25,14 +25,14 @@
     "typecheck:ts6": "tsc6 --noEmit"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "3.1086.0",
-    "@opentelemetry/api": "1.9.1",
-    "@trpc/server": "11.18.0",
+    "@aws-sdk/client-s3": "3.1170.0",
+    "@opentelemetry/api": "1.10.0",
+    "@trpc/server": "11.28.5",
     "@twt/database": "workspace:*",
-    "better-auth": "1.6.23",
-    "effect": "3.22.0",
+    "better-auth": "1.7.25",
+    "effect": "4.1.4",
     "superjson": "2.2.6",
-    "zod": "4.4.3"
+    "zod": "4.6.7"
   },
   "devDependencies": {
     "@twt/tsconfig": "workspace:*"

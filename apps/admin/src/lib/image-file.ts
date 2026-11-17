@@ -1,6 +1,6 @@
-export const supportedImageTypes = ["image/avif", "image/jpeg", "image/png", "image/webp"] as const
+const supportedImageTypes = ["image/avif", "image/jpeg", "image/png", "image/webp"] as const
 
-export type SupportedImageType = (typeof supportedImageTypes)[number]
+type SupportedImageType = (typeof supportedImageTypes)[number]
 
 export type DetectedImageType = {
   contentType: SupportedImageType

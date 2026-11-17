@@ -9,31 +9,26 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as UnsubscribeRouteImport } from './routes/unsubscribe'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as WineIndexRouteImport } from './routes/wine/index'
-import { Route as TestKitchenIndexRouteImport } from './routes/test-kitchen/index'
-import { Route as RecipesIndexRouteImport } from './routes/recipes/index'
-import { Route as GardenAndFlockIndexRouteImport } from './routes/garden-and-flock/index'
-import { Route as WineSlugRouteImport } from './routes/wine/$slug'
-import { Route as TestKitchenSlugRouteImport } from './routes/test-kitchen/$slug'
-import { Route as RecipesSlugRouteImport } from './routes/recipes/$slug'
-import { Route as ApiReadyRouteImport } from './routes/api/ready'
+import { Route as AboutRouteImport } from './routes/about'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as UnsubscribeRouteImport } from './routes/unsubscribe'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
-import { Route as ApiTrpcSplatRouteImport } from './routes/api/trpc.$'
+import { Route as ApiReadyRouteImport } from './routes/api/ready'
+import { Route as GardenAndFlockIndexRouteImport } from './routes/garden-and-flock/index'
+import { Route as RecipesIndexRouteImport } from './routes/recipes/index'
+import { Route as RecipesSlugRouteImport } from './routes/recipes/$slug'
+import { Route as TestKitchenIndexRouteImport } from './routes/test-kitchen/index'
+import { Route as TestKitchenSlugRouteImport } from './routes/test-kitchen/$slug'
+import { Route as WineIndexRouteImport } from './routes/wine/index'
+import { Route as WineSlugRouteImport } from './routes/wine/$slug'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth.$'
+import { Route as ApiTrpcSplatRouteImport } from './routes/api/trpc.$'
 import { Route as ApiImagesFolderFileNameRouteImport } from './routes/api/images.$folder.$fileName'
 
-const UnsubscribeRoute = UnsubscribeRouteImport.update({
-  id: '/unsubscribe',
-  path: '/unsubscribe',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AboutRoute = AboutRouteImport.update({
@@ -41,49 +36,14 @@ const AboutRoute = AboutRouteImport.update({
   path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const WineIndexRoute = WineIndexRouteImport.update({
-  id: '/wine/',
-  path: '/wine/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TestKitchenIndexRoute = TestKitchenIndexRouteImport.update({
-  id: '/test-kitchen/',
-  path: '/test-kitchen/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RecipesIndexRoute = RecipesIndexRouteImport.update({
-  id: '/recipes/',
-  path: '/recipes/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const GardenAndFlockIndexRoute = GardenAndFlockIndexRouteImport.update({
-  id: '/garden-and-flock/',
-  path: '/garden-and-flock/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const WineSlugRoute = WineSlugRouteImport.update({
-  id: '/wine/$slug',
-  path: '/wine/$slug',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TestKitchenSlugRoute = TestKitchenSlugRouteImport.update({
-  id: '/test-kitchen/$slug',
-  path: '/test-kitchen/$slug',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RecipesSlugRoute = RecipesSlugRouteImport.update({
-  id: '/recipes/$slug',
-  path: '/recipes/$slug',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiReadyRoute = ApiReadyRouteImport.update({
-  id: '/api/ready',
-  path: '/api/ready',
+const UnsubscribeRoute = UnsubscribeRouteImport.update({
+  id: '/unsubscribe',
+  path: '/unsubscribe',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiHealthRoute = ApiHealthRouteImport.update({
@@ -91,14 +51,54 @@ const ApiHealthRoute = ApiHealthRouteImport.update({
   path: '/api/health',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiTrpcSplatRoute = ApiTrpcSplatRouteImport.update({
-  id: '/api/trpc/$',
-  path: '/api/trpc/$',
+const ApiReadyRoute = ApiReadyRouteImport.update({
+  id: '/api/ready',
+  path: '/api/ready',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GardenAndFlockIndexRoute = GardenAndFlockIndexRouteImport.update({
+  id: '/garden-and-flock/',
+  path: '/garden-and-flock/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RecipesIndexRoute = RecipesIndexRouteImport.update({
+  id: '/recipes/',
+  path: '/recipes/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RecipesSlugRoute = RecipesSlugRouteImport.update({
+  id: '/recipes/$slug',
+  path: '/recipes/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TestKitchenIndexRoute = TestKitchenIndexRouteImport.update({
+  id: '/test-kitchen/',
+  path: '/test-kitchen/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TestKitchenSlugRoute = TestKitchenSlugRouteImport.update({
+  id: '/test-kitchen/$slug',
+  path: '/test-kitchen/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WineIndexRoute = WineIndexRouteImport.update({
+  id: '/wine/',
+  path: '/wine/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WineSlugRoute = WineSlugRouteImport.update({
+  id: '/wine/$slug',
+  path: '/wine/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiTrpcSplatRoute = ApiTrpcSplatRouteImport.update({
+  id: '/api/trpc/$',
+  path: '/api/trpc/$',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiImagesFolderFileNameRoute = ApiImagesFolderFileNameRouteImport.update({
@@ -240,18 +240,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/unsubscribe': {
-      id: '/unsubscribe'
-      path: '/unsubscribe'
-      fullPath: '/unsubscribe'
-      preLoaderRoute: typeof UnsubscribeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/about': {
@@ -261,67 +254,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/wine/': {
-      id: '/wine/'
-      path: '/wine'
-      fullPath: '/wine/'
-      preLoaderRoute: typeof WineIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/test-kitchen/': {
-      id: '/test-kitchen/'
-      path: '/test-kitchen'
-      fullPath: '/test-kitchen/'
-      preLoaderRoute: typeof TestKitchenIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/recipes/': {
-      id: '/recipes/'
-      path: '/recipes'
-      fullPath: '/recipes/'
-      preLoaderRoute: typeof RecipesIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/garden-and-flock/': {
-      id: '/garden-and-flock/'
-      path: '/garden-and-flock'
-      fullPath: '/garden-and-flock/'
-      preLoaderRoute: typeof GardenAndFlockIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/wine/$slug': {
-      id: '/wine/$slug'
-      path: '/wine/$slug'
-      fullPath: '/wine/$slug'
-      preLoaderRoute: typeof WineSlugRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/test-kitchen/$slug': {
-      id: '/test-kitchen/$slug'
-      path: '/test-kitchen/$slug'
-      fullPath: '/test-kitchen/$slug'
-      preLoaderRoute: typeof TestKitchenSlugRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/recipes/$slug': {
-      id: '/recipes/$slug'
-      path: '/recipes/$slug'
-      fullPath: '/recipes/$slug'
-      preLoaderRoute: typeof RecipesSlugRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/ready': {
-      id: '/api/ready'
-      path: '/api/ready'
-      fullPath: '/api/ready'
-      preLoaderRoute: typeof ApiReadyRouteImport
+    '/unsubscribe': {
+      id: '/unsubscribe'
+      path: '/unsubscribe'
+      fullPath: '/unsubscribe'
+      preLoaderRoute: typeof UnsubscribeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/health': {
@@ -331,11 +275,60 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiHealthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/trpc/$': {
-      id: '/api/trpc/$'
-      path: '/api/trpc/$'
-      fullPath: '/api/trpc/$'
-      preLoaderRoute: typeof ApiTrpcSplatRouteImport
+    '/api/ready': {
+      id: '/api/ready'
+      path: '/api/ready'
+      fullPath: '/api/ready'
+      preLoaderRoute: typeof ApiReadyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/garden-and-flock/': {
+      id: '/garden-and-flock/'
+      path: '/garden-and-flock'
+      fullPath: '/garden-and-flock/'
+      preLoaderRoute: typeof GardenAndFlockIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/recipes/': {
+      id: '/recipes/'
+      path: '/recipes'
+      fullPath: '/recipes/'
+      preLoaderRoute: typeof RecipesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/recipes/$slug': {
+      id: '/recipes/$slug'
+      path: '/recipes/$slug'
+      fullPath: '/recipes/$slug'
+      preLoaderRoute: typeof RecipesSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/test-kitchen/': {
+      id: '/test-kitchen/'
+      path: '/test-kitchen'
+      fullPath: '/test-kitchen/'
+      preLoaderRoute: typeof TestKitchenIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/test-kitchen/$slug': {
+      id: '/test-kitchen/$slug'
+      path: '/test-kitchen/$slug'
+      fullPath: '/test-kitchen/$slug'
+      preLoaderRoute: typeof TestKitchenSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/wine/': {
+      id: '/wine/'
+      path: '/wine'
+      fullPath: '/wine/'
+      preLoaderRoute: typeof WineIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/wine/$slug': {
+      id: '/wine/$slug'
+      path: '/wine/$slug'
+      fullPath: '/wine/$slug'
+      preLoaderRoute: typeof WineSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/auth/$': {
@@ -343,6 +336,13 @@ declare module '@tanstack/react-router' {
       path: '/api/auth/$'
       fullPath: '/api/auth/$'
       preLoaderRoute: typeof ApiAuthSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/trpc/$': {
+      id: '/api/trpc/$'
+      path: '/api/trpc/$'
+      fullPath: '/api/trpc/$'
+      preLoaderRoute: typeof ApiTrpcSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/images/$folder/$fileName': {

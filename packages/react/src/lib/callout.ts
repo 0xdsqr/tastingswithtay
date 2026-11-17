@@ -1,5 +1,11 @@
 export type CalloutBlock<T> = { type: "items"; items: T[] } | { type: "callout"; text: string }
 
+export function itemCountBefore<T>(blocks: CalloutBlock<T>[], blockIndex: number): number {
+  return blocks
+    .slice(0, blockIndex)
+    .reduce((count, block) => count + (block.type === "items" ? block.items.length : 0), 0)
+}
+
 const calloutMarkerPattern = /^\s*>\s?/
 
 export function isCalloutLine(value: string): boolean {

@@ -9,6 +9,6 @@
     "clean": "bun ../../scripts/clean.ts tooling/typescript"
   },
   "devDependencies": {
-    "@types/bun": "1.3.14"
+    "@types/bun": "1.4.4"
   }
 }

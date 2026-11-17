@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router"
-import { Instagram, Mail } from "lucide-react"
+import { Mail } from "lucide-react"
 import { BrandLogo } from "./brand-logo"
+import { InstagramIcon } from "./instagram-icon"
 
 const mainNavigation = [
   { name: "Recipes", to: "/recipes" },
@@ -11,7 +12,7 @@ const mainNavigation = [
 ] as const
 
 const socialLinks = [
-  { name: "Instagram", href: "https://instagram.com/tastingswithtay", icon: Instagram },
+  { name: "Instagram", href: "https://instagram.com/tastingswithtay", icon: InstagramIcon },
   { name: "Email", href: "mailto:tmcgowen28@gmail.com", icon: Mail },
 ] as const
 
@@ -66,10 +67,12 @@ export function SiteFooter(): React.ReactElement {
 
           {/* Copyright */}
           <p className="text-xs text-muted-foreground">
-            &copy; {new Date().getFullYear()} Tastings with Tay. All rights reserved.
+            &copy; {CURRENT_YEAR} Tastings with Tay. All rights reserved.
           </p>
         </div>
       </div>
     </footer>
   )
 }
+
+const CURRENT_YEAR = new Date().getFullYear()

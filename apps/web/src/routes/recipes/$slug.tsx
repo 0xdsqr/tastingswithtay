@@ -1,7 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router"
 import { Button } from "@twt/react/components/button"
 import { ContentCallout } from "@twt/react/components/content-callout"
-import { parseCalloutBlocks } from "@twt/react/lib/callout"
+import { itemCountBefore, parseCalloutBlocks } from "@twt/react/lib/callout"
 import { ArrowLeft, ChefHat, Clock, Heart, Printer, Share2, Users } from "lucide-react"
 import { OptimizedImage } from "../../components/optimized-image"
 import { SiteFooter } from "../../components/site-footer"
@@ -42,8 +42,6 @@ function IngredientItems({ items }: { items: string[] }): React.ReactElement {
 
 function RecipeInstructions({ instructions }: { instructions: Instruction[] }): React.ReactElement {
   const blocks = parseCalloutBlocks(instructions, (instruction) => instruction.text)
-  let displayedStep = 0
-
   return (
     <div className="space-y-8">
       {blocks.map((block, blockIndex) =>
@@ -51,8 +49,8 @@ function RecipeInstructions({ instructions }: { instructions: Instruction[] }): 
           <ContentCallout key={`callout-${blockIndex}-${block.text}`}>{block.text}</ContentCallout>
         ) : (
           <ol key={`steps-${blockIndex}`} className="space-y-8">
-            {block.items.map((instruction) => {
-              displayedStep += 1
+            {block.items.map((instruction, itemIndex) => {
+              const displayedStep = itemCountBefore(blocks, blockIndex) + itemIndex + 1
               return (
                 <li key={instruction.step} className="flex gap-4">
                   <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground">

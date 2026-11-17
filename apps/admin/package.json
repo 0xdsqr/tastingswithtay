@@ -12,32 +12,31 @@
     "typecheck:ts6": "tsc6 --noEmit"
   },
   "dependencies": {
-    "@img/sharp-wasm32": "0.35.3",
-    "@tanstack/react-query": "5.101.2",
-    "@tanstack/react-router": "1.170.18",
-    "@tanstack/react-router-ssr-query": "1.167.1",
-    "@tanstack/react-start": "1.168.28",
+    "@img/sharp-wasm32": "0.35.5",
+    "@tanstack/react-query": "5.108.0",
+    "@tanstack/react-router": "1.170.46",
+    "@tanstack/react-router-ssr-query": "1.167.3",
+    "@tanstack/react-start": "1.169.5",
     "@twt/core": "workspace:*",
     "@twt/database": "workspace:*",
     "@twt/react": "workspace:*",
-    "better-auth": "1.6.23",
-    "lucide-react": "0.562.0",
-    "pg": "8.22.0",
-    "react": "19.2.7",
-    "react-dom": "19.2.7",
-    "sharp": "0.35.3",
-    "sonner": "2.0.7",
-    "zod": "4.4.3"
+    "better-auth": "1.7.25",
+    "lucide-react": "1.74.0",
+    "pg": "8.23.1",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "sharp": "0.35.5",
+    "sonner": "2.0.8",
+    "zod": "4.6.7"
   },
   "devDependencies": {
-    "@tailwindcss/vite": "4.3.2",
+    "@tailwindcss/vite": "4.3.5",
     "@twt/tsconfig": "workspace:*",
-    "@types/react": "19.2.17",
-    "@types/react-dom": "19.2.3",
-    "@vitejs/plugin-react": "5.2.0",
-    "nitro": "3.0.260610-beta",
-    "tailwindcss": "4.3.2",
-    "vite": "7.3.5",
-    "vite-tsconfig-paths": "6.1.1"
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.3.0",
+    "nitro": "3.0.261103-rc",
+    "tailwindcss": "4.3.5",
+    "vite": "8.3.8"
   }
 }

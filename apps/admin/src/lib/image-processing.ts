@@ -15,7 +15,7 @@ export const maxUploadBytes = 10 * 1024 * 1024
 const maxDecodedPixels = 24_000_000
 
 export class UnsupportedImageError extends Error {}
-export class ImageProcessingUnavailableError extends Error {}
+class ImageProcessingUnavailableError extends Error {}
 
 async function loadImageProcessor(): Promise<typeof import("sharp").default> {
   try {

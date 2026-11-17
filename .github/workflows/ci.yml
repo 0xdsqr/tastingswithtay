@@ -23,30 +23,16 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Install Nix
-        uses: DeterminateSystems/determinate-nix-action@v3
+        uses: DeterminateSystems/determinate-nix-action@16f94ba7aae399b9f9077c254b6719ec6de7e3e3 # v3.24.2
 
       - name: Install dependencies
         run: nix develop -c bun install --frozen-lockfile
 
-      - name: Format check
-        run: nix develop -c bun run format:check
-
-      - name: Lint
-        run: nix develop -c bun run lint
-
-      - name: Build workspace packages
-        run: |
-          nix develop -c bun run --filter '@twt/database' build
-          nix develop -c bun run --filter '@twt/core' build
-
-      - name: Typecheck
-        run: nix develop -c bun run typecheck
-
-      - name: Build apps
-        run: nix develop -c bun run --filter './apps/*' build
+      - name: Check applications
+        run: nix develop -c bun run check
 
   helm:
     name: Helm chart check
@@ -54,10 +40,10 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Install Nix
-        uses: DeterminateSystems/determinate-nix-action@v3
+        uses: DeterminateSystems/determinate-nix-action@16f94ba7aae399b9f9077c254b6719ec6de7e3e3 # v3.24.2
 
       - name: Lint and render Helm charts
         run: nix build .#checks.x86_64-linux.helm

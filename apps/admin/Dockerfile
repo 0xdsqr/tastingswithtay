@@ -1,9 +1,9 @@
 # syntax=docker/dockerfile:1.7
 
-FROM node:24.18.0-slim@sha256:cb4e8f7c443347358b7875e717c29e27bf9befc8f5a26cf18af3c3dec80e58c5 AS base
+FROM node:26.13.1-slim@sha256:e6bedef217677b276c591795e169840edd9096dbf13f29df8ef8d1856b8820bc AS base
 WORKDIR /app
 
-COPY --from=oven/bun:1.3.13@sha256:87416c977a612a204eb54ab9f3927023c2a3c971f4f345a01da08ea6262ae30e /usr/local/bin/bun /usr/local/bin/bun
+COPY --from=oven/bun:1.4.4@sha256:1d22548f177f4ff38e0c15baa3c2c46c6c2060ba2d1bc573bb4720b407548f1d /usr/local/bin/bun /usr/local/bin/bun
 RUN ln -s /usr/local/bin/bun /usr/local/bin/bunx \
   && apt-get update \
   && apt-get install -y --no-install-recommends python3 make g++ \
@@ -32,7 +32,7 @@ RUN bun run --filter '@twt/core' build
 RUN bun run --filter 'admin' build
 RUN node -e "import('./apps/admin/.output/server/node_modules/sharp/dist/index.mjs').then(async ({ default: sharp }) => { await sharp({ create: { width: 1, height: 1, channels: 3, background: 'white' } }).webp().toBuffer() })"
 
-FROM node:24.18.0-slim@sha256:cb4e8f7c443347358b7875e717c29e27bf9befc8f5a26cf18af3c3dec80e58c5 AS runner
+FROM node:26.13.1-slim@sha256:e6bedef217677b276c591795e169840edd9096dbf13f29df8ef8d1856b8820bc AS runner
 WORKDIR /app/apps/admin
 
 ENV NODE_ENV=production

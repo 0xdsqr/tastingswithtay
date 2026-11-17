@@ -1,9 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { Button } from "@twt/react/components/button"
 import { Eyebrow } from "@twt/react/components/section-header"
-import { Instagram, Mail } from "lucide-react"
+import { Mail } from "lucide-react"
 import { z } from "zod"
 import { BrandLogo } from "../components/brand-logo"
+import { InstagramIcon } from "../components/instagram-icon"
 import { NewsletterSection } from "../components/newsletter-section"
 import { OptimizedImage } from "../components/optimized-image"
 import { SiteFooter } from "../components/site-footer"
@@ -282,7 +283,7 @@ function AboutPage(): React.ReactElement {
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    <Instagram className="mr-2 h-4 w-4" />
+                    <InstagramIcon className="mr-2 h-4 w-4" />
                     Follow Along
                   </a>
                 </Button>

@@ -9,29 +9,29 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardRouteImport } from './routes/_dashboard'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardIndexRouteImport } from './routes/_dashboard.index'
-import { Route as ApiReadyRouteImport } from './routes/api/ready'
-import { Route as ApiHealthRouteImport } from './routes/api/health'
-import { Route as DashboardWinesRouteImport } from './routes/_dashboard.wines'
-import { Route as DashboardUsersRouteImport } from './routes/_dashboard.users'
-import { Route as DashboardRecipesRouteImport } from './routes/_dashboard.recipes'
-import { Route as DashboardPagesRouteImport } from './routes/_dashboard.pages'
-import { Route as DashboardMediaRouteImport } from './routes/_dashboard.media'
-import { Route as DashboardGalleryRouteImport } from './routes/_dashboard.gallery'
 import { Route as DashboardExperimentsRouteImport } from './routes/_dashboard.experiments'
-import { Route as ApiImagesUploadRouteImport } from './routes/api/images.upload'
+import { Route as DashboardGalleryRouteImport } from './routes/_dashboard.gallery'
+import { Route as DashboardMediaRouteImport } from './routes/_dashboard.media'
+import { Route as DashboardPagesRouteImport } from './routes/_dashboard.pages'
+import { Route as DashboardRecipesRouteImport } from './routes/_dashboard.recipes'
+import { Route as DashboardUsersRouteImport } from './routes/_dashboard.users'
+import { Route as DashboardWinesRouteImport } from './routes/_dashboard.wines'
+import { Route as ApiHealthRouteImport } from './routes/api/health'
+import { Route as ApiReadyRouteImport } from './routes/api/ready'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth.$'
+import { Route as ApiImagesUploadRouteImport } from './routes/api/images.upload'
 import { Route as ApiImagesFolderFileNameRouteImport } from './routes/api/images.$folder.$fileName'
 
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/_dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DashboardRoute = DashboardRouteImport.update({
-  id: '/_dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardIndexRoute = DashboardIndexRouteImport.update({
@@ -39,39 +39,9 @@ const DashboardIndexRoute = DashboardIndexRouteImport.update({
   path: '/',
   getParentRoute: () => DashboardRoute,
 } as any)
-const ApiReadyRoute = ApiReadyRouteImport.update({
-  id: '/api/ready',
-  path: '/api/ready',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiHealthRoute = ApiHealthRouteImport.update({
-  id: '/api/health',
-  path: '/api/health',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DashboardWinesRoute = DashboardWinesRouteImport.update({
-  id: '/wines',
-  path: '/wines',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardUsersRoute = DashboardUsersRouteImport.update({
-  id: '/users',
-  path: '/users',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardRecipesRoute = DashboardRecipesRouteImport.update({
-  id: '/recipes',
-  path: '/recipes',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardPagesRoute = DashboardPagesRouteImport.update({
-  id: '/pages',
-  path: '/pages',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardMediaRoute = DashboardMediaRouteImport.update({
-  id: '/media',
-  path: '/media',
+const DashboardExperimentsRoute = DashboardExperimentsRouteImport.update({
+  id: '/experiments',
+  path: '/experiments',
   getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardGalleryRoute = DashboardGalleryRouteImport.update({
@@ -79,19 +49,49 @@ const DashboardGalleryRoute = DashboardGalleryRouteImport.update({
   path: '/gallery',
   getParentRoute: () => DashboardRoute,
 } as any)
-const DashboardExperimentsRoute = DashboardExperimentsRouteImport.update({
-  id: '/experiments',
-  path: '/experiments',
+const DashboardMediaRoute = DashboardMediaRouteImport.update({
+  id: '/media',
+  path: '/media',
   getParentRoute: () => DashboardRoute,
 } as any)
-const ApiImagesUploadRoute = ApiImagesUploadRouteImport.update({
-  id: '/api/images/upload',
-  path: '/api/images/upload',
+const DashboardPagesRoute = DashboardPagesRouteImport.update({
+  id: '/pages',
+  path: '/pages',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardRecipesRoute = DashboardRecipesRouteImport.update({
+  id: '/recipes',
+  path: '/recipes',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardUsersRoute = DashboardUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardWinesRoute = DashboardWinesRouteImport.update({
+  id: '/wines',
+  path: '/wines',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const ApiHealthRoute = ApiHealthRouteImport.update({
+  id: '/api/health',
+  path: '/api/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiReadyRoute = ApiReadyRouteImport.update({
+  id: '/api/ready',
+  path: '/api/ready',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiImagesUploadRoute = ApiImagesUploadRouteImport.update({
+  id: '/api/images/upload',
+  path: '/api/images/upload',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiImagesFolderFileNameRoute = ApiImagesFolderFileNameRouteImport.update({
@@ -214,18 +214,18 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_dashboard': {
       id: '/_dashboard'
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_dashboard/': {
@@ -235,53 +235,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardIndexRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/api/ready': {
-      id: '/api/ready'
-      path: '/api/ready'
-      fullPath: '/api/ready'
-      preLoaderRoute: typeof ApiReadyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/health': {
-      id: '/api/health'
-      path: '/api/health'
-      fullPath: '/api/health'
-      preLoaderRoute: typeof ApiHealthRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_dashboard/wines': {
-      id: '/_dashboard/wines'
-      path: '/wines'
-      fullPath: '/wines'
-      preLoaderRoute: typeof DashboardWinesRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/_dashboard/users': {
-      id: '/_dashboard/users'
-      path: '/users'
-      fullPath: '/users'
-      preLoaderRoute: typeof DashboardUsersRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/_dashboard/recipes': {
-      id: '/_dashboard/recipes'
-      path: '/recipes'
-      fullPath: '/recipes'
-      preLoaderRoute: typeof DashboardRecipesRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/_dashboard/pages': {
-      id: '/_dashboard/pages'
-      path: '/pages'
-      fullPath: '/pages'
-      preLoaderRoute: typeof DashboardPagesRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/_dashboard/media': {
-      id: '/_dashboard/media'
-      path: '/media'
-      fullPath: '/media'
-      preLoaderRoute: typeof DashboardMediaRouteImport
+    '/_dashboard/experiments': {
+      id: '/_dashboard/experiments'
+      path: '/experiments'
+      fullPath: '/experiments'
+      preLoaderRoute: typeof DashboardExperimentsRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/_dashboard/gallery': {
@@ -291,18 +249,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardGalleryRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/_dashboard/experiments': {
-      id: '/_dashboard/experiments'
-      path: '/experiments'
-      fullPath: '/experiments'
-      preLoaderRoute: typeof DashboardExperimentsRouteImport
+    '/_dashboard/media': {
+      id: '/_dashboard/media'
+      path: '/media'
+      fullPath: '/media'
+      preLoaderRoute: typeof DashboardMediaRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/api/images/upload': {
-      id: '/api/images/upload'
-      path: '/api/images/upload'
-      fullPath: '/api/images/upload'
-      preLoaderRoute: typeof ApiImagesUploadRouteImport
+    '/_dashboard/pages': {
+      id: '/_dashboard/pages'
+      path: '/pages'
+      fullPath: '/pages'
+      preLoaderRoute: typeof DashboardPagesRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/recipes': {
+      id: '/_dashboard/recipes'
+      path: '/recipes'
+      fullPath: '/recipes'
+      preLoaderRoute: typeof DashboardRecipesRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/users': {
+      id: '/_dashboard/users'
+      path: '/users'
+      fullPath: '/users'
+      preLoaderRoute: typeof DashboardUsersRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/_dashboard/wines': {
+      id: '/_dashboard/wines'
+      path: '/wines'
+      fullPath: '/wines'
+      preLoaderRoute: typeof DashboardWinesRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/api/health': {
+      id: '/api/health'
+      path: '/api/health'
+      fullPath: '/api/health'
+      preLoaderRoute: typeof ApiHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/ready': {
+      id: '/api/ready'
+      path: '/api/ready'
+      fullPath: '/api/ready'
+      preLoaderRoute: typeof ApiReadyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/auth/$': {
@@ -310,6 +303,13 @@ declare module '@tanstack/react-router' {
       path: '/api/auth/$'
       fullPath: '/api/auth/$'
       preLoaderRoute: typeof ApiAuthSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/images/upload': {
+      id: '/api/images/upload'
+      path: '/api/images/upload'
+      fullPath: '/api/images/upload'
+      preLoaderRoute: typeof ApiImagesUploadRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/images/$folder/$fileName': {
