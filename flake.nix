@@ -88,6 +88,7 @@
           # Registry tooling for the image publishing workflow.
           devShells.ci = pkgs.mkShell {
             packages = [
+              pkgs.jq
               pkgs.regclient
               pkgs.skopeo
               pkgs.trivy

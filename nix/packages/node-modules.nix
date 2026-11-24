@@ -76,6 +76,12 @@ stdenvNoCC.mkDerivation {
       --os=${platform.os} \
       --cpu=${platform.cpu}
 
+    # Bun races when it links the `.bin` shims of packages nested in its store
+    # (browserslist <-> update-browserslist-db), so one symlink comes and goes
+    # between runs. Nothing uses those nested shims — builds call the top-level
+    # and workspace `.bin` directories — so drop them to keep the tree stable.
+    find "$out/node_modules/.bun" -type d -name .bin -prune -exec rm -rf {} +
+
     # Keep only the node_modules trees.
     find "$out" -name node_modules -prune -o -type f -exec rm {} +
 
