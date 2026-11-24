@@ -1,6 +1,6 @@
 {
   "aarch64-darwin": "sha256-nGj8Brcn5/oFLc8Y+DZSDWrbnqixsyd/ZT+/3y63bqU=",
-  "aarch64-linux": "sha256-Qb5HKBvw1kGSu7r74YaetxmVanIArXb46z91ZGqc1N8=",
+  "aarch64-linux": "sha256-jdAunCLkjKq8sTPqJ+suhrNKl+zLrmZvzqnyAmgFTHc=",
   "x86_64-darwin": "sha256-BrVrKykXpMGcwDsMa5IMlpQY43tioS9joFnlcvC7374=",
   "x86_64-linux": "sha256-EdXGupJHsVp/tWc0LWIRRL/Y1pyQLSHUuERPFYvJpc8=",
   "otel-runtime": "sha256-h+zqLaKa0fD8F+Hv5rS+YoVCzVTDI+Do/K6EX846I78="
