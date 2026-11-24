@@ -1,7 +1,7 @@
 import { Button } from "@twt/react/components/button"
 import { Input } from "@twt/react/components/input"
 import { type FormEvent, type ReactElement, useId, useState } from "react"
-import { useTRPCClient } from "../lib/trpc"
+import { api } from "../lib/api"
 
 type NewsletterSignupFormProps = {
   appearance: "card" | "section"
@@ -13,7 +13,6 @@ export function NewsletterSignupForm({ appearance }: NewsletterSignupFormProps):
   const [isSubmitting, setIsSubmitting] = useState(false)
   const inputId = useId()
   const statusId = useId()
-  const trpcClient = useTRPCClient()
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -22,8 +21,8 @@ export function NewsletterSignupForm({ appearance }: NewsletterSignupFormProps):
     setIsSubmitting(true)
     setMessage(null)
 
-    void trpcClient.subscribers.subscribe
-      .mutate({ email: email.trim() })
+    void api.subscribers
+      .subscribe(email.trim())
       .then((result) => {
         setMessage(result.message)
         setEmail("")

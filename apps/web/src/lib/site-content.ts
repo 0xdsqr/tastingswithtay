@@ -1,49 +1,49 @@
-import { z } from "zod"
+import { Option, Predicate, Schema } from "effect"
 
-const localHref = z.string().regex(/^\/(?!\/)/)
+const localHref = Schema.String.check(Schema.isPattern(/^\/(?!\/)/))
 
-const homeContentSchema = z.object({
-  heroFallbackEyebrow: z.string(),
-  heroFallbackTitle: z.string(),
-  heroFallbackBody: z.string(),
-  primaryCtaLabel: z.string(),
+const homeContentSchema = Schema.Struct({
+  heroFallbackEyebrow: Schema.String,
+  heroFallbackTitle: Schema.String,
+  heroFallbackBody: Schema.String,
+  primaryCtaLabel: Schema.String,
   primaryCtaHref: localHref,
-  secondaryCtaLabel: z.string(),
+  secondaryCtaLabel: Schema.String,
   secondaryCtaHref: localHref,
-  bentoEyebrow: z.string(),
-  bentoTitle: z.string(),
-  storiesEyebrow: z.string(),
-  storiesTitle: z.string(),
-  storiesEmptyHeading: z.string(),
-  storiesEmptyBody: z.string(),
+  bentoEyebrow: Schema.String,
+  bentoTitle: Schema.String,
+  storiesEyebrow: Schema.String,
+  storiesTitle: Schema.String,
+  storiesEmptyHeading: Schema.String,
+  storiesEmptyBody: Schema.String,
 })
 
-const newsletterContentSchema = z.object({
-  eyebrow: z.string(),
-  title: z.string(),
-  body: z.string(),
-  privacyNote: z.string(),
+const newsletterContentSchema = Schema.Struct({
+  eyebrow: Schema.String,
+  title: Schema.String,
+  body: Schema.String,
+  privacyNote: Schema.String,
 })
 
-const gardenAndFlockContentSchema = z.object({
-  metaTitle: z.string(),
-  metaDescription: z.string(),
-  heroTitle: z.string(),
-  heroBody: z.string(),
-  allFilterLabel: z.string(),
-  gardenFilterLabel: z.string(),
-  flockFilterLabel: z.string(),
-  emptyAllHeading: z.string(),
-  emptyAllBody: z.string(),
-  emptyGardenHeading: z.string(),
-  emptyGardenBody: z.string(),
-  emptyFlockHeading: z.string(),
-  emptyFlockBody: z.string(),
+const gardenAndFlockContentSchema = Schema.Struct({
+  metaTitle: Schema.String,
+  metaDescription: Schema.String,
+  heroTitle: Schema.String,
+  heroBody: Schema.String,
+  allFilterLabel: Schema.String,
+  gardenFilterLabel: Schema.String,
+  flockFilterLabel: Schema.String,
+  emptyAllHeading: Schema.String,
+  emptyAllBody: Schema.String,
+  emptyGardenHeading: Schema.String,
+  emptyGardenBody: Schema.String,
+  emptyFlockHeading: Schema.String,
+  emptyFlockBody: Schema.String,
 })
 
-export type HomeContent = z.infer<typeof homeContentSchema>
-export type NewsletterContent = z.infer<typeof newsletterContentSchema>
-export type GardenAndFlockContent = z.infer<typeof gardenAndFlockContentSchema>
+export type HomeContent = typeof homeContentSchema.Type
+export type NewsletterContent = typeof newsletterContentSchema.Type
+export type GardenAndFlockContent = typeof gardenAndFlockContentSchema.Type
 
 const defaultHomeContent: HomeContent = {
   heroFallbackEyebrow: "Welcome to",
@@ -85,22 +85,28 @@ const defaultGardenAndFlockContent: GardenAndFlockContent = {
   emptyFlockBody: "Check back soon or try a different filter.",
 }
 
-function sectionFrom(value: unknown, section: "home" | "newsletter" | "gardenAndFlock"): unknown {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return undefined
-  return (value as Record<string, unknown>)[section]
-}
+const sectionFrom = (value: unknown, section: "home" | "newsletter" | "gardenAndFlock"): unknown =>
+  Predicate.isObject(value) ? (value as Record<string, unknown>)[section] : undefined
 
-export function getHomeContent(value: unknown): HomeContent {
-  const parsed = homeContentSchema.safeParse(sectionFrom(value, "home"))
-  return parsed.success ? parsed.data : defaultHomeContent
-}
+/** Decodes one section of the published site copy, falling back to built-in copy when it is absent or incomplete. */
+const sectionOr =
+  <A>(schema: Schema.Codec<A>, section: Parameters<typeof sectionFrom>[1], fallback: A) =>
+  (value: unknown): A =>
+    Option.getOrElse(
+      Schema.decodeUnknownOption(schema)(sectionFrom(value, section)),
+      () => fallback,
+    )
 
-export function getNewsletterContent(value: unknown): NewsletterContent {
-  const parsed = newsletterContentSchema.safeParse(sectionFrom(value, "newsletter"))
-  return parsed.success ? parsed.data : defaultNewsletterContent
-}
+export const getHomeContent = sectionOr(homeContentSchema, "home", defaultHomeContent)
 
-export function getGardenAndFlockContent(value: unknown): GardenAndFlockContent {
-  const parsed = gardenAndFlockContentSchema.safeParse(sectionFrom(value, "gardenAndFlock"))
-  return parsed.success ? parsed.data : defaultGardenAndFlockContent
-}
+export const getNewsletterContent = sectionOr(
+  newsletterContentSchema,
+  "newsletter",
+  defaultNewsletterContent,
+)
+
+export const getGardenAndFlockContent = sectionOr(
+  gardenAndFlockContentSchema,
+  "gardenAndFlock",
+  defaultGardenAndFlockContent,
+)

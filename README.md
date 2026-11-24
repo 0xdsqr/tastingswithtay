@@ -1,21 +1,37 @@
 # Tastings with Tay
 
-Bun monorepo containing the TanStack Start public site, admin application, shared Effect/tRPC
-core, Drizzle/PostgreSQL schema, shared React UI, Nix development environment, container images,
-and Helm runtime manifests.
+Bun monorepo containing the TanStack Start public site, admin application, shared Effect core,
+Drizzle/PostgreSQL schema, shared React UI, and Helm runtime manifests. Nix owns the toolchain,
+formatting, checks, application builds, and container images.
 
 ## Development
 
 ```sh
-nix develop
+nix develop                      # or `direnv allow`
 bun install --frozen-lockfile
-bun run check
-bun run typecheck:ts6
-bun run audit
+bun run dev:web                  # or dev:admin
 ```
 
-TypeScript 7 is the primary compiler. The separate TypeScript 6 gate is retained during the
-migration window so package consumers can be moved deliberately.
+## Checks
+
+```sh
+nix fmt                          # treefmt: nixfmt + oxfmt
+nix flake check                  # formatting, lint, typecheck, tests, knip, app builds, Helm, workflows, secrets
+bun run audit                    # advisory lookup (needs the network, so it is not a flake check)
+```
+
+`bun run check` runs the same gates from the dev shell without the Nix sandbox.
+
+## Builds and images
+
+```sh
+nix build .#web                  # Nitro server bundle (also .#admin)
+nix build .#web-image            # Linux only: streams an OCI image (also .#admin-image)
+./result | docker load
+```
+
+Dependencies are fetched by a fixed-output derivation keyed on `bun.lock`. After any lockfile
+change, run `./nix/update-hashes.sh` and commit `nix/packages/node-modules-hashes.json`.
 
 ## Database
 
@@ -26,6 +42,5 @@ existing database. Production schema changes must use migrations, never `drizzle
 ## Runtime manifests
 
 `helm/twt-app` is the hardened shared workload chart for the separately deployed web and admin
-applications on Indigo. The two legacy charts remain frozen while Hub-A serves production. Render
-checks run through `nix flake check`; immutable release selection and deployment orchestration remain
-outside this repository.
+applications. Immutable release selection and deployment orchestration remain outside this
+repository.

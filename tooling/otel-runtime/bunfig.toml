@@ -1,0 +1,6 @@
+[install]
+# Pin exact versions and refuse packages published less than three days ago.
+exact = true
+minimumReleaseAge = 259200
+# Flat layout: this directory is copied into the runtime image as-is.
+linker = "hoisted"

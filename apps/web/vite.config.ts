@@ -19,6 +19,8 @@ export default defineConfig({
     rollupConfig: {
       external: ["pg", "pg-native"],
     },
+    // `pg` stays a real module on disk so OpenTelemetry can instrument it.
+    traceDeps: ["pg*"],
   },
   ssr: {
     external: ["pg", "pg-native"],

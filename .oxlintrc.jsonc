@@ -1,17 +1,22 @@
 {
   "plugins": ["react", "typescript"],
   "ignorePatterns": [
-    "node_modules/**",
-    "dist/**",
-    ".output/**",
-    ".vinxi/**",
-    ".turbo/**",
-    ".tanstack/**",
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/.output/**",
+    "**/.tanstack/**",
     "**/routeTree.gen.ts",
     "**/*.gen.ts",
     "**/*.gen.tsx",
   ],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error",
+  },
   "rules": {
-    "typescript/no-explicit-any": "off",
+    // The automatic JSX runtime does not need `React` in scope.
+    "react/react-in-jsx-scope": "off",
+    // `_tag` is Effect's discriminant field.
+    "no-underscore-dangle": ["error", { "allow": ["_tag"] }],
   },
 }

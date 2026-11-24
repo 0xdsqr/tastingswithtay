@@ -1,9 +1,8 @@
 import type { QueryClient } from "@tanstack/react-query"
 import { createRootRouteWithContext, HeadContent, Outlet, Scripts } from "@tanstack/react-router"
-import type { TRPCOptionsProxy } from "@trpc/tanstack-react-query"
-import type { AppRouter } from "@twt/core/api"
 import { ErrorBoundary } from "@twt/react/components/error-boundary"
 import { getServerSession } from "../auth/get-session"
+import type { Api } from "../lib/api"
 import "../styles.css"
 
 const faviconSvg =
@@ -11,12 +10,12 @@ const faviconSvg =
 
 export const Route = createRootRouteWithContext<{
   queryClient: QueryClient
-  trpc: TRPCOptionsProxy<AppRouter>
+  api: Api
 }>()({
   loader: async ({ context }) => {
     const [session, sitePublication] = await Promise.all([
       getServerSession(),
-      context.queryClient.fetchQuery(context.trpc.site.published.queryOptions()),
+      context.queryClient.fetchQuery(context.api.site.published()),
     ])
     return { session, sitePublication }
   },

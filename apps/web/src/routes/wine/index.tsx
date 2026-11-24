@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
-import type { Wine } from "@twt/database/schema"
+import type { Wine } from "@twt/core/domain/content"
 import { Button } from "@twt/react/components/button"
 import { ChevronRight, Star, Wine as WineIcon } from "lucide-react"
-import { z } from "zod"
+import { Schema } from "effect"
 import { EmptyState } from "../../components/empty-state"
 import { OptimizedImage } from "../../components/optimized-image"
 import { SiteFooter } from "../../components/site-footer"
@@ -22,12 +22,12 @@ export const Route = createFileRoute("/wine/")({
       },
     ],
   }),
-  validateSearch: z.object({ type: z.enum(wineTypeValues).optional() }),
+  validateSearch: Schema.toStandardSchemaV1(
+    Schema.Struct({ type: Schema.optional(Schema.Literals(wineTypeValues)) }),
+  ),
   loaderDeps: ({ search }) => ({ type: search.type }),
   loader: async ({ context, deps }) => {
-    const wines = (await context.queryClient.fetchQuery(
-      context.trpc.wines.list.queryOptions({ type: deps.type }),
-    )) as Wine[]
+    const wines = await context.queryClient.fetchQuery(context.api.wines.list({ type: deps.type }))
     return { wines, activeType: deps.type ?? "All" }
   },
   component: WineCellarPage,

@@ -1,2 +1,0 @@
-# Helm templates are validated by `nix build .#checks.<system>.helm`.
-helm/

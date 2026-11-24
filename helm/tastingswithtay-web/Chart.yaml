@@ -1,6 +1,0 @@
-apiVersion: v2
-name: tastingswithtay-web
-description: Helm chart for deploying the Tastings with Tay web application.
-type: application
-version: 0.1.1
-appVersion: "sha-6e89d9bb3270f184ee9bd8a1f7ce0beb18329c2e"

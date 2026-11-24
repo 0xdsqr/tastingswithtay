@@ -19,7 +19,8 @@ export default defineConfig({
     rollupConfig: {
       external: ["pg", "pg-native"],
     },
-    traceDeps: ["sharp*", "@img/sharp-wasm32*"],
+    // `pg` stays a real module on disk so OpenTelemetry can instrument it.
+    traceDeps: ["pg*", "sharp*", "@img/sharp-wasm32*"],
   },
   ssr: {
     external: ["pg", "pg-native"],

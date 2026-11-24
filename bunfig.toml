@@ -1,0 +1,4 @@
+[install]
+# Pin exact versions and refuse packages published less than three days ago.
+exact = true
+minimumReleaseAge = 259200

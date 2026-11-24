@@ -2,17 +2,19 @@ import { createFileRoute } from "@tanstack/react-router"
 import { Button } from "@twt/react/components/button"
 import { Card, CardContent } from "@twt/react/components/card"
 import { useState } from "react"
-import { z } from "zod"
-import { useTRPCClient } from "../lib/trpc"
+import { Schema } from "effect"
+import { api } from "../lib/api"
 import { SiteFooter } from "../components/site-footer"
 import { SiteHeader } from "../components/site-header"
 
-const searchSchema = z.object({
-  token: z.string().uuid().optional().catch(undefined),
-})
+const isToken = Schema.is(Schema.String.check(Schema.isUUID()))
+
+/** A malformed token is treated as missing rather than as an error page. */
+const validateSearch = (search: Record<string, unknown>): { token?: string } =>
+  isToken(search.token) ? { token: search.token } : {}
 
 export const Route = createFileRoute("/unsubscribe")({
-  validateSearch: searchSchema,
+  validateSearch,
   head: () => ({
     meta: [{ title: "Unsubscribe | Tastings with Tay" }, { name: "robots", content: "noindex" }],
   }),
@@ -21,14 +23,13 @@ export const Route = createFileRoute("/unsubscribe")({
 
 function UnsubscribePage(): React.ReactElement {
   const { token } = Route.useSearch()
-  const trpcClient = useTRPCClient()
   const [status, setStatus] = useState<"idle" | "working" | "done" | "error">("idle")
 
   const unsubscribe = () => {
     if (!token || status === "working") return
     setStatus("working")
-    void trpcClient.subscribers.unsubscribe
-      .mutate({ token })
+    void api.subscribers
+      .unsubscribe(token)
       .then(() => setStatus("done"))
       .catch(() => setStatus("error"))
   }

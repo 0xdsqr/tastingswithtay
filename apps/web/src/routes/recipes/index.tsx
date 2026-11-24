@@ -1,16 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { Eyebrow } from "@twt/react/components/section-header"
 import { CookingPot } from "lucide-react"
-import { z } from "zod"
+import { Schema } from "effect"
 import { EmptyState } from "../../components/empty-state"
 import { RecipeCard } from "../../components/recipe-card"
 import { RecipeFilters } from "../../components/recipe-filters"
 import { SiteFooter } from "../../components/site-footer"
 import { SiteHeader } from "../../components/site-header"
 
-const searchSchema = z.object({
-  category: z.string().optional(),
-})
+const searchSchema = Schema.toStandardSchemaV1(
+  Schema.Struct({ category: Schema.optional(Schema.String) }),
+)
 
 export const Route = createFileRoute("/recipes/")({
   head: () => ({
@@ -26,10 +26,8 @@ export const Route = createFileRoute("/recipes/")({
   loaderDeps: ({ search }) => ({ category: search.category }),
   loader: async ({ context, deps }) => {
     const [recipes, categories] = await Promise.all([
-      context.queryClient.fetchQuery(
-        context.trpc.recipes.list.queryOptions({ category: deps.category }),
-      ),
-      context.queryClient.fetchQuery(context.trpc.recipes.categories.queryOptions()),
+      context.queryClient.fetchQuery(context.api.recipes.list({ category: deps.category })),
+      context.queryClient.fetchQuery(context.api.recipes.categories()),
     ])
     return {
       recipes,

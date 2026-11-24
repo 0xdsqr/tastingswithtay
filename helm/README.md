@@ -25,12 +25,6 @@ The source repository never creates runtime credentials. Before Argo syncs a rel
 must provide its referenced Secret, trusted database CA ConfigMap, gateway, and reciprocal
 gateway-side Cilium policy.
 
-## Hub-A compatibility
-
-`helm/tastingswithtay-web` and `helm/tastingswithtay-admin` are frozen compatibility charts still
-consumed by the live Hub-A Argo applications. Do not update or remove them until Indigo is healthy,
-data restore and backup checks pass, traffic has been cut over, and the rollback window closes.
-
 ## Validate
 
 ```sh

@@ -5,26 +5,23 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 3
     groups:
       javascript:
         patterns:
           - "*"
 
-  - package-ecosystem: npm
-    directory: /docker/runtime
+  - package-ecosystem: bun
+    directory: /tooling/otel-runtime
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 3
     groups:
       runtime:
         patterns:
           - "*"
-
-  - package-ecosystem: docker
-    directories:
-      - /apps/admin
-      - /apps/web
-    schedule:
-      interval: weekly
 
   - package-ecosystem: github-actions
     directory: /

@@ -1,9 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
-import type { GalleryImage } from "@twt/database/schema"
+import type { GalleryImage } from "@twt/core/domain/content"
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@twt/react/components/dialog"
 import { ChevronLeft, ChevronRight, Egg, Flower2, X } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
-import { z } from "zod"
+import { Schema } from "effect"
 import { EmptyState } from "../../components/empty-state"
 import { OptimizedImage } from "../../components/optimized-image"
 import { SiteFooter } from "../../components/site-footer"
@@ -13,16 +13,18 @@ import { getGardenAndFlockContent } from "../../lib/site-content"
 const galleryCategoryValues = ["garden", "flock"] as const
 
 export const Route = createFileRoute("/garden-and-flock/")({
-  validateSearch: z.object({ category: z.enum(galleryCategoryValues).optional() }),
+  validateSearch: Schema.toStandardSchemaV1(
+    Schema.Struct({ category: Schema.optional(Schema.Literals(galleryCategoryValues)) }),
+  ),
   loaderDeps: ({ search }) => ({ category: search.category }),
   loader: async ({ context, deps }) => {
     const [images, sitePublication] = await Promise.all([
       context.queryClient.fetchQuery(
-        context.trpc.gallery.list.queryOptions({
+        context.api.gallery.list({
           category: deps.category,
         }),
-      ) as Promise<GalleryImage[]>,
-      context.queryClient.fetchQuery(context.trpc.site.published.queryOptions()),
+      ),
+      context.queryClient.fetchQuery(context.api.site.published()),
     ])
 
     return {
@@ -52,7 +54,7 @@ function Lightbox({
   onNext,
   onPrev,
 }: {
-  images: GalleryImage[]
+  images: ReadonlyArray<GalleryImage>
   currentIndex: number
   onClose: () => void
   onNext: () => void

@@ -9,7 +9,7 @@ import { SiteHeader } from "../../components/site-header"
 
 interface IngredientGroup {
   group?: string
-  items: string[]
+  items: ReadonlyArray<string>
 }
 
 interface Instruction {
@@ -17,7 +17,7 @@ interface Instruction {
   text: string
 }
 
-function IngredientItems({ items }: { items: string[] }): React.ReactElement {
+function IngredientItems({ items }: { items: ReadonlyArray<string> }): React.ReactElement {
   const blocks = parseCalloutBlocks(items, (item) => item)
 
   return (
@@ -40,7 +40,11 @@ function IngredientItems({ items }: { items: string[] }): React.ReactElement {
   )
 }
 
-function RecipeInstructions({ instructions }: { instructions: Instruction[] }): React.ReactElement {
+function RecipeInstructions({
+  instructions,
+}: {
+  instructions: ReadonlyArray<Instruction>
+}): React.ReactElement {
   const blocks = parseCalloutBlocks(instructions, (instruction) => instruction.text)
   return (
     <div className="space-y-8">
@@ -67,7 +71,7 @@ function RecipeInstructions({ instructions }: { instructions: Instruction[] }): 
   )
 }
 
-function RecipeTips({ tips }: { tips: string[] }): React.ReactElement {
+function RecipeTips({ tips }: { tips: ReadonlyArray<string> }): React.ReactElement {
   const blocks = parseCalloutBlocks(tips, (tip) => tip)
 
   return (
@@ -108,9 +112,7 @@ function formatTime(minutes: number | null): string {
 
 export const Route = createFileRoute("/recipes/$slug")({
   loader: async ({ context, params }) => {
-    const recipe = await context.queryClient.fetchQuery(
-      context.trpc.recipes.bySlug.queryOptions({ slug: params.slug }),
-    )
+    const recipe = await context.queryClient.fetchQuery(context.api.recipes.bySlug(params.slug))
     if (!recipe) {
       throw notFound()
     }

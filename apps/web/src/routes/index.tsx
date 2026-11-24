@@ -8,9 +8,9 @@ import { getHomeContent } from "../lib/site-content"
 export const Route = createFileRoute("/")({
   loader: async ({ context }) => {
     const [featuredRecipes, categories, sitePublication] = await Promise.all([
-      context.queryClient.fetchQuery(context.trpc.recipes.featured.queryOptions()),
-      context.queryClient.fetchQuery(context.trpc.recipes.categories.queryOptions()),
-      context.queryClient.fetchQuery(context.trpc.site.published.queryOptions()),
+      context.queryClient.fetchQuery(context.api.recipes.featured()),
+      context.queryClient.fetchQuery(context.api.recipes.categories()),
+      context.queryClient.fetchQuery(context.api.site.published()),
     ])
     return { featuredRecipes, categories, homeContent: getHomeContent(sitePublication) }
   },

@@ -126,8 +126,8 @@ spec:
             failureThreshold: 3
           lifecycle:
             preStop:
-              exec:
-                command: ["/bin/sh", "-c", "sleep 5"]
+              sleep:
+                seconds: 5
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
