@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router"
 import { Button } from "@twt/react/components/button"
 import { Eyebrow } from "@twt/react/components/section-header"
 import { Mail } from "lucide-react"
-import { z } from "zod"
+import { Option, Predicate, Schema } from "effect"
 import { BrandLogo } from "../components/brand-logo"
 import { InstagramIcon } from "../components/instagram-icon"
 import { NewsletterSection } from "../components/newsletter-section"
@@ -26,7 +26,7 @@ type AboutContent = {
   philosophyBody: string
   valuesEyebrow: string
   valuesTitle: string
-  values: AboutValue[]
+  values: ReadonlyArray<AboutValue>
   quoteText: string
   quoteAuthor: string
   quoteImage: string
@@ -39,30 +39,30 @@ type AboutContent = {
   connectBody: string
 }
 
-const aboutContentSchema = z
-  .object({
-    heroEyebrow: z.string(),
-    heroTitle: z.string(),
-    heroImage: z.string(),
-    introBody: z.string(),
-    philosophyEyebrow: z.string(),
-    philosophyTitle: z.string(),
-    philosophyBody: z.string(),
-    valuesEyebrow: z.string(),
-    valuesTitle: z.string(),
-    values: z.array(z.object({ id: z.string(), title: z.string(), body: z.string() }).strict()),
-    quoteText: z.string(),
-    quoteAuthor: z.string(),
-    quoteImage: z.string(),
-    whatsIncludedEyebrow: z.string(),
-    whatsIncludedTitle: z.string(),
-    whatsIncludedBody: z.string(),
-    whatsIncludedImage: z.string(),
-    connectEyebrow: z.string(),
-    connectTitle: z.string(),
-    connectBody: z.string(),
-  })
-  .partial()
+const aboutContentSchema = Schema.Struct({
+  heroEyebrow: Schema.optional(Schema.String),
+  heroTitle: Schema.optional(Schema.String),
+  heroImage: Schema.optional(Schema.String),
+  introBody: Schema.optional(Schema.String),
+  philosophyEyebrow: Schema.optional(Schema.String),
+  philosophyTitle: Schema.optional(Schema.String),
+  philosophyBody: Schema.optional(Schema.String),
+  valuesEyebrow: Schema.optional(Schema.String),
+  valuesTitle: Schema.optional(Schema.String),
+  values: Schema.optional(
+    Schema.Array(Schema.Struct({ id: Schema.String, title: Schema.String, body: Schema.String })),
+  ),
+  quoteText: Schema.optional(Schema.String),
+  quoteAuthor: Schema.optional(Schema.String),
+  quoteImage: Schema.optional(Schema.String),
+  whatsIncludedEyebrow: Schema.optional(Schema.String),
+  whatsIncludedTitle: Schema.optional(Schema.String),
+  whatsIncludedBody: Schema.optional(Schema.String),
+  whatsIncludedImage: Schema.optional(Schema.String),
+  connectEyebrow: Schema.optional(Schema.String),
+  connectTitle: Schema.optional(Schema.String),
+  connectBody: Schema.optional(Schema.String),
+})
 
 const defaultAboutHeroImageUrl = "/about/taylor_and_dave_about.jpg"
 
@@ -120,8 +120,7 @@ export const Route = createFileRoute("/about")({
       },
     ],
   }),
-  loader: async ({ context }) =>
-    context.queryClient.fetchQuery(context.trpc.site.published.queryOptions()),
+  loader: async ({ context }) => context.queryClient.fetchQuery(context.api.site.published()),
   component: AboutPage,
 })
 
@@ -301,12 +300,13 @@ function AboutPage(): React.ReactElement {
 }
 
 function getAboutContent(rawDraft: unknown): AboutContent {
-  const rawAbout =
-    rawDraft && typeof rawDraft === "object" && !Array.isArray(rawDraft)
-      ? (rawDraft as Record<string, unknown>).about
-      : undefined
-  const parsed = aboutContentSchema.safeParse(rawAbout)
-  const about = parsed.success ? parsed.data : {}
+  const rawAbout = Predicate.isObject(rawDraft)
+    ? (rawDraft as Record<string, unknown>).about
+    : undefined
+  const about = Option.getOrElse(
+    Schema.decodeUnknownOption(aboutContentSchema)(rawAbout),
+    (): typeof aboutContentSchema.Type => ({}),
+  )
   const managedImageValue = (imageValue: string | undefined, defaultValue: string): string =>
     imageValue?.trim() || defaultValue
 

@@ -5,8 +5,6 @@ containerPort: 3011
 env:
   BASE_URL: https://admin.tastingswithtay.com
   BETTER_AUTH_URL: https://admin.tastingswithtay.com
-  CDN_BASE: https://cdn.dsqr.dev
-  DISCORD_CLIENT_ID: "1465977766485688370"
   S3_BUCKET: tastingswithtay
   S3_ENDPOINT: s3.dsqr.dev
   S3_FORCE_PATH_STYLE: "true"
@@ -26,7 +24,6 @@ env:
   OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
   OTEL_RESOURCE_ATTRIBUTES: deployment.environment=production,k8s.namespace.name=twt
 externalFQDNs:
-  - discord.com
   - s3.dsqr.dev
 route:
   hostnames:

@@ -1,18 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { checkDatabaseReadiness } from "@twt/core/http/readiness"
+import { ready } from "@twt/core/http/routes"
+import { runtime } from "../../server/runtime"
 
-async function ready(): Promise<Response> {
-  try {
-    await checkDatabaseReadiness()
-    return Response.json({ status: "ready" }, { headers: { "Cache-Control": "no-store" } })
-  } catch {
-    return Response.json(
-      { status: "unavailable" },
-      { status: 503, headers: { "Cache-Control": "no-store" } },
-    )
-  }
-}
+const handler = () => runtime.runPromise(ready)
 
 export const Route = createFileRoute("/api/ready")({
-  server: { handlers: { GET: ready, HEAD: ready } },
+  server: { handlers: { GET: handler, HEAD: handler } },
 })

@@ -19,14 +19,11 @@
     "studio": "drizzle-kit studio",
     "generate": "drizzle-kit generate",
     "migrate": "drizzle-kit migrate",
-    "typecheck": "tsc --noEmit",
-    "typecheck:ts6": "tsc6 --noEmit"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "drizzle-orm": "0.45.4",
-    "drizzle-zod": "0.8.3",
-    "pg": "8.23.1",
-    "zod": "4.6.7"
+    "pg": "8.23.1"
   },
   "devDependencies": {
     "@twt/tsconfig": "workspace:*",

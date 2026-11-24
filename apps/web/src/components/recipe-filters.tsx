@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router"
 
 interface RecipeFiltersProps {
-  categories: string[]
+  categories: ReadonlyArray<string>
   activeCategory?: string
 }
 

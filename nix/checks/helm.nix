@@ -20,25 +20,6 @@ stdenvNoCC.mkDerivation {
   installPhase = ''
     runHook preInstall
 
-    # Hub-A still tracks these legacy chart paths. Keep validating them until the
-    # parallel Indigo deployment has been proven and traffic has moved.
-    for chart in helm/tastingswithtay-*; do
-      [ -d "$chart" ] || continue
-      helm lint --strict "$chart"
-      helm template "$(basename "$chart")" "$chart" --namespace twt >/dev/null
-      helm template "$(basename "$chart")" "$chart" --namespace twt -f "$chart/values-prod.yaml" >/dev/null
-
-      trustedCaRender="$(mktemp)"
-      helm template "$(basename "$chart")" "$chart" \
-        --namespace twt \
-        --set additionalTrustedCa.enabled=true \
-        --set additionalTrustedCa.configMapName=dsqr-home-root-ca \
-        >"$trustedCaRender"
-      grep -F 'name: NODE_EXTRA_CA_CERTS' "$trustedCaRender" >/dev/null
-      grep -F 'value: "/etc/dsqr/pki/dsqr-home-root-ca.pem"' "$trustedCaRender" >/dev/null
-      grep -F 'name: dsqr-home-root-ca' "$trustedCaRender" >/dev/null
-    done
-
     validate_indigo_release() {
       local application="$1"
       local release="twt-$application"

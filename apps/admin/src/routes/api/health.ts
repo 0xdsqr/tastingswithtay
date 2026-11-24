@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router"
+import { health } from "@twt/core/http/routes"
 
-const healthy = () => Response.json({ status: "ok" }, { headers: { "Cache-Control": "no-store" } })
+const handler = ({ request }: { request: Request }) => health(request)
 
 export const Route = createFileRoute("/api/health")({
-  server: { handlers: { GET: healthy, HEAD: () => new Response(null, { status: 204 }) } },
+  server: { handlers: { GET: handler, HEAD: handler } },
 })

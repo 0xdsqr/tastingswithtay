@@ -23,7 +23,7 @@ import { Route as TestKitchenSlugRouteImport } from './routes/test-kitchen/$slug
 import { Route as WineIndexRouteImport } from './routes/wine/index'
 import { Route as WineSlugRouteImport } from './routes/wine/$slug'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth.$'
-import { Route as ApiTrpcSplatRouteImport } from './routes/api/trpc.$'
+import { Route as ApiV1SplatRouteImport } from './routes/api/v1.$'
 import { Route as ApiImagesFolderFileNameRouteImport } from './routes/api/images.$folder.$fileName'
 
 const IndexRoute = IndexRouteImport.update({
@@ -96,9 +96,9 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiTrpcSplatRoute = ApiTrpcSplatRouteImport.update({
-  id: '/api/trpc/$',
-  path: '/api/trpc/$',
+const ApiV1SplatRoute = ApiV1SplatRouteImport.update({
+  id: '/api/v1/$',
+  path: '/api/v1/$',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiImagesFolderFileNameRoute = ApiImagesFolderFileNameRouteImport.update({
@@ -122,7 +122,7 @@ export interface FileRoutesByFullPath {
   '/test-kitchen/': typeof TestKitchenIndexRoute
   '/wine/': typeof WineIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
-  '/api/trpc/$': typeof ApiTrpcSplatRoute
+  '/api/v1/$': typeof ApiV1SplatRoute
   '/api/images/$folder/$fileName': typeof ApiImagesFolderFileNameRoute
 }
 export interface FileRoutesByTo {
@@ -140,7 +140,7 @@ export interface FileRoutesByTo {
   '/test-kitchen': typeof TestKitchenIndexRoute
   '/wine': typeof WineIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
-  '/api/trpc/$': typeof ApiTrpcSplatRoute
+  '/api/v1/$': typeof ApiV1SplatRoute
   '/api/images/$folder/$fileName': typeof ApiImagesFolderFileNameRoute
 }
 export interface FileRoutesById {
@@ -159,7 +159,7 @@ export interface FileRoutesById {
   '/test-kitchen/': typeof TestKitchenIndexRoute
   '/wine/': typeof WineIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
-  '/api/trpc/$': typeof ApiTrpcSplatRoute
+  '/api/v1/$': typeof ApiV1SplatRoute
   '/api/images/$folder/$fileName': typeof ApiImagesFolderFileNameRoute
 }
 export interface FileRouteTypes {
@@ -179,7 +179,7 @@ export interface FileRouteTypes {
     | '/test-kitchen/'
     | '/wine/'
     | '/api/auth/$'
-    | '/api/trpc/$'
+    | '/api/v1/$'
     | '/api/images/$folder/$fileName'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -197,7 +197,7 @@ export interface FileRouteTypes {
     | '/test-kitchen'
     | '/wine'
     | '/api/auth/$'
-    | '/api/trpc/$'
+    | '/api/v1/$'
     | '/api/images/$folder/$fileName'
   id:
     | '__root__'
@@ -215,7 +215,7 @@ export interface FileRouteTypes {
     | '/test-kitchen/'
     | '/wine/'
     | '/api/auth/$'
-    | '/api/trpc/$'
+    | '/api/v1/$'
     | '/api/images/$folder/$fileName'
   fileRoutesById: FileRoutesById
 }
@@ -234,7 +234,7 @@ export interface RootRouteChildren {
   TestKitchenIndexRoute: typeof TestKitchenIndexRoute
   WineIndexRoute: typeof WineIndexRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
-  ApiTrpcSplatRoute: typeof ApiTrpcSplatRoute
+  ApiV1SplatRoute: typeof ApiV1SplatRoute
   ApiImagesFolderFileNameRoute: typeof ApiImagesFolderFileNameRoute
 }
 
@@ -338,11 +338,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/trpc/$': {
-      id: '/api/trpc/$'
-      path: '/api/trpc/$'
-      fullPath: '/api/trpc/$'
-      preLoaderRoute: typeof ApiTrpcSplatRouteImport
+    '/api/v1/$': {
+      id: '/api/v1/$'
+      path: '/api/v1/$'
+      fullPath: '/api/v1/$'
+      preLoaderRoute: typeof ApiV1SplatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/images/$folder/$fileName': {
@@ -370,7 +370,7 @@ const rootRouteChildren: RootRouteChildren = {
   TestKitchenIndexRoute: TestKitchenIndexRoute,
   WineIndexRoute: WineIndexRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
-  ApiTrpcSplatRoute: ApiTrpcSplatRoute,
+  ApiV1SplatRoute: ApiV1SplatRoute,
   ApiImagesFolderFileNameRoute: ApiImagesFolderFileNameRoute,
 }
 export const routeTree = rootRouteImport

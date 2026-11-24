@@ -1,5 +1,7 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
+  "ignore": ["**/dist/**", "tooling/otel-runtime/**"],
+  "ignoreBinaries": ["oxlint", "treefmt"],
   "workspaces": {
     "apps/admin": {
       "entry": ["src/routes/**/*.ts", "src/routes/**/*.tsx"],
@@ -10,27 +12,22 @@
     },
     "packages/core": {
       "entry": [
-        "src/api/index.ts",
-        "src/auth/index.ts",
-        "src/http/readiness.ts",
-        "src/http/request-body.ts",
-        "src/http/runtime-url.ts",
-        "src/http/security.ts",
+        "src/api/Api.ts",
+        "src/api/client.ts",
+        "src/api/handlers.ts",
+        "src/config.ts",
+        "src/domain/*.ts",
+        "src/http/*.ts",
         "src/images/policy.ts",
-        "src/storage/s3.ts",
-        "src/telemetry/tracing.ts",
-        "scripts/auth-cli.ts"
+        "src/runtime.ts",
+        "src/services/*.ts"
       ]
     },
     "packages/database": {
-      "entry": ["src/index.ts", "src/client.ts"]
+      "entry": ["src/index.ts", "src/client.ts", "src/enums.ts"]
     },
     "packages/react": {
       "entry": ["src/styles/*.css"]
-    },
-    "docker/runtime": {
-      "entry": ["*.mjs"],
-      "ignoreDependencies": ["pg"]
     },
     ".": {
       "entry": ["scripts/*.ts"]

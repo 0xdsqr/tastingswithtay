@@ -7,11 +7,8 @@ on:
     paths:
       - ".github/workflows/publish-helm.yml"
       - "helm/**"
+      - "nix/checks/helm.nix"
   workflow_dispatch:
-
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
-  HELM_REGISTRY_REPOSITORY: oci://ghcr.io/${{ github.repository }}/charts
 
 permissions:
   contents: read
@@ -27,53 +24,30 @@ jobs:
     runs-on: ubuntu-24.04
     env:
       CHART_VERSION: 0.1.${{ github.run_number }}-r${{ github.run_attempt }}
+      HELM_REGISTRY_REPOSITORY: oci://ghcr.io/${{ github.repository }}/charts
+      REGISTRY_USERNAME: ${{ github.repository_owner }}
+      REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Set up Helm
-        uses: azure/setup-helm@2f5e7bc67f1f9972ab16657bb795f36d8f04de0e # v5.1.0
+      - name: Install Nix
+        uses: DeterminateSystems/determinate-nix-action@4b040423529d49b1a19ba918742e0aa9aa95031a # v3.24.3
 
-      - name: Log in to GitHub Container Registry
-        run: |
-          echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io \
-            --username "${{ github.repository_owner }}" \
-            --password-stdin
+      - name: Cache Nix builds
+        uses: DeterminateSystems/magic-nix-cache-action@84c0677f58dcedf3b91f8223ce36a9ea5b3c84b7 # v15
+        with:
+          use-flakehub: false
 
-      - name: Verify web release
-        run: |
-          helm lint --strict ./helm/twt-app \
-            -f ./helm/twt-app/values-web.yaml \
-            -f ./helm/twt-app/ci/values-web.yaml
-
-      - name: Render web release
-        run: |
-          helm template twt-web ./helm/twt-app \
-            --namespace twt \
-            --kube-version 1.36.0 \
-            -f ./helm/twt-app/values-web.yaml \
-            -f ./helm/twt-app/ci/values-web.yaml >/dev/null
-
-      - name: Verify admin release
-        run: |
-          helm lint --strict ./helm/twt-app \
-            -f ./helm/twt-app/values-admin.yaml \
-            -f ./helm/twt-app/ci/values-admin.yaml
-
-      - name: Render admin release
-        run: |
-          helm template twt-admin ./helm/twt-app \
-            --namespace twt \
-            --kube-version 1.36.0 \
-            -f ./helm/twt-app/values-admin.yaml \
-            -f ./helm/twt-app/ci/values-admin.yaml >/dev/null
+      - name: Lint and render chart
+        run: nix build .#checks.x86_64-linux.helm --print-build-logs
 
       - name: Publish chart
+        shell: nix develop --command bash -euo pipefail {0}
         run: |
+          printf '%s' "$REGISTRY_PASSWORD" \
+            | helm registry login ghcr.io --username "$REGISTRY_USERNAME" --password-stdin
           package_dir="$(mktemp -d)"
-          helm package ./helm/twt-app \
-            --version "${CHART_VERSION}" \
-            --destination "${package_dir}"
-          helm push "${package_dir}/twt-app-${CHART_VERSION}.tgz" \
-            "${HELM_REGISTRY_REPOSITORY}"
+          helm package ./helm/twt-app --version "$CHART_VERSION" --destination "$package_dir"
+          helm push "$package_dir/twt-app-$CHART_VERSION.tgz" "$HELM_REGISTRY_REPOSITORY"

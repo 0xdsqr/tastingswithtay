@@ -23,7 +23,7 @@ import { SiteHeader } from "../../components/site-header"
 export const Route = createFileRoute("/test-kitchen/$slug")({
   loader: async ({ context, params }) => {
     const experiment = await context.queryClient.fetchQuery(
-      context.trpc.experiments.bySlug.queryOptions({ slug: params.slug }),
+      context.api.experiments.bySlug(params.slug),
     )
     if (!experiment) {
       throw notFound()
@@ -274,9 +274,9 @@ function ExperimentDetailPage(): React.ReactElement {
                             </p>
 
                             {/* Entry images */}
-                            {entry.images && (entry.images as string[]).length > 0 && (
+                            {entry.images.length > 0 && (
                               <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                                {(entry.images as string[]).map((img, idx) => (
+                                {entry.images.map((img, idx) => (
                                   <div key={idx} className="overflow-hidden rounded-lg">
                                     <OptimizedImage
                                       src={img}

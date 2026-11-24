@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
-import type { Experiment } from "@twt/database/schema"
+import type { Experiment } from "@twt/core/domain/content"
 import {
   ArrowRight,
   Beaker,
@@ -10,7 +10,7 @@ import {
   Sparkles,
   Trophy,
 } from "lucide-react"
-import { z } from "zod"
+import { Schema } from "effect"
 import { EmptyState } from "../../components/empty-state"
 import { OptimizedImage } from "../../components/optimized-image"
 import { SiteFooter } from "../../components/site-footer"
@@ -59,14 +59,16 @@ export const Route = createFileRoute("/test-kitchen/")({
       },
     ],
   }),
-  validateSearch: z.object({ status: z.enum(experimentStatusValues).optional() }),
+  validateSearch: Schema.toStandardSchemaV1(
+    Schema.Struct({ status: Schema.optional(Schema.Literals(experimentStatusValues)) }),
+  ),
   loaderDeps: ({ search }) => ({ status: search.status }),
   loader: async ({ context, deps }) => {
-    const experiments = (await context.queryClient.fetchQuery(
-      context.trpc.experiments.list.queryOptions({
+    const experiments = await context.queryClient.fetchQuery(
+      context.api.experiments.list({
         status: deps.status,
       }),
-    )) as Experiment[]
+    )
     return { experiments, activeStatus: deps.status ?? "All" }
   },
   component: TestKitchenPage,

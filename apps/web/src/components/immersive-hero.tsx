@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router"
-import type { Recipe } from "@twt/database/schema"
+import type { Recipe } from "@twt/core/domain/content"
 import { Button } from "@twt/react/components/button"
 import { Eyebrow } from "@twt/react/components/section-header"
 import { ArrowDown, Clock, CookingPot, Users } from "lucide-react"
@@ -9,7 +9,7 @@ import type { HomeContent } from "../lib/site-content"
 import { OptimizedImage } from "./optimized-image"
 
 interface ImmersiveHeroProps {
-  recipes: Recipe[]
+  recipes: ReadonlyArray<Recipe>
   content: HomeContent
 }
 

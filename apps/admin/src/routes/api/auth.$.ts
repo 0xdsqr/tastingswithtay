@@ -1,19 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { limitRequestBody } from "@twt/core/http/request-body"
-import { auth } from "../../auth/server"
+import { auth } from "@twt/core/http/routes"
+import { runtime } from "../../server/runtime"
 
-const maxAuthBodyBytes = 64 * 1024
-
-const handler = async (request: Request): Promise<Response> => {
-  const limited = await limitRequestBody(request, maxAuthBodyBytes)
-  return limited instanceof Response ? limited : auth.handler(limited)
-}
+const handler = ({ request }: { request: Request }) => runtime.runPromise(auth(request))
 
 export const Route = createFileRoute("/api/auth/$")({
-  server: {
-    handlers: {
-      GET: ({ request }) => handler(request),
-      POST: ({ request }) => handler(request),
-    },
-  },
+  server: { handlers: { GET: handler, POST: handler } },
 })

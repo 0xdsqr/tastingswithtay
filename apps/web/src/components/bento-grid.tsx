@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router"
-import type { Recipe } from "@twt/database/schema"
+import type { Recipe } from "@twt/core/domain/content"
 import { Eyebrow, SectionHeader } from "@twt/react/components/section-header"
 import { ArrowRight, Clock, CookingPot, Flower2, Users, Wine } from "lucide-react"
 import type React from "react"
@@ -20,8 +20,8 @@ function BentoItem({ children, className = "" }: BentoItemProps): React.ReactEle
 }
 
 interface BentoGridProps {
-  recipes: Recipe[]
-  categories: string[]
+  recipes: ReadonlyArray<Recipe>
+  categories: ReadonlyArray<string>
   content: HomeContent
 }
 

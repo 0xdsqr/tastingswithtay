@@ -8,8 +8,8 @@ import { SiteHeader } from "../../components/site-header"
 export const Route = createFileRoute("/wine/$slug")({
   loader: async ({ context, params }) => {
     const [wine, relatedWines] = await Promise.all([
-      context.queryClient.fetchQuery(context.trpc.wines.bySlug.queryOptions({ slug: params.slug })),
-      context.queryClient.fetchQuery(context.trpc.wines.list.queryOptions({ limit: 3 })),
+      context.queryClient.fetchQuery(context.api.wines.bySlug(params.slug)),
+      context.queryClient.fetchQuery(context.api.wines.list({ limit: 3 })),
     ])
     if (!wine) {
       throw notFound()

@@ -16,7 +16,10 @@ export function stripCalloutMarker(value: string): string {
   return value.replace(calloutMarkerPattern, "").trim()
 }
 
-export function parseCalloutBlocks<T>(items: T[], getText: (item: T) => string): CalloutBlock<T>[] {
+export function parseCalloutBlocks<T>(
+  items: ReadonlyArray<T>,
+  getText: (item: T) => string,
+): CalloutBlock<T>[] {
   const blocks: CalloutBlock<T>[] = []
   let regularItems: T[] = []
   let calloutLines: string[] = []

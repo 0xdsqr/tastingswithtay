@@ -1,31 +1,22 @@
 import { QueryClient } from "@tanstack/react-query"
 import { createRouter } from "@tanstack/react-router"
+import { getGlobalStartContext } from "@tanstack/react-start"
 import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query"
-import { createTRPCOptionsProxy } from "@trpc/tanstack-react-query"
-import superjson from "superjson"
-import { TRPCProvider, trpc } from "./lib/trpc"
+import { api } from "./lib/api"
 import { routeTree } from "./routeTree.gen"
 
 export function getRouter() {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      dehydrate: { serializeData: superjson.serialize },
-      hydrate: { deserializeData: superjson.deserialize },
-    },
-  })
-
-  const trpcProxy = createTRPCOptionsProxy({
-    client: trpc,
-    queryClient,
-  })
+  const queryClient = new QueryClient()
 
   const router = createRouter({
     routeTree,
-    context: { queryClient, trpc: trpcProxy },
+    context: { queryClient, api },
     defaultPreload: "intent",
     scrollRestoration: true,
     defaultPreloadStaleTime: 0,
-    Wrap: (props) => <TRPCProvider trpcClient={trpc} queryClient={queryClient} {...props} />,
+    // Server-side: the per-request CSP nonce set in server.ts. In the browser the
+    // router reads it back from the `csp-nonce` meta tag.
+    ssr: { nonce: getGlobalStartContext()?.nonce },
   })
 
   setupRouterSsrQueryIntegration({
@@ -39,5 +30,6 @@ export function getRouter() {
 declare module "@tanstack/react-router" {
   interface Register {
     router: ReturnType<typeof getRouter>
+    server: { requestContext: { nonce: string } }
   }
 }
