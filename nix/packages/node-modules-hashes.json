@@ -1,7 +1,7 @@
 {
   "aarch64-darwin": "sha256-L5OE0ubOE6ASgxrF97ffmajptHYwhq7k2HOR1Aqp8I0=",
-  "aarch64-linux": "sha256-WD65mKUb57kaOCdEBOK9P2momN1JoEj1pj5JfeYnhsA=",
+  "aarch64-linux": "sha256-ysWmKOzePnyVwbKt7SQnQT4iekoNd1PNs/QgvDsqEVk=",
   "x86_64-darwin": "sha256-ooCVWU9IDFXVHZ+OHRw+iNVqEvdi8UH623obxN/YcIs=",
-  "x86_64-linux": "sha256-RSBSIc/1rRQv5elorNxZeEXDgFebTmXpJ6A3/WCBrtY=",
+  "x86_64-linux": "sha256-TM3Q36DKVvMzCnsFriM56gMuLnKvfJZ1ulR1teYCcMc=",
   "otel-runtime": "sha256-h+zqLaKa0fD8F+Hv5rS+YoVCzVTDI+Do/K6EX846I78="
 }
