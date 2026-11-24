@@ -21,4 +21,18 @@ spec:
       backendRefs:
         - name: {{ .Release.Name }}
           port: 80
+      {{- if .Values.route.cloudflareClientIP }}
+      # Envoy format strings overwrite client-supplied proxy headers using the
+      # authoritative Cloudflare header. Only trusted connectors may reach Envoy.
+      filters:
+        - type: RequestHeaderModifier
+          requestHeaderModifier:
+            set:
+              - name: X-Real-IP
+                value: "%REQ(CF-Connecting-IP)%"
+              - name: X-Forwarded-For
+                value: "%REQ(CF-Connecting-IP)%"
+            remove:
+              - Forwarded
+      {{- end }}
 {{- end }}

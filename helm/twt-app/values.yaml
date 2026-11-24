@@ -42,6 +42,8 @@ externalFQDNs: []
 
 route:
   enabled: false
+  # Enable only behind a trusted Cloudflare connector, with direct ingress restricted.
+  cloudflareClientIP: false
   parentRef:
     name: shared
     namespace: gateway-system

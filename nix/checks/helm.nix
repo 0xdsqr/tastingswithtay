@@ -67,6 +67,18 @@ stdenvNoCC.mkDerivation {
       grep -E 'image: "ghcr\.io/0xdsqr/tastingswithtay-(web|admin)@sha256:[a-f0-9]{64}"' "$rendered" >/dev/null
       grep -F 'name: NODE_EXTRA_CA_CERTS' "$rendered" >/dev/null
       grep -F 'name: PGSSLROOTCERT' "$rendered" >/dev/null
+      if grep -F 'CF-Connecting-IP' "$rendered" >/dev/null; then
+        echo "Cloudflare header trust must be opt-in" >&2
+        exit 1
+      fi
+      helm template "$release" helm/twt-app \
+        --namespace twt \
+        -f "helm/twt-app/values-$application.yaml" \
+        -f "helm/twt-app/ci/values-$application.yaml" \
+        --set route.cloudflareClientIP=true >"$rendered"
+      grep -F 'value: "%REQ(CF-Connecting-IP)%"' "$rendered" >/dev/null
+      grep -F 'name: X-Real-IP' "$rendered" >/dev/null
+      grep -F 'name: X-Forwarded-For' "$rendered" >/dev/null
     }
 
     validate_indigo_release web
