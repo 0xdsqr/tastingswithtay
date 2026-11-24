@@ -42,10 +42,32 @@ jobs:
           cd tooling/otel-runtime
           nix develop ../.. --command bun audit --audit-level=high
 
+  # The dependency tree is a fixed-output derivation with one hash per platform.
+  # Building it on arm64 here surfaces a stale hash in the pull request rather
+  # than in the image jobs after merge.
+  dependencies-arm64:
+    name: Dependency hash (arm64)
+    runs-on: ubuntu-24.04-arm
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install Nix
+        uses: DeterminateSystems/determinate-nix-action@4b040423529d49b1a19ba918742e0aa9aa95031a # v3.24.3
+
+      - name: Cache Nix builds
+        uses: DeterminateSystems/magic-nix-cache-action@84c0677f58dcedf3b91f8223ce36a9ea5b3c84b7 # v15
+        with:
+          use-flakehub: false
+
+      - name: Build dependency tree
+        run: nix build .#node-modules .#otel-runtime --no-link --print-build-logs
+
   image:
     name: Publish ${{ matrix.app }} image (${{ matrix.arch }})
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-    needs: check
+    needs: [check, dependencies-arm64]
     runs-on: ${{ matrix.runner }}
     permissions:
       contents: read
@@ -93,10 +115,22 @@ jobs:
       - name: Push image
         shell: nix develop .#ci --command bash -euo pipefail {0}
         run: |
+          reference="${IMAGE}:sha-${GITHUB_SHA}-${{ matrix.arch }}"
           skopeo copy \
             --dest-creds "${REGISTRY_USERNAME}:${REGISTRY_PASSWORD}" \
             docker-archive:image.tar \
-            "docker://${IMAGE}:sha-${GITHUB_SHA}-${{ matrix.arch }}"
+            "docker://${reference}"
+          printf '%s' "$REGISTRY_PASSWORD" \
+            | regctl registry login ghcr.io --user "$REGISTRY_USERNAME" --pass-stdin
+          mkdir -p digests
+          regctl image digest "$reference" >"digests/${{ matrix.app }}-${{ matrix.arch }}"
+
+      - name: Upload digest
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: digest-${{ matrix.app }}-${{ matrix.arch }}
+          path: digests/${{ matrix.app }}-${{ matrix.arch }}
+          if-no-files-found: error
 
   manifest:
     name: Publish ${{ matrix.app }} manifest
@@ -112,6 +146,7 @@ jobs:
       matrix:
         app: [web, admin]
     env:
+      APP: ${{ matrix.app }}
       IMAGE: ghcr.io/${{ github.repository_owner }}/tastingswithtay-${{ matrix.app }}
       REGISTRY_USERNAME: ${{ github.repository_owner }}
       REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
@@ -128,17 +163,38 @@ jobs:
         with:
           use-flakehub: false
 
+      - name: Download architecture digests
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: digest-${{ matrix.app }}-*
+          path: digests
+          merge-multiple: true
+
       - name: Publish multi-architecture manifest
         id: manifest
         shell: nix develop .#ci --command bash -euo pipefail {0}
         run: |
           tag="sha-${GITHUB_SHA}"
+          amd64="$(cat "digests/$APP-amd64")"
+          arm64="$(cat "digests/$APP-arm64")"
           printf '%s' "$REGISTRY_PASSWORD" \
             | regctl registry login ghcr.io --user "$REGISTRY_USERNAME" --pass-stdin
           regctl index create "$IMAGE:$tag" \
-            --ref "$IMAGE:$tag-amd64" \
-            --ref "$IMAGE:$tag-arm64"
-          printf 'digest=%s\n' "$(regctl image digest "$IMAGE:$tag")" >>"$GITHUB_OUTPUT"
+            --ref "$IMAGE@$amd64" \
+            --ref "$IMAGE@$arm64"
+          digest="$(regctl image digest "$IMAGE:$tag")"
+          printf 'digest=%s\n' "$digest" >>"$GITHUB_OUTPUT"
+
+          # The record the deployment promotion verifies: one immutable reference per release.
+          mkdir -p record
+          jq -n \
+            --arg image "$IMAGE" \
+            --arg digest "$digest" \
+            --arg amd64 "$amd64" \
+            --arg arm64 "$arm64" \
+            --arg commit "$GITHUB_SHA" \
+            '{image: $image, digest: $digest, ref: "\($image)@\($digest)", tags: ["sha-\($commit)"], platforms: {"linux/amd64": $amd64, "linux/arm64": $arm64}, commit: $commit}' \
+            >"record/twt-$APP.json"
 
       - name: Attest build provenance
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
@@ -146,3 +202,45 @@ jobs:
           subject-name: ${{ env.IMAGE }}
           subject-digest: ${{ steps.manifest.outputs.digest }}
           push-to-registry: true
+
+      - name: Upload digest record
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: record-twt-${{ matrix.app }}
+          path: record/twt-${{ matrix.app }}.json
+          if-no-files-found: error
+
+  record:
+    name: Record image digests
+    needs: manifest
+    runs-on: ubuntu-24.04
+    permissions: {}
+
+    steps:
+      - name: Download digest records
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: record-twt-*
+          path: record
+          merge-multiple: true
+
+      # Keyed by deployment application name (twt-web, twt-admin).
+      - name: Write images.json
+        run: |
+          jq -s 'map({("twt-" + (.image | split("-") | last)): .}) | add' record/*.json >images.json
+          {
+            echo "## Published images"
+            echo
+            echo "Commit \`$GITHUB_SHA\`"
+            echo
+            echo "| Application | Immutable reference |"
+            echo "| --- | --- |"
+            jq -r 'to_entries[] | "| \(.key) | `\(.value.ref)` |"' images.json
+          } >>"$GITHUB_STEP_SUMMARY"
+
+      - name: Upload images.json
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: image-digests
+          path: images.json
+          if-no-files-found: error

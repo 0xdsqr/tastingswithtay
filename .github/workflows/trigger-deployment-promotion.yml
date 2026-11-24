@@ -1,0 +1,61 @@
+name: Trigger deployment promotion
+
+on:
+  # Deliberate: this workflow never checks out or executes source content, gates on a
+  # successful same-repository master run, and the receiver revalidates the run and commit.
+  workflow_run:
+    workflows:
+      - Check
+    types:
+      - completed
+
+permissions: {}
+
+concurrency:
+  group: deployment-promotion-${{ github.event.workflow_run.head_sha }}
+  cancel-in-progress: false
+
+jobs:
+  dispatch:
+    name: Dispatch ${{ matrix.app }} promotion
+    # Inert until the promotion trigger app is configured for this repository.
+    if: >-
+      vars.PROMOTION_TRIGGER_APP_CLIENT_ID != '' &&
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'master' &&
+      github.event.workflow_run.head_repository.full_name == github.repository &&
+      github.event.workflow_run.event == 'push'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [twt-web, twt-admin]
+
+    steps:
+      - name: Create trigger-only token
+        id: trigger
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.0.0
+        with:
+          client-id: ${{ vars.PROMOTION_TRIGGER_APP_CLIENT_ID }}
+          private-key: ${{ secrets.PROMOTION_TRIGGER_APP_PRIVATE_KEY }}
+          owner: dsqr-labs
+          repositories: deployments
+          permission-actions: write
+
+      - name: Dispatch private receiver
+        env:
+          APP: ${{ matrix.app }}
+          GH_TOKEN: ${{ steps.trigger.outputs.token }}
+          SOURCE_RUN_ID: ${{ github.event.workflow_run.id }}
+          SOURCE_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          set -euo pipefail
+          [[ "$SOURCE_SHA" =~ ^[a-f0-9]{40}$ ]]
+          [[ "$SOURCE_RUN_ID" =~ ^[1-9][0-9]*$ ]]
+          gh workflow run promote.yml \
+            --repo dsqr-labs/deployments \
+            --ref master \
+            -f app="$APP" \
+            -f source_sha="$SOURCE_SHA" \
+            -f source_run_id="$SOURCE_RUN_ID"

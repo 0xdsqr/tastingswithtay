@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 # Recomputes the fixed-output hashes in nix/packages/node-modules-hashes.json
 # after a lockfile change. Run from the dev shell: `./nix/update-hashes.sh`.
+#
+# Bun resolves a slightly different tree for Linux targets when it runs on
+# Linux, so the two Linux hashes computed on macOS are only a first guess: CI
+# builds the tree on both Linux architectures and prints the right hash on a
+# mismatch. Run this on Linux to get them exactly.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
